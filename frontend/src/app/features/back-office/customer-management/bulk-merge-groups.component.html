@@ -1,0 +1,47 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Bulk Merge Groups</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Select three or more groups, choose which one survives, and merge them all in a single action.</p>
+</div>
+
+@if (done()) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">check_circle</span> {{ selectedCount() - 1 }} groups merged. Redirecting...
+  </div>
+} @else {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+    <table class="w-full text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold w-10"></th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Group</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Members</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">AUM</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-center">Survivor</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (s of boService.groupSummaries(); track s.group.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4"><input type="checkbox" [checked]="selectedIds().has(s.group.id)" (change)="toggle(s.group.id)" /></td>
+            <td class="py-3 px-4 font-medium text-on-background">{{ s.group.name }}</td>
+            <td class="py-3 px-4">{{ s.memberCount }}</td>
+            <td class="py-3 px-4 text-right font-mono">{{ s.totalAum | inrCompact }}</td>
+            <td class="py-3 px-4 text-center">
+              @if (selectedIds().has(s.group.id)) {
+                <input type="radio" name="survivor" [checked]="survivorId() === s.group.id" (change)="survivorId.set(s.group.id)" />
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <button
+    class="bg-primary-container text-on-primary px-5 py-2.5 rounded-md hover:opacity-90 transition-opacity text-sm font-medium disabled:opacity-40"
+    [disabled]="!canMerge()"
+    (click)="mergeAll()"
+  >
+    Merge Selected ({{ selectedCount() }})
+  </button>
+}

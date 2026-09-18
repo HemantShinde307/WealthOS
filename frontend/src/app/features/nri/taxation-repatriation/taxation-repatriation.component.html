@@ -1,0 +1,180 @@
+@if (selectedView(); as view) {
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background mb-2">NRI Taxation &amp; Repatriation Planner</h2>
+    <p class="text-on-surface-variant text-body-md max-w-3xl">Calculate DTAA benefits, estimate TDS refunds, and manage the 15CA/CB documentation workflow for cross-border fund repatriation.</p>
+  </div>
+
+  <!-- Client switcher -->
+  <div class="flex flex-wrap gap-2">
+    @for (v of nri.views(); track v.client.id) {
+      <button
+        class="px-3 py-1.5 rounded-full text-sm font-medium border transition-colors"
+        [class]="v.client.id === view.client.id ? 'bg-primary-container text-on-primary border-primary-container' : 'bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:bg-surface-container-low'"
+        (click)="selectClient(v.client.id)"
+      >
+        {{ v.profile.countryFlag }} {{ v.client.name }}
+      </button>
+    }
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Left column -->
+    <div class="lg:col-span-8 flex flex-col gap-6">
+      <!-- Client context -->
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6">
+        <h3 class="text-title-lg mb-4 flex items-center gap-2 border-b border-outline-variant pb-2">
+          <span class="material-symbols-outlined text-secondary">person</span>
+          Client Repatriation Context
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div>
+            <label class="block text-label-caps text-on-surface-variant mb-1 uppercase">Client Name</label>
+            <input class="w-full p-2 text-sm border border-outline-variant rounded bg-surface-container-low" readonly type="text" [value]="view.client.name + ' (NRE/NRO)'" />
+          </div>
+          <div>
+            <label class="block text-label-caps text-on-surface-variant mb-1 uppercase">Country of Residence</label>
+            <select class="w-full p-2 text-sm border border-outline-variant rounded bg-surface-container-lowest focus:ring-1 focus:ring-secondary" [value]="effectiveCountry()" (change)="onCountryChange($event)">
+              @for (t of nri.dtaaTreaties; track t.country) {
+                <option [value]="t.country">{{ t.flag }} {{ t.country }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="block text-label-caps text-on-surface-variant mb-1 uppercase">Repatriation Amount (INR)</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">₹</span>
+              <input class="w-full pl-8 p-2 text-sm border border-outline-variant rounded bg-surface-container-lowest font-mono text-right" type="text" [value]="repatriationAmount() | number" (change)="onAmountChange($event)" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-label-caps text-on-surface-variant mb-1 uppercase">Asset Class Origin</label>
+            <select class="w-full p-2 text-sm border border-outline-variant rounded bg-surface-container-lowest focus:ring-1 focus:ring-secondary" (change)="onAssetClassChange($event)">
+              @for (a of nri.assetClasses; track a.label; let i = $index) {
+                <option [value]="i">{{ a.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- DTAA simulator -->
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6">
+        <h3 class="text-title-lg mb-4 flex items-center gap-2 border-b border-outline-variant pb-2">
+          <span class="material-symbols-outlined text-secondary">calculate</span>
+          Taxation &amp; DTAA Simulator
+        </h3>
+        @if (treaty(); as t) {
+          <div class="flex items-center gap-2 mb-4 p-3 bg-surface-container-low rounded border border-outline-variant">
+            <span class="material-symbols-outlined text-success">verified_user</span>
+            <span class="text-body-sm text-on-surface">DTAA Agreement Active: India &ndash; {{ t.country }}. {{ t.requiresTrc ? 'Tax Residency Certificate (TRC) required for benefit.' : '' }}</span>
+          </div>
+        } @else {
+          <div class="flex items-center gap-2 mb-4 p-3 bg-error-container/40 rounded border border-error/20">
+            <span class="material-symbols-outlined text-error">error_outline</span>
+            <span class="text-body-sm text-on-surface">No DTAA treaty on file for this jurisdiction &mdash; standard domestic TDS rates apply.</span>
+          </div>
+        }
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b-2 border-primary text-on-surface-variant text-label-caps uppercase">
+                <th class="py-2 px-3 font-semibold">Component</th>
+                <th class="py-2 px-3 font-semibold text-right">Standard TDS Rate</th>
+                <th class="py-2 px-3 font-semibold text-right">DTAA Benefit Rate</th>
+                <th class="py-2 px-3 font-semibold text-right">Estimated Tax (INR)</th>
+              </tr>
+            </thead>
+            <tbody class="font-mono text-sm">
+              <tr class="border-b border-outline-variant hover:bg-surface-container-low">
+                <td class="py-3 px-3 font-sans text-on-surface">Base {{ assetClass().kind === 'interest' ? 'Interest Income' : 'Capital Gains' }}</td>
+                <td class="py-3 px-3 text-right">{{ assetClass().standardRate | number: '1.2-2' }}%</td>
+                <td class="py-3 px-3 text-right text-on-tertiary-container font-bold">{{ dtaaRate() | number: '1.2-2' }}%</td>
+                <td class="py-3 px-3 text-right">₹ {{ calc().dtaaTax | number: '1.0-0' }}</td>
+              </tr>
+              <tr class="border-b border-outline-variant bg-surface-container-low/50">
+                <td class="py-3 px-3 font-sans text-on-surface">Surcharge</td>
+                <td class="py-3 px-3 text-right">15.00%</td>
+                <td class="py-3 px-3 text-right text-on-tertiary-container font-bold">{{ treaty() ? '0.00' : '15.00' }}%</td>
+                <td class="py-3 px-3 text-right">₹ {{ (treaty() ? 0 : calc().surcharge) | number: '1.0-0' }}</td>
+              </tr>
+              <tr class="border-b border-outline-variant hover:bg-surface-container-low">
+                <td class="py-3 px-3 font-sans text-on-surface">Health &amp; Education Cess</td>
+                <td class="py-3 px-3 text-right">4.00%</td>
+                <td class="py-3 px-3 text-right text-on-tertiary-container font-bold">{{ treaty() ? '0.00' : '4.00' }}%</td>
+                <td class="py-3 px-3 text-right">₹ {{ (treaty() ? 0 : calc().cess) | number: '1.0-0' }}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="font-bold text-on-surface border-t-2 border-outline-variant">
+                <td class="py-3 px-3 font-sans">Effective Tax Burden</td>
+                <td class="py-3 px-3 text-right">{{ calc().effectiveStandardRatePct | number: '1.2-2' }}%</td>
+                <td class="py-3 px-3 text-right text-on-tertiary-container">{{ dtaaRate() | number: '1.2-2' }}%</td>
+                <td class="py-3 px-3 text-right text-lg">₹ {{ calc().dtaaTax | number: '1.0-0' }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="mt-4 flex justify-end gap-3">
+          <div class="text-right">
+            <p class="text-label-caps text-on-surface-variant uppercase">Potential TDS Refund</p>
+            <p class="text-title-lg text-success">₹ {{ calc().refund | number: '1.0-0' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div class="lg:col-span-4 flex flex-col gap-6">
+      <!-- Generate forms CTA -->
+      <div class="bg-primary text-on-primary rounded-xl p-6 shadow-md relative overflow-hidden">
+        <h3 class="text-title-lg mb-2 relative z-10">Generate Forms</h3>
+        <p class="text-body-sm opacity-90 mb-6 relative z-10">Draft Form 15CA (Self-Declaration) and request Form 15CB from an empaneled Chartered Accountant.</p>
+        <a routerLink="/nri/onboarding-compliance" class="w-full bg-on-primary text-primary py-2 rounded font-semibold text-sm hover:opacity-90 transition-opacity relative z-10 flex justify-center items-center gap-2">
+          <span class="material-symbols-outlined text-sm">edit_document</span>
+          Initiate 15CA/CB Workflow
+        </a>
+      </div>
+
+      <!-- USD 1M/year limit tracker -->
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6">
+        <h3 class="text-title-lg mb-2">LRS Repatriation Limit</h3>
+        <p class="text-body-sm text-on-surface-variant mb-4">RBI's USD 1M/year rule on NRO account repatriation, tracked per financial year.</p>
+        <div class="flex items-baseline justify-between mb-1">
+          <span class="font-mono text-lg font-bold text-on-background">${{ view.profile.repatriatedThisYearUsd | number }}</span>
+          <span class="text-xs text-on-surface-variant">of ${{ view.profile.annualRepatriationLimitUsd | number }}</span>
+        </div>
+        <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+          <div
+            class="h-full rounded-full"
+            [class]="(view.profile.repatriatedThisYearUsd / view.profile.annualRepatriationLimitUsd) > 0.8 ? 'bg-error' : 'bg-secondary-container'"
+            [style.width.%]="(view.profile.repatriatedThisYearUsd / view.profile.annualRepatriationLimitUsd) * 100"
+          ></div>
+        </div>
+        <p class="text-xs text-on-surface-variant mt-1">{{ ((view.profile.repatriatedThisYearUsd / view.profile.annualRepatriationLimitUsd) * 100) | number: '1.0-1' }}% of annual limit used this FY</p>
+      </div>
+
+      <!-- Repatriation timeline -->
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 flex-1">
+        <h3 class="text-title-lg mb-4 border-b border-outline-variant pb-2">Repatriation Tracker</h3>
+        <div class="relative pl-6 border-l-2 border-outline-variant space-y-6 mt-4">
+          @for (r of view.profile.repatriationHistory; track r.id) {
+            <div class="relative">
+              <span
+                class="absolute -left-[33px] rounded-full w-6 h-6 flex items-center justify-center border-2 border-surface-container-lowest text-on-primary"
+                [class]="r.status === 'Completed' ? 'bg-success' : r.status === 'Pending 15CA/CB' ? 'bg-secondary' : 'bg-surface-variant text-on-surface-variant'"
+              >
+                <span class="material-symbols-outlined text-[12px]">{{ r.status === 'Completed' ? 'check' : r.status === 'Pending 15CA/CB' ? 'schedule' : 'account_balance' }}</span>
+              </span>
+              <p class="font-semibold text-sm" [class]="r.status === 'Completed' ? 'text-on-surface' : 'text-secondary'">{{ r.purpose }}</p>
+              <p class="text-xs text-on-surface-variant mt-1">
+                {{ r.date | date: 'MMM d, y' }}
+                @if (r.amountUsd > 0) { &middot; ${{ r.amountUsd | number }} }
+                &middot; {{ r.status }}
+              </p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}

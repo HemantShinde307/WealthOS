@@ -1,0 +1,137 @@
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-outline-variant pb-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Regulatory &amp; Compliance</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Manage region-specific legal requirements and audit trails.</p>
+  </div>
+  <div class="w-full md:w-auto flex items-center gap-3 bg-surface-container-lowest border border-outline-variant rounded-lg p-1.5 pr-3 shadow-sm">
+    <div class="bg-surface-container p-2 rounded">
+      <span class="material-symbols-outlined text-primary text-[20px]">public</span>
+    </div>
+    <select
+      class="bg-transparent border-none outline-none text-body-md text-on-surface font-medium focus:ring-0 py-1 cursor-pointer w-full md:w-64"
+      [value]="selectedCode()"
+      (change)="selectJurisdiction($any($event.target).value)"
+    >
+      @for (j of jurisdictions; track j.code) {
+        <option [value]="j.code">{{ j.label }}</option>
+      }
+    </select>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+  <!-- Compliance status overview -->
+  <div class="md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col justify-between">
+    <div>
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-title-lg text-on-background">{{ selectedJurisdiction().regulator }} Status</h3>
+        @if (selectedJurisdiction().status === 'compliant') {
+          <span class="bg-on-tertiary-container/10 text-on-tertiary-container text-label-caps px-2 py-1 rounded uppercase">Compliant</span>
+        } @else {
+          <span class="bg-error-container text-on-error-container text-label-caps px-2 py-1 rounded uppercase">Action Required</span>
+        }
+      </div>
+      <div class="space-y-4">
+        <div class="flex justify-between items-center">
+          <span class="text-body-sm text-on-surface-variant">Overall Readiness</span>
+          <span class="font-mono text-on-background">{{ selectedJurisdiction().readinessPct }}%</span>
+        </div>
+        <div class="w-full bg-surface-variant rounded-full h-1.5">
+          <div class="bg-on-tertiary-container h-1.5 rounded-full" [style.width.%]="selectedJurisdiction().readinessPct"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mt-6">
+          <div class="bg-surface-container p-3 rounded-lg">
+            <span class="block text-label-caps text-on-surface-variant mb-1 uppercase">Pending UBO</span>
+            <span class="font-mono text-primary text-lg">{{ selectedJurisdiction().pendingUbo }}</span>
+          </div>
+          <div class="bg-surface-container p-3 rounded-lg">
+            <span class="block text-label-caps text-on-surface-variant mb-1 uppercase">Risk Alerts</span>
+            <span class="font-mono text-error text-lg">{{ selectedJurisdiction().riskAlerts }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="w-full mt-6 bg-surface border border-outline-variant text-on-surface py-2 rounded-lg text-label-md hover:bg-surface-container-high transition-colors">
+      Generate Audit Report
+    </button>
+  </div>
+
+  <!-- Checklist -->
+  <div class="md:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col">
+    <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low/50">
+      <h3 class="text-title-lg text-on-background">Mandatory Verification Standards</h3>
+      <button class="text-secondary text-label-md hover:underline">Edit Logic</button>
+    </div>
+    <div class="divide-y divide-outline-variant overflow-y-auto max-h-[420px]">
+      @for (req of requirements(); track req.id) {
+        <div class="p-4 flex items-start gap-4 hover:bg-surface-bright transition-colors" [class]="req.status === 'action-required' ? 'bg-error-container/30' : ''">
+          <div class="mt-0.5" [class]="statusColor[req.status]">
+            <span class="material-symbols-outlined">{{ statusIcon[req.status] }}</span>
+          </div>
+          <div class="flex-1">
+            <h4 class="text-body-md font-semibold text-on-background">{{ req.title }}</h4>
+            <p class="text-body-sm text-on-surface-variant mt-1">{{ req.description }}</p>
+            @if (req.tags.length) {
+              <div class="flex gap-2 mt-2">
+                @for (tag of req.tags; track tag) {
+                  <span class="bg-surface-container text-on-surface text-[10px] uppercase font-bold px-1.5 py-0.5 rounded">{{ tag }}</span>
+                }
+              </div>
+            }
+          </div>
+          <div class="text-right shrink-0">
+            @if (req.status === 'action-required') {
+              <button class="text-secondary text-label-md border border-outline-variant px-3 py-1 rounded bg-surface hover:bg-surface-container">Review</button>
+            } @else if (req.ruleVersion) {
+              <span class="block text-label-caps text-on-surface-variant uppercase">Active Rule</span>
+              <span class="font-mono text-on-background">{{ req.ruleVersion }}</span>
+            } @else {
+              <span class="block text-label-caps text-on-surface-variant uppercase">Last Updated</span>
+              <span class="font-mono text-on-background">{{ req.lastUpdated | date: 'MMM d, y' }}</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Documents -->
+  <div class="md:col-span-6 bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-title-lg text-on-background">Required Documentation</h3>
+      <button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined">add_circle</span></button>
+    </div>
+    <div class="space-y-3">
+      @for (doc of documents(); track doc.id) {
+        <div class="flex items-center justify-between p-3 border border-outline-variant rounded-lg bg-surface hover:border-secondary transition-colors cursor-pointer">
+          <div class="flex items-center gap-3">
+            <div class="bg-surface-container p-2 rounded text-on-surface-variant">
+              <span class="material-symbols-outlined">{{ doc.icon }}</span>
+            </div>
+            <div>
+              <span class="block text-body-md font-medium text-on-background">{{ doc.name }}</span>
+              <span class="block text-body-sm text-on-surface-variant">{{ doc.note }}</span>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant text-[20px]">more_vert</span>
+        </div>
+      } @empty {
+        <p class="text-body-sm text-on-surface-variant">No documents configured for this jurisdiction yet.</p>
+      }
+    </div>
+  </div>
+
+  <!-- Risk rating logic -->
+  <div class="md:col-span-6 bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-title-lg text-on-background">Risk Rating Logic</h3>
+      <span class="bg-surface-container text-on-surface-variant text-label-caps px-2 py-1 rounded border border-outline-variant uppercase">Live</span>
+    </div>
+    <pre class="bg-surface-container-low p-4 rounded-lg font-mono text-[12px] leading-relaxed text-on-background border border-outline-variant overflow-x-auto whitespace-pre-wrap">{{ selectedJurisdiction().riskRatingLogic }}</pre>
+    <div class="mt-4 flex justify-end">
+      <button class="text-secondary text-label-md flex items-center gap-1 hover:underline">
+        <span class="material-symbols-outlined text-[16px]">edit_note</span> Edit Logic
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,100 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Clients</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">{{ filteredClients().length }} of {{ clientService.clients().length }} clients</p>
+  </div>
+  <button class="flex items-center gap-2 bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium">
+    <span class="material-symbols-outlined text-[18px]">person_add</span>
+    New Client
+  </button>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm flex flex-col gap-4">
+  <div class="relative">
+    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+    <input
+      class="pl-10 pr-4 py-2 border border-outline-variant rounded-md bg-surface-container-lowest text-sm focus:outline-none focus:border-primary w-full max-w-sm"
+      placeholder="Search clients by name or email..."
+      type="text"
+      [value]="search()"
+      (input)="search.set($any($event.target).value)"
+    />
+  </div>
+  <div class="flex flex-wrap gap-2">
+    @for (s of segments; track s) {
+      <button
+        class="px-3 py-1 rounded-full text-xs font-medium border transition-colors"
+        [class]="segmentFilter() === s ? 'bg-primary-container text-on-primary border-primary-container' : 'bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:bg-surface-container-low'"
+        (click)="segmentFilter.set(s)"
+      >
+        {{ s }}
+      </button>
+    }
+    <span class="w-px bg-outline-variant mx-1"></span>
+    @for (k of kycStatuses; track k) {
+      <button
+        class="px-3 py-1 rounded-full text-xs font-medium border transition-colors"
+        [class]="kycFilter() === k ? 'bg-secondary text-on-secondary border-secondary' : 'bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:bg-surface-container-low'"
+        (click)="kycFilter.set(k)"
+      >
+        {{ k }}
+      </button>
+    }
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden flex flex-col">
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[900px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="sticky-col py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold border-r border-outline-variant/50">Client</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Segment</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">KYC Status</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Risk Profile</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Total AUM</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Joined</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (c of filteredClients(); track c.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors group">
+            <td class="sticky-col py-3 px-4 border-r border-outline-variant/50 bg-surface-container-lowest">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold text-xs shrink-0">
+                  {{ initials(c.name) }}
+                </div>
+                <div>
+                  <div class="font-medium text-on-background">{{ c.name }}</div>
+                  <div class="text-xs text-on-surface-variant">{{ c.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="py-3 px-4"><span class="bg-surface-container-low text-on-surface px-2 py-0.5 rounded text-xs">{{ c.segment }}</span></td>
+            <td class="py-3 px-4">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium" [class]="kycClasses(c.kycStatus)">
+                <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                {{ c.kycStatus }}
+              </span>
+            </td>
+            <td class="py-3 px-4">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium" [class]="riskClasses(c.riskProfile)">{{ c.riskProfile }}</span>
+            </td>
+            <td class="py-3 px-4 text-right font-mono font-medium">{{ c.aum | inrCompact }}</td>
+            <td class="py-3 px-4 text-on-surface-variant text-sm">{{ c.joinedOn }}</td>
+            <td class="py-3 px-4 text-right">
+              <a [routerLink]="['/advisor/clients', c.id]" class="inline-flex items-center gap-1 text-secondary font-medium text-sm hover:underline">
+                View <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+              </a>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="py-10 text-center text-on-surface-variant">No clients match the current filters.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

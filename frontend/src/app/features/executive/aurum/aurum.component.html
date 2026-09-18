@@ -1,0 +1,77 @@
+<div>
+  <h1 class="text-headline-lg text-gold mb-1">Aurum — Gold Business</h1>
+  <p class="text-body-lg text-on-surface-variant">Digital gold &amp; gold SIP portfolio, platform-wide.</p>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="bg-surface-container-lowest border border-gold/30 p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Total Gold AUM</span>
+    <span class="font-mono text-headline-lg text-gold">{{ totalGoldAumValue() | inrCompact }}</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Gold Held (Grams)</span>
+    <span class="font-mono text-headline-lg text-on-surface">{{ summary.totalGoldAumGrams | number: '1.0-0' }} g</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Active Gold SIPs</span>
+    <span class="font-mono text-headline-lg text-on-surface">{{ summary.activeGoldSipInvestors | number }}</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Current Rate</span>
+    <span class="font-mono text-headline-lg text-on-surface">₹{{ goldRate | number }}/g</span>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
+    <h3 class="text-label-caps text-on-surface uppercase tracking-wider mb-6">Gold AUM Trend (6 Months)</h3>
+    <div class="flex items-end gap-3 h-40">
+      @for (t of trend; track t.month) {
+        <div class="flex-1 flex flex-col items-center justify-end gap-2 h-full">
+          <div class="w-full bg-gold/70 rounded-t" [style.height.%]="(t.aumGrams / maxTrend) * 100"></div>
+          <span class="text-xs text-on-surface-variant font-mono">{{ t.month }}</span>
+        </div>
+      }
+    </div>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col justify-center gap-4">
+    <div>
+      <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Total Digital Gold Investors</span>
+      <p class="font-mono text-title-lg text-on-surface mt-1">{{ summary.totalDigitalGoldInvestors | number }}</p>
+    </div>
+    <div>
+      <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Avg. Holding / Investor</span>
+      <p class="font-mono text-title-lg text-on-surface mt-1">{{ summary.avgHoldingGramsPerInvestor }} g</p>
+    </div>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  <div class="p-6 border-b border-outline-variant">
+    <h3 class="text-title-lg text-on-background">Recent Gold Transactions</h3>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[600px] text-left border-collapse">
+      <thead class="bg-surface-container-high border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider">Client</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider">Type</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider text-right">Amount</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider text-right">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (t of goldTransactions(); track t.id) {
+          <tr class="hover:bg-surface-container-high/50 transition-colors">
+            <td class="py-3 px-4">{{ t.clientName }}</td>
+            <td class="py-3 px-4 text-gold">{{ t.type }}</td>
+            <td class="py-3 px-4 text-right font-mono">₹{{ t.amount | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-right text-body-sm text-on-surface-variant">{{ t.status }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="4" class="py-6 px-4 text-center text-on-surface-variant">No gold transactions recorded yet.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

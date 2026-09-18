@@ -1,0 +1,153 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Global Institutional Master Dashboard</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Executive summary across all active jurisdictions.</p>
+  </div>
+</div>
+
+<!-- Hero: Global AUM -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
+    <div>
+      <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Global Assets Under Management</p>
+      <div class="font-mono text-4xl md:text-5xl font-bold text-on-background">{{ totalAum }}</div>
+      <div class="flex items-center gap-2 mt-2">
+        <span class="material-symbols-outlined text-on-tertiary-container text-[18px]">trending_up</span>
+        <span class="font-mono text-sm text-on-tertiary-container">{{ aumChangeLabel }}</span>
+      </div>
+    </div>
+    <div class="flex gap-2 bg-surface-container-low p-1 rounded-md">
+      @for (r of timeRanges; track r) {
+        <button
+          class="px-3 py-1.5 rounded text-xs font-medium transition-colors"
+          [class]="r === selectedRange ? 'bg-surface-container-lowest shadow-sm text-on-background' : 'text-on-surface-variant hover:bg-surface-container-lowest'"
+          (click)="selectedRange = r"
+        >
+          {{ r }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="h-56 w-full bg-surface-container-low rounded-lg border border-outline-variant/50 flex items-center justify-center mb-6">
+    <span class="text-on-surface-variant text-sm">Primary Trendline Chart Area</span>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    @for (region of regions; track region.label) {
+      <div class="p-4 bg-surface-container-low rounded-lg border border-outline-variant/50 flex flex-col">
+        <span class="text-label-md text-on-surface-variant mb-1">{{ region.label }}</span>
+        <span class="text-title-lg font-mono text-on-background mb-2">{{ region.amountLabel }}</span>
+        <div class="w-full bg-surface-variant h-1.5 rounded-full overflow-hidden mt-auto">
+          <div class="h-full rounded-full" [style.width.%]="region.widthPct" [style.background]="'var(' + region.colorVar + ')'"></div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- Left / Middle: Market Performance + Regional Operations -->
+  <div class="lg:col-span-2 flex flex-col gap-6">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+      <h3 class="text-title-lg text-on-background mb-4">Market Performance</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        @for (idx of indices; track idx.name) {
+          <div class="bg-surface-container-low p-3 rounded-lg border-l-2" [class]="idx.changePct >= 0 ? 'border-l-tertiary-container' : 'border-l-error'">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-semibold text-on-surface">{{ idx.name }}</span>
+              <span class="font-mono text-xs" [class]="idx.changePct >= 0 ? 'text-on-tertiary-container' : 'text-error'">
+                {{ idx.changePct >= 0 ? '+' : '' }}{{ idx.changePct }}%
+              </span>
+            </div>
+            <div class="font-mono text-lg text-on-background">{{ idx.value }}</div>
+            <div class="text-xs text-on-surface-variant mt-1">Portfolio Impact: {{ idx.portfolioImpactPct >= 0 ? '+' : '' }}{{ idx.portfolioImpactPct }}%</div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden flex flex-col">
+      <div class="p-6 border-b border-outline-variant flex justify-between items-center">
+        <h3 class="text-title-lg text-on-background">Regional Operations</h3>
+        <button class="text-secondary font-medium text-sm hover:underline">View All</button>
+      </div>
+      <div class="overflow-x-auto table-scroll">
+        <table class="w-full text-left border-collapse min-w-[500px]">
+          <thead class="bg-surface-container-low border-b border-outline-variant">
+            <tr>
+              <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Jurisdiction</th>
+              <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+              <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Active Entities</th>
+              <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Pending Tasks</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+            @for (op of operations; track op.jurisdiction) {
+              <tr class="hover:bg-surface-container-low/50 transition-colors">
+                <td class="py-3 px-4">{{ op.jurisdiction }}</td>
+                <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-xs font-semibold" [class]="statusClass(op.status)">{{ op.status }}</span></td>
+                <td class="py-3 px-4 text-right font-mono">{{ op.activeEntities | number }}</td>
+                <td class="py-3 px-4 text-right font-mono" [class.text-error]="op.pendingTasks > 15" [class.font-bold]="op.pendingTasks > 15">{{ op.pendingTasks }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Institutional Health + Recent Activity -->
+  <div class="flex flex-col gap-6">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+      <h3 class="text-title-lg text-on-background mb-4">Institutional Health</h3>
+      <div class="space-y-4">
+        <div>
+          <div class="flex justify-between items-end mb-1">
+            <span class="text-sm text-on-surface-variant">Total Clients</span>
+            <span class="font-mono text-lg text-on-background">{{ totalClients | number }}</span>
+          </div>
+          <div class="w-full bg-surface-variant h-1 rounded-full overflow-hidden">
+            <div class="bg-on-background h-full rounded-full" style="width: 100%"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex justify-between items-end mb-1">
+            <span class="text-sm text-on-surface-variant">Active Onboarding</span>
+            <span class="font-mono text-lg text-secondary">{{ activeOnboarding }}</span>
+          </div>
+          <div class="w-full bg-surface-variant h-1 rounded-full overflow-hidden">
+            <div class="bg-secondary h-full rounded-full" style="width: 65%"></div>
+          </div>
+        </div>
+        <div class="p-3 bg-error-container rounded-lg flex items-start gap-3 mt-2">
+          <span class="material-symbols-outlined text-error">warning</span>
+          <div>
+            <h4 class="text-sm font-semibold text-on-error-container">Compliance Alerts (3)</h4>
+            <p class="text-xs text-on-error-container/80 mt-1">Action required for MAS regulatory updates in Singapore region.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg flex-1 flex flex-col shadow-sm">
+      <div class="p-6 border-b border-outline-variant">
+        <h3 class="text-title-lg text-on-background">Recent Global Activity</h3>
+      </div>
+      <div class="p-6 space-y-4">
+        @for (item of activity; track item.title + item.time) {
+          <div class="flex gap-3">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0" [class]="toneIconClass(item.tone)">
+              <span class="material-symbols-outlined text-[16px]">{{ item.icon }}</span>
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm text-on-surface"><span class="font-semibold">{{ item.title }}</span> - {{ item.region }}</p>
+              <p class="font-mono text-xs text-on-surface-variant mt-1">{{ item.detail }}</p>
+              <p class="text-xs text-outline mt-1">{{ item.time }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

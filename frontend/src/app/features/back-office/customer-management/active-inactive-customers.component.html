@@ -1,0 +1,62 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Active/Inactive Customers</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">{{ boService.activeCount() }} active · {{ boService.inactiveCount() }} inactive</p>
+</div>
+
+<div class="flex gap-2">
+  <button class="px-4 py-2 rounded-md text-sm font-medium transition-colors" [class]="statusTab() === 'Active' ? 'bg-primary-container text-on-primary' : 'bg-surface-container-lowest border border-outline-variant text-on-surface'" (click)="setTab('Active')">
+    Active ({{ boService.activeCount() }})
+  </button>
+  <button class="px-4 py-2 rounded-md text-sm font-medium transition-colors" [class]="statusTab() === 'Inactive' ? 'bg-primary-container text-on-primary' : 'bg-surface-container-lowest border border-outline-variant text-on-surface'" (click)="setTab('Inactive')">
+    Inactive ({{ boService.inactiveCount() }})
+  </button>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="p-3 border-b border-outline-variant flex items-center justify-between gap-3">
+    <label class="flex items-center gap-2 text-sm text-on-surface-variant">
+      <input type="checkbox" (change)="toggleAll()" />
+      Select all
+    </label>
+    @if (selectedIds().size) {
+      <div class="flex gap-2">
+        @if (statusTab() === 'Active') {
+          <button class="text-error text-xs font-medium hover:underline" (click)="applyBulkStatus('Inactive')">Deactivate Selected ({{ selectedIds().size }})</button>
+        } @else {
+          <button class="text-secondary text-xs font-medium hover:underline" (click)="applyBulkStatus('Active')">Activate Selected ({{ selectedIds().size }})</button>
+        }
+      </div>
+    }
+  </div>
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-3 px-4 w-10"></th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Customer</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Segment</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">AUM</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Action</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (c of filtered(); track c.id) {
+        <tr class="hover:bg-surface-container-low/50 transition-colors">
+          <td class="py-3 px-4"><input type="checkbox" [checked]="selectedIds().has(c.id)" (change)="toggle(c.id)" /></td>
+          <td class="py-3 px-4 font-medium text-on-background">{{ c.name }}</td>
+          <td class="py-3 px-4"><span class="bg-surface-container-low text-on-surface px-2 py-0.5 rounded text-xs">{{ c.segment }}</span></td>
+          <td class="py-3 px-4 text-right font-mono">{{ c.aum | inrCompact }}</td>
+          <td class="py-3 px-4 text-right">
+            @if (c.status === 'Active') {
+              <button class="text-error text-xs font-medium hover:underline" (click)="setOne(c.id, 'Inactive')">Deactivate</button>
+            } @else {
+              <button class="text-secondary text-xs font-medium hover:underline" (click)="setOne(c.id, 'Active')">Activate</button>
+            }
+          </td>
+        </tr>
+      }
+      @if (!filtered().length) {
+        <tr><td colspan="5" class="py-10 text-center text-on-surface-variant">No {{ statusTab().toLowerCase() }} customers.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>

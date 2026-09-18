@@ -1,0 +1,124 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+  <div>
+    <div class="flex items-center gap-2 mb-1 text-body-sm text-on-surface-variant">
+      <span>Family Office</span>
+      <span class="material-symbols-outlined text-sm">chevron_right</span>
+      <span class="text-on-surface font-medium">Member Management</span>
+    </div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background font-bold tracking-tight">Struct &amp; Entities</h2>
+    <p class="text-body-md text-on-surface-variant mt-2 max-w-2xl">Define relationships, dashboard visibility, and vault permissions across the family office hierarchy.</p>
+  </div>
+  <a routerLink="add" class="bg-primary-container text-on-primary px-6 py-2.5 rounded hover:opacity-90 transition-opacity flex items-center gap-2 text-body-md shadow-sm">
+    <span class="material-symbols-outlined text-sm">person_add</span> Add New Member
+  </a>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+  <!-- Left: Member Roster -->
+  <div class="xl:col-span-8 space-y-4">
+    <div class="flex flex-wrap gap-3 items-center p-4 bg-surface-container-lowest border border-outline-variant rounded-xl">
+      <div class="relative flex-1 min-w-[200px]">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+        <input
+          class="w-full pl-10 pr-4 py-2 bg-surface border border-outline-variant rounded focus:border-secondary focus:ring-1 focus:ring-secondary text-body-md"
+          placeholder="Search members, entities or roles..."
+          type="text"
+          (input)="onSearchInput($event)"
+        />
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      @for (m of filteredMembers(); track m.id) {
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 hover:border-outline transition-all">
+          <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center text-title-lg font-bold">{{ m.initials }}</div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="text-title-lg text-on-surface">{{ m.name }}</h3>
+                  <span class="px-2 py-0.5 text-[10px] uppercase rounded border font-semibold"
+                    [class]="m.status === 'Active' ? 'bg-success/10 text-success border-success/30' : 'bg-surface-container-high text-on-surface-variant border-outline-variant'">
+                    {{ m.status }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-3 text-on-surface-variant text-body-sm mt-1">
+                  <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">account_tree</span> {{ m.relationship }}</span>
+                  <span class="w-1 h-1 bg-outline rounded-full"></span>
+                  <span>ID: {{ m.id }}</span>
+                  <span class="w-1 h-1 bg-outline rounded-full"></span>
+                  <span class="font-mono">{{ m.panMasked }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <button class="px-4 py-2 bg-surface text-on-surface border border-outline-variant rounded hover:bg-surface-container-low transition-colors text-body-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px]">cloud_upload</span> Import CAS
+              </button>
+              <button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+                <span class="material-symbols-outlined">edit</span>
+              </button>
+            </div>
+          </div>
+          <div class="mt-5 pt-4 border-t border-outline-variant/50 grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div>
+              <p class="text-label-caps text-on-surface-variant mb-1">AUM</p>
+              <p class="text-body-sm text-on-surface font-mono font-medium">{{ m.aum | inrCompact }}</p>
+            </div>
+            <div>
+              <p class="text-label-caps text-on-surface-variant mb-1">DASHBOARD ACCESS</p>
+              <p class="text-body-sm text-on-surface font-medium">{{ m.dashboardAccess }}</p>
+            </div>
+            <div>
+              <p class="text-label-caps text-on-surface-variant mb-1">VAULT PERMISSIONS</p>
+              <p class="text-body-sm text-on-surface font-medium">{{ m.vaultPermission }}</p>
+            </div>
+            <div>
+              <p class="text-label-caps text-on-surface-variant mb-1">LINKED ACCOUNTS</p>
+              <p class="text-body-sm font-mono text-on-surface">{{ m.linkedAccounts }} Portfolio(s)</p>
+            </div>
+            <div>
+              <p class="text-label-caps text-on-surface-variant mb-1">LAST SYNC</p>
+              <p class="text-body-sm font-mono text-on-surface-variant">{{ m.lastSyncLabel }}</p>
+            </div>
+          </div>
+        </div>
+      } @empty {
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-8 text-center text-on-surface-variant">
+          No members match your search.
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Right: Overview -->
+  <div class="xl:col-span-4 space-y-6">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 sticky top-24">
+      <h3 class="text-title-lg text-on-surface mb-4 border-b border-outline-variant pb-2">Family Office Overview</h3>
+      <div class="space-y-4">
+        <div class="flex justify-between items-center py-2">
+          <span class="text-body-sm text-on-surface-variant">Total Members</span>
+          <span class="font-mono font-medium">{{ members().length }}</span>
+        </div>
+        <div class="flex justify-between items-center py-2 border-t border-surface-container">
+          <span class="text-body-sm text-on-surface-variant">Active Entities</span>
+          <span class="font-mono font-medium">{{ activeCount() }}</span>
+        </div>
+        <div class="flex justify-between items-center py-2 border-t border-surface-container">
+          <span class="text-body-sm text-on-surface-variant">Pending CAS Imports</span>
+          <span class="font-mono text-warning font-medium">{{ pendingImports() }}</span>
+        </div>
+      </div>
+      <div class="mt-8">
+        <h4 class="text-label-caps text-on-surface-variant mb-3">SYSTEM STATUS</h4>
+        <div class="p-3 bg-success/10 border border-success/30 rounded-lg flex items-start gap-3">
+          <span class="material-symbols-outlined text-success text-[20px]">sync</span>
+          <div>
+            <p class="text-body-sm font-medium text-success">CAS Sync Operational</p>
+            <p class="text-[11px] text-on-surface-variant mt-0.5">All brokerage connections are currently stable and syncing normally.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

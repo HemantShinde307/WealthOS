@@ -1,0 +1,107 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Transactions</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Real-time log of client activity across your book.</p>
+  </div>
+  <a routerLink="/mf-purchase/select-scheme" class="flex items-center gap-2 bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium">
+    <span class="material-symbols-outlined text-[18px]">add</span>
+    New Transaction
+  </a>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Total Value</p>
+    <p class="font-mono text-xl font-bold text-on-background">₹{{ summary().totalValue | number: '1.0-0' }}</p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Completed</p>
+    <p class="font-mono text-xl font-bold text-on-tertiary-container">{{ summary().completed }}</p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">In Progress</p>
+    <p class="font-mono text-xl font-bold text-payout-gold">{{ summary().pending }}</p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Failed / Cancelled</p>
+    <p class="font-mono text-xl font-bold text-error">{{ summary().failed }}</p>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm flex flex-col gap-4">
+  <div class="relative">
+    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+    <input
+      class="pl-10 pr-4 py-2 border border-outline-variant rounded-md bg-surface-container-lowest text-sm focus:outline-none focus:border-primary w-full max-w-sm"
+      placeholder="Search client or scheme..."
+      type="text"
+      [value]="search()"
+      (input)="search.set($any($event.target).value)"
+    />
+  </div>
+  <div class="flex flex-wrap gap-2">
+    @for (t of types; track t) {
+      <button
+        class="px-3 py-1 rounded-full text-xs font-medium border transition-colors whitespace-nowrap"
+        [class]="typeFilter() === t ? 'bg-primary-container text-on-primary border-primary-container' : 'bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:bg-surface-container-low'"
+        (click)="typeFilter.set(t)"
+      >
+        {{ t }}
+      </button>
+    }
+    <span class="w-px bg-outline-variant mx-1"></span>
+    @for (s of statuses; track s) {
+      <button
+        class="px-3 py-1 rounded-full text-xs font-medium border transition-colors whitespace-nowrap"
+        [class]="statusFilter() === s ? 'bg-secondary text-on-secondary border-secondary' : 'bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:bg-surface-container-low'"
+        (click)="statusFilter.set(s)"
+      >
+        {{ s }}
+      </button>
+    }
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden flex flex-col">
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[900px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Client</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Type</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Scheme</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Amount</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Date</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (t of filtered(); track t.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4">
+              <a [routerLink]="['/advisor/clients', t.clientId]" class="font-medium text-on-background hover:text-secondary hover:underline">{{ t.clientName }}</a>
+            </td>
+            <td class="py-3 px-4">
+              <span class="inline-flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px] text-on-surface-variant">{{ typeIcon(t.type) }}</span>
+                {{ t.type }}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-on-surface-variant">{{ t.schemeName }}</td>
+            <td class="py-3 px-4 text-right font-mono font-medium">₹{{ t.amount | number: '1.0-0' }}</td>
+            <td class="py-3 px-4">
+              <span class="text-xs px-2 py-0.5 rounded font-medium" [class]="statusClasses(t.status)">{{ t.status }}</span>
+            </td>
+            <td class="py-3 px-4 text-on-surface-variant text-sm">{{ t.date }}</td>
+            <td class="py-3 px-4 text-right text-on-surface-variant text-sm">{{ t.folio ?? '—' }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="py-10 text-center text-on-surface-variant">No transactions match the current filters.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

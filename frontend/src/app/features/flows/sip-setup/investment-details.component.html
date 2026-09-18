@@ -1,0 +1,59 @@
+@if (scheme(); as s) {
+  <div class="space-y-6">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+      <p class="font-semibold text-on-background">{{ s.name }}</p>
+      <p class="text-xs text-on-surface-variant mt-0.5">{{ s.amc }} &middot; NAV ₹{{ s.nav }} (as of {{ s.navDate | date: 'mediumDate' }})</p>
+    </div>
+
+    <div>
+      <label class="text-sm font-medium text-on-background block mb-2">SIP Installment Amount</label>
+      <div class="relative">
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-mono">₹</span>
+        <input
+          type="number"
+          class="w-full pl-8 pr-4 py-3 border border-outline-variant rounded-md text-2xl font-mono font-bold bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+          [value]="state.amount()"
+          (input)="onAmountInput($event)"
+        />
+      </div>
+      <div class="flex flex-wrap gap-2 mt-3">
+        @for (a of quickAmounts; track a) {
+          <button
+            class="px-3 py-1.5 rounded-full text-xs font-medium border transition-colors"
+            [class]="state.amount() === a ? 'bg-primary-container text-on-primary border-primary-container' : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-low'"
+            (click)="setAmount(a)"
+          >
+            ₹{{ a | number }}
+          </button>
+        }
+      </div>
+      <p class="text-xs text-on-surface-variant mt-2">Minimum SIP amount: ₹{{ s.minSip | number }}</p>
+    </div>
+
+    <div>
+      <label class="text-sm font-medium text-on-background block mb-2">SIP Date (Every Month)</label>
+      <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        @for (d of sipDates; track d) {
+          <button
+            class="py-2.5 rounded-md text-sm font-medium border transition-colors font-mono"
+            [class]="state.sipDate() === d ? 'bg-primary-container text-on-primary border-primary-container' : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-low'"
+            (click)="state.sipDate.set(d)"
+          >
+            {{ d }}
+          </button>
+        }
+      </div>
+      <p class="text-xs text-on-surface-variant mt-2">Your SIP will be debited on the {{ state.sipDate() }}{{ state.sipDate() === 1 ? 'st' : state.sipDate() <= 3 ? 'rd' : 'th' }} of every month.</p>
+    </div>
+
+    <button
+      class="w-full bg-primary-container text-on-primary py-3 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+      [disabled]="state.amount() < s.minSip"
+      (click)="continue()"
+    >
+      Continue to e-Mandate
+    </button>
+  </div>
+} @else {
+  <p class="text-on-surface-variant">No scheme selected. Please go back and choose a scheme.</p>
+}

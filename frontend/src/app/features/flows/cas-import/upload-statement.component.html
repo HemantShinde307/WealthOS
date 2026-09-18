@@ -1,0 +1,56 @@
+<div class="space-y-6">
+  <div class="bg-surface-container-low rounded-lg p-4 text-sm text-on-surface-variant flex gap-2">
+    <span class="material-symbols-outlined text-[18px] shrink-0">info</span>
+    <span>Import your Consolidated Account Statement (CAS) from CAMS/KFintech to automatically bring in all your existing mutual fund holdings. Your PDF is parsed entirely in your browser — it is never uploaded anywhere.</span>
+  </div>
+
+  <input #fileInput type="file" accept="application/pdf,.pdf" class="hidden" (change)="onFileSelected($event)" />
+
+  <div class="border-2 border-dashed border-outline-variant rounded-lg p-10 flex flex-col items-center text-center gap-3">
+    @if (parsing()) {
+      <span class="material-symbols-outlined text-secondary text-[40px] animate-spin">progress_activity</span>
+      <p class="font-medium text-on-background">Reading your statement…</p>
+      <p class="text-xs text-on-surface-variant">{{ selectedFile()?.name }}</p>
+    } @else {
+      <span class="material-symbols-outlined text-on-surface-variant text-[40px]">upload_file</span>
+      <p class="font-medium text-on-background">Drag & drop your CAS PDF here</p>
+      <p class="text-xs text-on-surface-variant">or click below to browse (max 10MB)</p>
+      <button class="mt-2 px-4 py-2 rounded-md border border-outline-variant text-sm font-medium text-on-surface hover:bg-surface-container-low transition-colors" (click)="openFilePicker()">
+        Choose File
+      </button>
+    }
+  </div>
+
+  @if (error()) {
+    <div class="bg-error-container/50 rounded-lg p-4 text-sm text-on-error-container flex gap-2">
+      <span class="material-symbols-outlined text-[18px] shrink-0">error</span>
+      <span>{{ error() }}</span>
+    </div>
+  }
+
+  <div>
+    <label class="text-sm font-medium text-on-background block mb-2">PDF Password (if protected)</label>
+    <div class="flex gap-2">
+      <input
+        type="password"
+        class="flex-1 px-4 py-2.5 border border-outline-variant rounded-md text-sm bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+        placeholder="Usually your PAN in uppercase"
+        [value]="password()"
+        (input)="password.set($any($event.target).value)"
+        (keydown.enter)="needsPassword() && retryWithPassword()"
+      />
+      @if (needsPassword()) {
+        <button class="px-4 py-2.5 rounded-md bg-primary-container text-on-primary text-sm font-medium hover:opacity-90 transition-opacity shrink-0" (click)="retryWithPassword()">
+          Retry
+        </button>
+      }
+    </div>
+    <p class="text-xs text-on-surface-variant mt-1">CAMS/KFintech statements are typically password-protected with your PAN.</p>
+  </div>
+
+  <div class="text-center pt-2">
+    <button class="text-secondary text-sm font-medium hover:underline" (click)="useSample()">
+      Don't have a CAS handy? Use a sample statement instead
+    </button>
+  </div>
+</div>

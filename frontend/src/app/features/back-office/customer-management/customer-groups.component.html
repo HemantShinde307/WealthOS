@@ -1,0 +1,49 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Customer Groups</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">{{ boService.groups().length }} groups · {{ boService.ungroupedCustomers().length }} ungrouped customers</p>
+  </div>
+  <div class="flex gap-2">
+    <a routerLink="/back-office/customer-management/merge-groups" class="px-4 py-2 border border-outline-variant bg-surface-container-lowest text-on-surface rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium">Merge Groups</a>
+    <a routerLink="/back-office/customer-management/split-groups" class="px-4 py-2 border border-outline-variant bg-surface-container-lowest text-on-surface rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium">Split Groups</a>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+  <input
+    class="flex-1 w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background"
+    placeholder="New group name, e.g. Sharma Family"
+    [value]="newGroupName()"
+    (input)="newGroupName.set($any($event.target).value)"
+    (keydown.enter)="createGroup()"
+  />
+  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium whitespace-nowrap" (click)="createGroup()">
+    + New Group
+  </button>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+  @for (s of boService.groupSummaries(); track s.group.id) {
+    <a [routerLink]="['/back-office/customer-management/groups', s.group.id]" class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 hover:border-secondary transition-colors flex flex-col gap-3">
+      <div class="flex justify-between items-start">
+        <div>
+          <h4 class="text-title-lg text-on-background text-sm font-semibold">{{ s.group.name }}</h4>
+          <p class="text-xs text-on-surface-variant font-mono">{{ s.group.id }}</p>
+        </div>
+        <span class="bg-surface-container-low text-on-surface-variant text-xs px-2 py-0.5 rounded">{{ s.memberCount }} members</span>
+      </div>
+      <div class="flex justify-between items-end">
+        <div>
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Total AUM</p>
+          <p class="font-mono text-lg font-bold text-on-background">{{ s.totalAum | inrCompact }}</p>
+        </div>
+        @if (s.primaryContact) {
+          <p class="text-xs text-on-surface-variant">Primary: {{ s.primaryContact.name }}</p>
+        }
+      </div>
+    </a>
+  }
+  @if (!boService.groups().length) {
+    <p class="text-on-surface-variant text-sm col-span-full text-center py-8">No customer groups yet — create one above.</p>
+  }
+</div>

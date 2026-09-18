@@ -1,0 +1,80 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Holidays Master</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">{{ setup.holidays().length }} holidays configured · {{ upcomingCount() }} upcoming</p>
+  </div>
+  <button class="flex items-center gap-2 bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openAdd()">
+    <span class="material-symbols-outlined text-[18px]">add</span> Add Holiday
+  </button>
+</div>
+
+@if (formMode() !== 'closed') {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col gap-4">
+    <h3 class="text-title-lg text-on-background">{{ formMode() === 'edit' ? 'Edit Holiday' : 'New Holiday' }}</h3>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Date</label>
+        <input type="date" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="draft().date" (input)="setField('date', $any($event.target).value)" />
+      </div>
+      <div class="md:col-span-2">
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Holiday Name</label>
+        <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="draft().name" (input)="setField('name', $any($event.target).value)" />
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Type</label>
+        <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="draft().type" (change)="setField('type', $any($event.target).value)">
+          <option>National</option>
+          <option>Bank</option>
+          <option>Settlement</option>
+          <option>Regional</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Status</label>
+        <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="draft().status" (change)="setField('status', $any($event.target).value)">
+          <option>Active</option>
+          <option>Inactive</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="save()">Save Holiday</button>
+      <button class="px-4 py-2 border border-outline-variant rounded-md text-sm font-medium text-on-surface hover:bg-surface-container-low" (click)="cancel()">Cancel</button>
+    </div>
+  </div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[800px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Date</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Holiday</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Type</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (h of setup.holidays(); track h.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4 font-mono text-sm">{{ h.date }}</td>
+            <td class="py-3 px-4 font-medium text-on-background">{{ h.name }}</td>
+            <td class="py-3 px-4"><span class="bg-surface-container-low text-on-surface px-2 py-0.5 rounded text-xs">{{ h.type }}</span></td>
+            <td class="py-3 px-4">
+              <span class="text-xs px-2 py-0.5 rounded" [class]="h.status === 'Active' ? 'bg-on-tertiary-container/10 text-on-tertiary-container' : 'bg-surface-container-low text-on-surface-variant'">{{ h.status }}</span>
+            </td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="openEdit(h)">Edit</button>
+              <button class="text-error text-xs font-medium hover:underline" (click)="remove(h.id)">Delete</button>
+            </td>
+          </tr>
+        }
+        @if (!setup.holidays().length) {
+          <tr><td colspan="5" class="py-10 text-center text-on-surface-variant">No holidays configured yet.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,96 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Principal Broker Relationships</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">{{ setup.principalBrokerRelationships().length }} AMC / exchange agreements on record</p>
+  </div>
+  <button class="flex items-center gap-2 bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openAdd()">
+    <span class="material-symbols-outlined text-[18px]">add</span> Add Relationship
+  </button>
+</div>
+
+@if (formMode() !== 'closed') {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col gap-4">
+    <h3 class="text-title-lg text-on-background">{{ formMode() === 'edit' ? 'Edit Relationship' : 'New Relationship' }}</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="md:col-span-2">
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Principal (AMC / Exchange)</label>
+        <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="draft().principalName" (input)="setField('principalName', $any($event.target).value)" />
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Broker Code</label>
+        <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm font-mono text-on-background" [value]="draft().brokerCode" (input)="setField('brokerCode', $any($event.target).value)" />
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Agreement Date</label>
+        <input type="date" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="draft().agreementDate" (input)="setField('agreementDate', $any($event.target).value)" />
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Commission Type</label>
+        <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="draft().commissionType" (change)="setField('commissionType', $any($event.target).value)">
+          <option>Trail</option>
+          <option>Upfront</option>
+          <option>Trail + Upfront</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Status</label>
+        <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="draft().status" (change)="setField('status', $any($event.target).value)">
+          <option>Active</option>
+          <option>Terminated</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="save()">Save Relationship</button>
+      <button class="px-4 py-2 border border-outline-variant rounded-md text-sm font-medium text-on-surface hover:bg-surface-container-low" (click)="cancel()">Cancel</button>
+    </div>
+  </div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="p-4 border-b border-outline-variant">
+    <div class="relative w-full sm:w-72">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+      <input
+        class="w-full pl-9 pr-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-md text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary"
+        placeholder="Search by principal or broker code..."
+        [value]="searchTerm()"
+        (input)="searchTerm.set($any($event.target).value)"
+      />
+    </div>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[900px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Principal</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Broker Code</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Agreement Date</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Commission Type</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (p of filtered(); track p.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4 font-medium text-on-background">{{ p.principalName }}</td>
+            <td class="py-3 px-4 font-mono text-sm">{{ p.brokerCode }}</td>
+            <td class="py-3 px-4 font-mono text-sm">{{ p.agreementDate }}</td>
+            <td class="py-3 px-4"><span class="bg-surface-container-low text-on-surface px-2 py-0.5 rounded text-xs">{{ p.commissionType }}</span></td>
+            <td class="py-3 px-4">
+              <span class="text-xs px-2 py-0.5 rounded" [class]="p.status === 'Active' ? 'bg-on-tertiary-container/10 text-on-tertiary-container' : 'bg-surface-container-low text-on-surface-variant'">{{ p.status }}</span>
+            </td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="openEdit(p)">Edit</button>
+              <button class="text-error text-xs font-medium hover:underline" (click)="remove(p.id)">Delete</button>
+            </td>
+          </tr>
+        }
+        @if (!filtered().length) {
+          <tr><td colspan="6" class="py-10 text-center text-on-surface-variant">No relationships match your search.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

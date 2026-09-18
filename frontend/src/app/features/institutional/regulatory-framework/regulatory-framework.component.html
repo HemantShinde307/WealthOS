@@ -1,0 +1,124 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Regulatory &amp; Compliance</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Manage region-specific legal requirements and audit trails.</p>
+  </div>
+  <div class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant rounded-md px-4 py-2 shadow-sm">
+    <span class="material-symbols-outlined text-on-surface-variant text-[20px]">public</span>
+    <span class="text-sm font-medium text-on-surface">India - SEBI Compliance</span>
+    <span class="material-symbols-outlined text-on-surface-variant text-[18px]">expand_more</span>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- SEBI status card -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm flex flex-col">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-title-lg text-on-background flex items-center gap-2">
+        <span class="material-symbols-outlined text-on-surface-variant">verified_user</span>
+        SEBI Status
+      </h3>
+      <span class="px-2 py-0.5 rounded text-xs font-semibold bg-tertiary-container text-on-tertiary-container">COMPLIANT</span>
+    </div>
+    <div class="flex justify-between items-end mb-1">
+      <span class="text-sm text-on-surface-variant">Overall Readiness</span>
+      <span class="font-mono text-lg text-on-background">{{ overallReadinessPct }}%</span>
+    </div>
+    <div class="w-full bg-surface-variant h-2 rounded-full overflow-hidden mb-6">
+      <div class="bg-on-tertiary-container h-full rounded-full" [style.width.%]="overallReadinessPct"></div>
+    </div>
+    <div class="grid grid-cols-2 gap-3 mb-6">
+      <div class="p-3 bg-surface-container-low rounded-lg">
+        <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Pending UBO</p>
+        <p class="font-mono text-xl font-bold text-on-background">{{ pendingUbo }}</p>
+      </div>
+      <div class="p-3 bg-surface-container-low rounded-lg">
+        <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Risk Alerts</p>
+        <p class="font-mono text-xl font-bold text-error">{{ riskAlerts }}</p>
+      </div>
+    </div>
+    <button class="mt-auto w-full py-2.5 bg-surface-container-low border border-outline-variant text-on-surface rounded-md text-sm font-medium hover:bg-surface-container transition-colors">
+      Generate Audit Report
+    </button>
+  </div>
+
+  <!-- Mandatory verification standards -->
+  <div class="lg:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden flex flex-col">
+    <div class="p-6 border-b border-outline-variant flex justify-between items-center">
+      <h3 class="text-title-lg text-on-background">Mandatory Verification Standards</h3>
+      <button class="text-secondary text-sm font-medium hover:underline">Edit Logic</button>
+    </div>
+    <div class="divide-y divide-outline-variant">
+      @for (std of standards; track std.title) {
+        <div class="p-6 flex justify-between items-start gap-4" [class.bg-error-container]="std.tone === 'alert'">
+          <div class="flex items-start gap-3 min-w-0">
+            <span class="material-symbols-outlined mt-0.5 shrink-0" [class]="std.tone === 'ok' ? 'text-on-tertiary-container' : 'text-error'">
+              {{ std.tone === 'ok' ? 'check_circle' : 'error' }}
+            </span>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold" [class]="std.tone === 'alert' ? 'text-on-error-container' : 'text-on-background'">{{ std.title }}</p>
+              <p class="text-sm mt-1" [class]="std.tone === 'alert' ? 'text-on-error-container/80' : 'text-on-surface-variant'">{{ std.description }}</p>
+              <div class="flex gap-2 mt-2 flex-wrap">
+                @for (tag of std.tags; track tag) {
+                  <span
+                    class="px-2 py-0.5 rounded text-xs font-semibold"
+                    [class]="std.tone === 'alert' ? 'bg-error text-on-error' : 'bg-surface-container-low text-on-surface-variant'"
+                  >
+                    {{ tag }}
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+          <div class="text-xs text-on-surface-variant text-right shrink-0">
+            @if (std.tone === 'alert') {
+              <button class="px-3 py-1.5 border border-error text-error rounded-md text-xs font-semibold hover:bg-error hover:text-on-error transition-colors">{{ std.meta }}</button>
+            } @else {
+              <span>{{ std.meta }}</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <!-- Required documentation -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+    <div class="p-6 border-b border-outline-variant flex justify-between items-center">
+      <h3 class="text-title-lg text-on-background">Required Documentation</h3>
+      <button class="text-on-surface-variant hover:text-on-background transition-colors">
+        <span class="material-symbols-outlined">add_circle</span>
+      </button>
+    </div>
+    <div class="p-6 space-y-3">
+      @for (doc of requiredDocs; track doc.name) {
+        <div class="flex items-center justify-between gap-3 p-3 bg-surface-container-low rounded-lg">
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="material-symbols-outlined text-on-surface-variant shrink-0">{{ doc.icon }}</span>
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-on-background truncate">{{ doc.name }}</p>
+              <p class="text-xs text-on-surface-variant truncate">{{ doc.detail }}</p>
+            </div>
+          </div>
+          <button class="text-on-surface-variant hover:text-on-background transition-colors shrink-0">
+            <span class="material-symbols-outlined text-[18px]">more_vert</span>
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Risk rating logic -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden flex flex-col">
+    <div class="p-6 border-b border-outline-variant flex justify-between items-center">
+      <h3 class="text-title-lg text-on-background">Risk Rating Logic</h3>
+      <span class="px-2 py-0.5 rounded text-xs font-semibold bg-tertiary-container text-on-tertiary-container">LIVE</span>
+    </div>
+    <pre class="p-6 font-mono text-xs text-on-surface-variant overflow-x-auto flex-1 bg-surface-container-low/50 whitespace-pre">{{ riskLogicSnippet }}</pre>
+    <div class="p-4 border-t border-outline-variant text-right">
+      <button class="text-secondary text-sm font-medium hover:underline">Edit Logic</button>
+    </div>
+  </div>
+</div>

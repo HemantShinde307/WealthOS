@@ -1,0 +1,79 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Batch Creation of Transactions</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Pick a transaction type, a common amount and date, select folios below, then apply it to all of them at once.</p>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 items-end">
+  <div>
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Transaction Type</label>
+    <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="transactionType()" (change)="transactionType.set($any($event.target).value)">
+      <option value="Additional Purchase">Additional Purchase</option>
+      <option value="Purchase">Purchase (Fresh)</option>
+      <option value="Redemption">Redemption</option>
+    </select>
+  </div>
+  <div>
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Amount (₹) per Folio</label>
+    <input type="number" min="0" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="amount()" (input)="amount.set($any($event.target).valueAsNumber || null)" />
+  </div>
+  <div>
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Date</label>
+    <input type="date" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="date()" (input)="date.set($any($event.target).value)" />
+  </div>
+  <button
+    class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium disabled:opacity-40 h-fit"
+    [disabled]="!selectedIds().size || !amount()"
+    (click)="createBatch()"
+  >
+    Create {{ selectedIds().size }} Transactions
+  </button>
+</div>
+
+@if (result() !== null) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">check_circle</span> {{ result() }} transactions created.
+  </div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+  <input
+    class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background"
+    placeholder="Search folio no. / scheme / customer"
+    [value]="search()"
+    (input)="search.set($any($event.target).value)"
+  />
+  <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="amcFilter()" (change)="amcFilter.set($any($event.target).value)">
+    <option>All</option>
+    @for (amc of amcs(); track amc) {
+      <option [value]="amc">{{ amc }}</option>
+    }
+  </select>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-3 px-4 w-10"><input type="checkbox" (change)="toggleAll()" /></th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Folio</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Scheme</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Customer</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Units Held</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (f of filtered(); track f.id) {
+        <tr class="hover:bg-surface-container-low/50 transition-colors">
+          <td class="py-3 px-4"><input type="checkbox" [checked]="selectedIds().has(f.id)" (change)="toggle(f.id)" /></td>
+          <td class="py-3 px-4 font-mono text-xs">{{ f.folioNumber }}</td>
+          <td class="py-3 px-4 text-sm">{{ f.scheme }}</td>
+          <td class="py-3 px-4 text-sm">{{ f.customerName }}</td>
+          <td class="py-3 px-4 text-right font-mono">{{ f.units | number: '1.3-3' }}</td>
+        </tr>
+      }
+      @if (!filtered().length) {
+        <tr><td colspan="5" class="py-10 text-center text-on-surface-variant">No folios match these filters.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>

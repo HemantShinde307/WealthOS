@@ -1,0 +1,110 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Loan Against Securities</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">{{ svc.lasFacilities().length }} active facilities across customers.</p>
+  </div>
+  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium whitespace-nowrap" (click)="showForm.set(!showForm())">
+    {{ showForm() ? 'Close' : '+ New LAS Application' }}
+  </button>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Facilities</p>
+    <p class="text-title-lg font-mono font-bold text-on-background mt-1">{{ svc.lasFacilities().length }}</p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Total Sanctioned</p>
+    <p class="text-title-lg font-mono font-bold text-on-background mt-1">₹{{ totalSanctioned() | number: '1.0-0' }}</p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Total Utilized</p>
+    <p class="text-title-lg font-mono font-bold text-on-background mt-1">₹{{ totalUtilized() | number: '1.0-0' }}</p>
+  </div>
+</div>
+
+@if (showForm()) {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 items-end">
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Customer</label>
+      <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="customerName()" (change)="customerName.set($any($event.target).value)">
+        @for (c of customers; track c.pan) {
+          <option [value]="c.name">{{ c.name }}</option>
+        }
+      </select>
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Lender</label>
+      <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="lender()" (change)="lender.set($any($event.target).value)">
+        @for (l of lenders; track l) {
+          <option [value]="l">{{ l }}</option>
+        }
+      </select>
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Pledged Securities Value (₹)</label>
+      <input type="number" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="pledgedValue()" (input)="pledgedValue.set(+$any($event.target).value)" />
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Requested Limit (₹)</label>
+      <input type="number" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="requestedLimit()" (input)="requestedLimit.set(+$any($event.target).value)" />
+    </div>
+    <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium h-fit md:col-span-4" (click)="submit()">
+      Submit Application
+    </button>
+  </div>
+}
+
+@if (submitted()) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">check_circle</span> LAS application submitted and marked Under Review.
+  </div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+  <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" placeholder="Search by customer or lender" [value]="search()" (input)="search.set($any($event.target).value)" />
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Customer</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Lender</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Pledged Value</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Sanctioned Limit</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Utilized</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Rate</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (l of filtered(); track l.id) {
+        <tr class="hover:bg-surface-container-low/50 transition-colors">
+          <td class="py-3 px-4 font-medium text-on-background">{{ l.customerName }}</td>
+          <td class="py-3 px-4 text-xs">{{ l.lender }}</td>
+          <td class="py-3 px-4 font-mono text-right">₹{{ l.pledgedSecuritiesValue | number: '1.0-0' }}</td>
+          <td class="py-3 px-4 font-mono text-right">₹{{ l.sanctionedLimit | number: '1.0-0' }}</td>
+          <td class="py-3 px-4 font-mono text-right">
+            ₹{{ l.utilizedAmount | number: '1.0-0' }}
+            <span class="text-xs text-on-surface-variant">({{ utilizationPct(l.sanctionedLimit, l.utilizedAmount) | number: '1.0-0' }}%)</span>
+          </td>
+          <td class="py-3 px-4 font-mono text-right">{{ l.interestRatePct }}%</td>
+          <td class="py-3 px-4">
+            <span
+              class="text-xs px-2 py-0.5 rounded font-medium"
+              [class]="{
+                'bg-on-tertiary-container/10 text-on-tertiary-container': l.status === 'Active',
+                'bg-surface-container-low text-on-surface-variant': l.status === 'Closed',
+                'bg-secondary-container text-on-secondary-container': l.status === 'Under Review'
+              }"
+            >{{ l.status }}</span>
+          </td>
+        </tr>
+      }
+      @if (!filtered().length) {
+        <tr><td colspan="7" class="py-10 text-center text-on-surface-variant">No LAS facilities match this search.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>

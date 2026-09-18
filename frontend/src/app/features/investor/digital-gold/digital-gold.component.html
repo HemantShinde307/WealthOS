@@ -1,0 +1,63 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Digital Gold</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">24K 999.9 purity, stored in insured vaults.</p>
+  </div>
+  <div class="flex gap-2">
+    <a routerLink="/digital-gold/sell" class="bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium">Sell Gold</a>
+    <a routerLink="/digital-gold/buy" class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium">Buy Gold</a>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div class="md:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm flex items-center gap-8 flex-wrap">
+    <div class="w-20 h-20 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-gold text-[40px]">monetization_on</span>
+    </div>
+    <div class="flex-1 min-w-[200px]">
+      <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Total Gold Holdings</p>
+      <p class="font-mono text-3xl font-bold text-on-background">{{ holdingsGrams }} g</p>
+      <p class="text-sm text-on-surface-variant mt-1">Current value {{ currentValue | inrCompact }}</p>
+    </div>
+    <div class="text-right">
+      <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Live Rate (per gram)</p>
+      <p class="font-mono text-xl font-semibold text-on-background">₹{{ currentRate | number }}</p>
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Unrealized Gains</p>
+    <p class="font-mono text-2xl font-bold text-on-tertiary-container">+{{ (currentValue - investedValue) | inrCompact }}</p>
+    <p class="text-xs text-on-tertiary-container mt-1">+{{ (((currentValue - investedValue) / investedValue) * 100) | number: '1.1-1' }}%</p>
+    <a routerLink="/digital-gold/physical-delivery" class="mt-4 flex items-center gap-2 text-secondary text-sm font-medium hover:underline">
+      <span class="material-symbols-outlined text-[18px]">local_shipping</span>
+      Request Physical Delivery
+    </a>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="p-6 border-b border-outline-variant">
+    <h3 class="text-title-lg text-on-background">Recent Activity</h3>
+  </div>
+  <table class="w-full text-left">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase font-semibold">Type</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase font-semibold text-right">Grams</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase font-semibold text-right">Amount</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase font-semibold text-right">Date</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant">
+      @for (a of recentActivity; track a.date) {
+        <tr>
+          <td class="py-3 px-4 font-medium">{{ a.type }}</td>
+          <td class="py-3 px-4 text-right font-mono" [class]="a.grams >= 0 ? 'text-on-tertiary-container' : 'text-error'">{{ a.grams >= 0 ? '+' : '' }}{{ a.grams }} g</td>
+          <td class="py-3 px-4 text-right font-mono">₹{{ a.amount | number }}</td>
+          <td class="py-3 px-4 text-right text-on-surface-variant">{{ a.date | date: 'mediumDate' }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

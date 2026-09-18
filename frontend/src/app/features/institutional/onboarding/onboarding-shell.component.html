@@ -1,0 +1,28 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Corporate Onboarding</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">
+      Currently onboarding <span class="font-semibold text-on-background">{{ state.selectedEntity().name }}</span>
+    </p>
+  </div>
+</div>
+
+<div class="border-b border-outline-variant">
+  <nav class="flex gap-1 overflow-x-auto">
+    @for (tab of tabs; track tab.route) {
+      <a
+        [routerLink]="tab.route"
+        routerLinkActive="text-secondary border-secondary"
+        [routerLinkActiveOptions]="{ exact: false }"
+        class="flex items-center gap-2 px-4 py-3 text-sm font-medium text-on-surface-variant border-b-2 border-transparent hover:text-on-background transition-colors whitespace-nowrap"
+      >
+        <span class="material-symbols-outlined text-[18px]">{{ tab.icon }}</span>
+        {{ tab.label }}
+      </a>
+    }
+  </nav>
+</div>
+
+<div class="pt-2">
+  <router-outlet />
+</div>

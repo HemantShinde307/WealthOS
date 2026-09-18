@@ -1,0 +1,74 @@
+<app-report-header title="Stocks Portfolio Valuation Report" subtitle="Current holding value of all direct-equity positions, marked to the latest traded price.">
+  <button reportActions (click)="exportCsv()" class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium shadow-sm">
+    <span class="material-symbols-outlined text-[18px]">download</span>
+    Export CSV
+  </button>
+</app-report-header>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <app-stat-card label="Invested Value" [value]="presentations.stockInvestedValue() | inrCompact" />
+  <app-stat-card label="Current Value" [value]="presentations.stockCurrentValue() | inrCompact" />
+  <app-stat-card label="Unrealised Gain/Loss" [value]="(presentations.stockGainLoss() >= 0 ? '+' : '') + (presentations.stockGainLoss() | inrCompact)" [valueClass]="presentations.stockGainLoss() >= 0 ? 'text-on-tertiary-container' : 'text-error'" />
+  <app-stat-card label="Scrips Held" [value]="rows().length + ''" />
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+  <h3 class="text-title-lg text-on-background mb-4">Sector Exposure</h3>
+  <div class="space-y-3">
+    @for (s of bySector(); track s.sector) {
+      <div>
+        <div class="flex justify-between text-sm mb-1">
+          <span class="text-on-surface">{{ s.sector }}</span>
+          <span class="font-mono font-medium">{{ s.pct }}%</span>
+        </div>
+        <div class="h-2 rounded-full bg-surface-container-low overflow-hidden">
+          <div class="h-full bg-primary-container" [style.width.%]="s.pct"></div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="p-6 border-b border-outline-variant">
+    <h3 class="text-title-lg text-on-background">Holdings</h3>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[900px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Symbol</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Sector</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Qty</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Avg Price</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">LTP</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Current Value</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Gain/Loss</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (r of rows(); track r.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4">
+              <div class="font-medium text-on-background">{{ r.symbol }}</div>
+              <div class="text-xs text-on-surface-variant">{{ r.companyName }} · {{ r.exchange }}</div>
+            </td>
+            <td class="py-3 px-4"><span class="bg-surface-container-low text-on-surface px-2 py-0.5 rounded text-xs">{{ r.sector }}</span></td>
+            <td class="py-3 px-4 text-right font-mono">{{ r.qty | number }}</td>
+            <td class="py-3 px-4 text-right font-mono">₹{{ r.avgPrice | number: '1.2-2' }}</td>
+            <td class="py-3 px-4 text-right font-mono">₹{{ r.ltp | number: '1.2-2' }}</td>
+            <td class="py-3 px-4 text-right font-mono font-medium">₹{{ r.current | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-right">
+              <div class="flex flex-col items-end">
+                <span class="font-mono font-medium" [class]="r.gain >= 0 ? 'text-on-tertiary-container' : 'text-error'">{{ r.gain >= 0 ? '+' : '' }}₹{{ r.gain | number: '1.0-0' }}</span>
+                <span class="text-xs font-medium" [class]="r.gain >= 0 ? 'text-on-tertiary-container' : 'text-error'">{{ r.gain >= 0 ? '+' : '' }}{{ r.gainPct }}%</span>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7" class="py-6 px-4 text-center text-on-surface-variant">No equity holdings for this customer.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

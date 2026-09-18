@@ -1,0 +1,123 @@
+@if (customer(); as c) {
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div class="flex items-center gap-2 text-on-surface-variant text-xs">
+      <a routerLink="/back-office/customer-management/master" class="hover:underline">Customers Master</a>
+      <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+      <span class="text-on-background font-semibold">{{ c.name }}</span>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col gap-4">
+      <h3 class="text-title-lg text-on-background pb-2 border-b border-outline-variant">Profile</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Name</label>
+          <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-background" [value]="draft().name" (input)="setField('name', $any($event.target).value)" />
+        </div>
+        <div>
+          <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">PAN</label>
+          <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md font-mono text-on-background" [value]="draft().pan" (input)="setField('pan', $any($event.target).value)" />
+        </div>
+        <div>
+          <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Email</label>
+          <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-background" [value]="draft().email" (input)="setField('email', $any($event.target).value)" />
+        </div>
+        <div>
+          <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Phone</label>
+          <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-background" [value]="draft().phone" (input)="setField('phone', $any($event.target).value)" />
+        </div>
+        <div>
+          <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Segment</label>
+          <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-background" [value]="draft().segment" (change)="setField('segment', $any($event.target).value)">
+            <option>Retail</option>
+            <option>HNI</option>
+            <option>Corporate</option>
+            <option>NRI</option>
+            <option>Family Office</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">KYC Status</label>
+          <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-background" [value]="draft().kycStatus" (change)="setField('kycStatus', $any($event.target).value)">
+            <option>Verified</option>
+            <option>Pending</option>
+            <option>Rejected</option>
+            <option>Not Started</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Status</label>
+          <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-background" [value]="draft().status" (change)="setField('status', $any($event.target).value)">
+            <option>Active</option>
+            <option>Inactive</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Group</label>
+          <select
+            class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-background"
+            [value]="draft().groupId ?? ''"
+            (change)="setField('groupId', $any($event.target).value || null)"
+          >
+            <option value="">— Ungrouped —</option>
+            @for (g of groups(); track g.id) {
+              <option [value]="g.id">{{ g.name }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 pt-2">
+        <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="save()">Save Changes</button>
+        @if (saved()) {
+          <span class="text-on-tertiary-container text-sm flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">check_circle</span> Saved
+          </span>
+        }
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-6 h-fit">
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col gap-4">
+        <h3 class="text-title-lg text-on-background pb-2 border-b border-outline-variant">Summary</h3>
+        <div>
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">AUM</p>
+          <p class="font-mono text-xl font-bold text-on-background">{{ c.aum | inrCompact }}</p>
+        </div>
+        <div>
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Customer ID</p>
+          <p class="font-mono text-sm text-on-background">{{ c.id }}</p>
+        </div>
+        <div>
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Joined</p>
+          <p class="text-sm text-on-background">{{ c.joinedOn }}</p>
+        </div>
+      </div>
+
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col gap-3">
+        <h3 class="text-title-lg text-on-background pb-2 border-b border-outline-variant">Risk Profile</h3>
+        <div class="flex items-center justify-between">
+          <p class="font-mono text-lg font-bold text-on-background">{{ c.riskProfile }}</p>
+          @if (reviewDue()) {
+            <span class="bg-error-container text-on-error-container text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase">Review Due</span>
+          } @else {
+            <span class="bg-on-tertiary-container/15 text-on-tertiary-container text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase">Up to Date</span>
+          }
+        </div>
+        <p class="text-xs text-on-surface-variant">
+          {{ c.riskProfileMethod ? c.riskProfileMethod + ' · assessed ' + c.riskProfileAssessedOn : 'Never formally assessed' }}
+        </p>
+        <a [routerLink]="['/back-office/customer-management/risk-assessment', c.id]" class="text-secondary text-sm font-medium hover:underline w-fit">
+          Assess / Update Risk Profile →
+        </a>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="flex flex-col items-center justify-center text-center py-16 gap-3">
+    <span class="material-symbols-outlined text-on-surface-variant text-[40px]">person_off</span>
+    <h2 class="text-title-lg text-on-background">Customer not found</h2>
+    <button class="text-secondary text-sm font-medium hover:underline" (click)="goBack()">Back to Customers Master</button>
+  </div>
+}

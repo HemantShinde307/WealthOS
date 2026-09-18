@@ -1,0 +1,106 @@
+<div class="p-4 space-y-5">
+  <section>
+    <h1 class="text-headline-lg-mobile text-on-background font-bold leading-tight">Good morning,<br />{{ firstName }}</h1>
+    <p class="text-body-md text-on-surface-variant mt-1">Markets are open. Portfolio updated.</p>
+  </section>
+
+  <section class="grid grid-cols-1 gap-3">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+      <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Total Current Value</p>
+      <div class="font-mono text-[28px] leading-tight font-bold text-on-background">{{ portfolio.currentValue() | inrCompact }}</div>
+      <div class="flex items-center gap-1 mt-2 text-on-tertiary-container text-sm font-semibold">
+        <span class="material-symbols-outlined text-[16px]">trending_up</span>
+        <span>+{{ dayChangePct }}% Today</span>
+      </div>
+    </div>
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+      <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Unrealized Gains</p>
+      <div class="font-mono text-xl font-semibold" [class]="portfolio.unrealizedPl() >= 0 ? 'text-on-tertiary-container' : 'text-error'">
+        {{ portfolio.unrealizedPl() >= 0 ? '+' : '' }}{{ portfolio.unrealizedPl() | inrCompact }}
+      </div>
+      <p class="text-xs text-on-surface-variant mt-1">Absolute return {{ portfolio.absoluteReturnPct() }}% &middot; XIRR {{ portfolio.xirr }}%</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="text-title-lg text-on-background mb-3">Asset Allocation</h2>
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex items-center gap-5 shadow-sm">
+      <div class="w-24 h-24 rounded-full shrink-0 relative flex items-center justify-center" [style.background]="'conic-gradient(' + donutGradient() + ')'">
+        <div class="bg-surface-container-lowest w-[calc(100%-20px)] h-[calc(100%-20px)] rounded-full"></div>
+      </div>
+      <div class="flex flex-col gap-2 w-full">
+        @for (seg of allocationSegments(); track seg.label) {
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <div class="w-2.5 h-2.5 rounded-full shrink-0" [style.background]="'var(' + seg.colorVar + ')'"></div>
+              <span class="text-body-md text-on-surface">{{ seg.label }}</span>
+            </div>
+            <span class="font-mono text-sm text-on-surface-variant">{{ seg.pct }}%</span>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="text-title-lg text-on-background mb-3">Quick Actions</h2>
+    <div class="grid grid-cols-3 gap-3">
+      <button class="bg-surface-container-lowest border border-outline-variant rounded-lg py-4 flex flex-col items-center gap-2 shadow-sm" (click)="startInvest()">
+        <span class="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">add</span>
+        </span>
+        <span class="text-xs font-medium text-on-surface">Invest</span>
+      </button>
+      <a class="bg-surface-container-lowest border border-outline-variant rounded-lg py-4 flex flex-col items-center gap-2 shadow-sm" routerLink="/mobile/goals">
+        <span class="w-10 h-10 rounded-full bg-secondary-container/10 text-secondary flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">flag</span>
+        </span>
+        <span class="text-xs font-medium text-on-surface">Goals</span>
+      </a>
+      <a class="bg-surface-container-lowest border border-outline-variant rounded-lg py-4 flex flex-col items-center gap-2 shadow-sm" routerLink="/mobile/tax-saving">
+        <span class="w-10 h-10 rounded-full bg-tertiary-container/10 text-on-tertiary-container flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+        </span>
+        <span class="text-xs font-medium text-on-surface">Tax Saving</span>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-title-lg text-on-background">Pending Actions</h2>
+      <span class="bg-error text-on-error text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full">1 Alert</span>
+    </div>
+    <a routerLink="/mobile/transaction-alert" class="bg-surface-container-low border border-outline-variant rounded-lg p-4 flex gap-3 items-start shadow-sm">
+      <div class="w-9 h-9 rounded-full bg-error-container text-error flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-[18px]">warning</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h3 class="text-sm font-semibold text-on-background">Portfolio Rebalance Suggested</h3>
+        <p class="text-xs text-on-surface-variant mt-0.5">Equity allocation has drifted from target. Review the suggested adjustment.</p>
+      </div>
+      <span class="material-symbols-outlined text-on-surface-variant text-[18px] shrink-0">chevron_right</span>
+    </a>
+  </section>
+
+  <section>
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-title-lg text-on-background">Recent Transactions</h2>
+      <a routerLink="/mobile/portfolio" class="text-secondary text-sm font-medium">View All</a>
+    </div>
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg divide-y divide-outline-variant shadow-sm overflow-hidden">
+      @for (txn of recentTransactions(); track txn.id) {
+        <div class="p-3 flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <p class="text-sm font-medium text-on-background truncate">{{ txn.schemeName }}</p>
+            <p class="text-xs text-on-surface-variant">{{ txn.type }} &middot; {{ txn.date | date: 'd MMM' }}</p>
+          </div>
+          <div class="text-right shrink-0">
+            <p class="font-mono text-sm font-medium text-on-background">₹{{ txn.amount | number }}</p>
+            <p class="text-[11px]" [class]="txn.status === 'Completed' ? 'text-on-tertiary-container' : 'text-on-surface-variant'">{{ txn.status }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+</div>

@@ -1,0 +1,61 @@
+<div class="space-y-6">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="text-xs text-on-surface-variant">Category</p>
+    <p class="font-semibold text-on-background">{{ state.category() }}</p>
+  </div>
+
+  <div>
+    <label class="text-sm font-medium text-on-background block mb-2">Goal Name</label>
+    <input
+      class="w-full px-4 py-3 border border-outline-variant rounded-md text-sm bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+      [value]="state.goalName()"
+      (input)="onGoalNameInput($event)"
+    />
+  </div>
+
+  <div>
+    <label class="text-sm font-medium text-on-background block mb-2">Target Amount</label>
+    <div class="relative">
+      <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-mono">₹</span>
+      <input
+        type="number"
+        class="w-full pl-8 pr-4 py-3 border border-outline-variant rounded-md text-2xl font-mono font-bold bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+        [value]="state.targetAmount()"
+        (input)="onTargetAmountInput($event)"
+      />
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+    <div>
+      <label class="text-sm font-medium text-on-background block mb-2">Target Date</label>
+      <input
+        type="month"
+        class="w-full px-4 py-3 border border-outline-variant rounded-md text-sm bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+        [value]="state.targetDate()"
+        [min]="minDate"
+        (input)="onTargetDateInput($event)"
+      />
+    </div>
+    <div>
+      <label class="text-sm font-medium text-on-background block mb-2">Current Savings (towards this goal)</label>
+      <div class="relative">
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-mono">₹</span>
+        <input
+          type="number"
+          class="w-full pl-8 pr-4 py-3 border border-outline-variant rounded-md text-sm bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+          [value]="state.currentSavings()"
+          (input)="onCurrentSavingsInput($event)"
+        />
+      </div>
+    </div>
+  </div>
+
+  <button
+    class="w-full bg-primary-container text-on-primary py-3 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+    [disabled]="!isValid()"
+    (click)="continue()"
+  >
+    Continue to Strategy
+  </button>
+</div>

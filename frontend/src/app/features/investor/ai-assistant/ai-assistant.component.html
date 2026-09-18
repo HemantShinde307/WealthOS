@@ -1,0 +1,51 @@
+<div class="flex flex-col h-[calc(100vh-8rem)] bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  <div class="p-4 border-b border-outline-variant flex items-center gap-3">
+    <a routerLink="/investor/ai-insights" class="p-2 -ml-2 rounded-full text-on-surface-variant hover:bg-surface-container-low">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </a>
+    <div class="w-9 h-9 rounded-full bg-primary-container text-on-primary flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-[20px]">auto_awesome</span>
+    </div>
+    <div>
+      <p class="font-medium text-on-background">WealthOS AI Assistant</p>
+      <p class="text-xs text-on-surface-variant">Answers are computed from your real portfolio data</p>
+    </div>
+  </div>
+
+  <div class="flex-1 overflow-y-auto p-4 space-y-3">
+    @for (m of messages(); track $index) {
+      <div class="flex" [class.justify-end]="m.from === 'user'">
+        <div
+          class="max-w-[80%] sm:max-w-[70%] rounded-lg px-4 py-2.5 text-sm leading-relaxed"
+          [class]="m.from === 'user' ? 'bg-primary-container text-on-primary' : 'bg-surface-container-low text-on-surface'"
+        >
+          {{ m.text }}
+        </div>
+      </div>
+    }
+    <div #scrollAnchor></div>
+  </div>
+
+  @if (messages().length <= 2) {
+    <div class="px-4 pb-2 flex flex-wrap gap-2">
+      @for (q of suggestedQuestions; track q) {
+        <button class="px-3 py-1.5 rounded-full border border-outline-variant text-xs text-on-surface-variant hover:bg-surface-container-low transition-colors" (click)="ask(q)">
+          {{ q }}
+        </button>
+      }
+    </div>
+  }
+
+  <div class="p-3 border-t border-outline-variant flex items-center gap-2">
+    <input
+      class="flex-1 px-4 py-2.5 border border-outline-variant rounded-full text-sm bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+      placeholder="Ask about your portfolio..."
+      [value]="draft()"
+      (input)="draft.set($any($event.target).value)"
+      (keydown.enter)="ask(draft())"
+    />
+    <button class="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center shrink-0 hover:opacity-90 transition-opacity" (click)="ask(draft())">
+      <span class="material-symbols-outlined text-[20px]">send</span>
+    </button>
+  </div>
+</div>

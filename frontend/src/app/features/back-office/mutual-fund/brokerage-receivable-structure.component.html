@@ -1,0 +1,72 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Brokerage Receivable Structure</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">{{ mfService.brokerageSlabs().length }} slab structures configured across scheme categories.</p>
+  </div>
+  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="startCreate()">
+    + New Slab
+  </button>
+</div>
+
+@if (showForm()) {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-end">
+    <div class="sm:col-span-2">
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Scheme Category</label>
+      <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" placeholder="e.g. Equity - Large Cap / Flexi Cap" [value]="draft().schemeCategory" (input)="setField('schemeCategory', $any($event.target).value)" />
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Upfront %</label>
+      <input type="number" min="0" step="0.05" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="draft().upfrontPct" (input)="setField('upfrontPct', $any($event.target).valueAsNumber || null)" />
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Trail %</label>
+      <input type="number" min="0" step="0.05" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="draft().trailPct" (input)="setField('trailPct', $any($event.target).valueAsNumber || null)" />
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Effective From</label>
+      <input type="date" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="draft().effectiveFrom" (input)="setField('effectiveFrom', $any($event.target).value)" />
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Effective To (optional)</label>
+      <input type="date" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="draft().effectiveTo" (input)="setField('effectiveTo', $any($event.target).value)" />
+    </div>
+    <div class="sm:col-span-2 md:col-span-5 flex justify-end gap-2">
+      <button class="px-4 py-2 border border-outline-variant bg-surface-container-lowest text-on-surface rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium" (click)="cancel()">Cancel</button>
+      <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="save()">{{ editingId() ? 'Save Changes' : 'Add Slab' }}</button>
+    </div>
+    @if (error()) { <p class="text-error text-sm sm:col-span-2 md:col-span-5">{{ error() }}</p> }
+  </div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Scheme Category</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Upfront %</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Trail %</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Effective From</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Effective To</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (s of mfService.brokerageSlabs(); track s.id) {
+        <tr [class.opacity-50]="s.effectiveTo">
+          <td class="py-2.5 px-4 font-medium text-on-background text-sm">{{ s.schemeCategory }}</td>
+          <td class="py-2.5 px-4 text-right font-mono">{{ s.upfrontPct | number: '1.2-2' }}%</td>
+          <td class="py-2.5 px-4 text-right font-mono">{{ s.trailPct | number: '1.2-2' }}%</td>
+          <td class="py-2.5 px-4 text-xs">{{ s.effectiveFrom | date: 'mediumDate' }}</td>
+          <td class="py-2.5 px-4 text-xs">{{ s.effectiveTo ? (s.effectiveTo | date: 'mediumDate') : '—' }}</td>
+          <td class="py-2.5 px-4 whitespace-nowrap">
+            <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="startEdit(s)">Edit</button>
+            <button class="text-error text-xs font-medium hover:underline" (click)="remove(s.id)">Delete</button>
+          </td>
+        </tr>
+      }
+      @if (!mfService.brokerageSlabs().length) {
+        <tr><td colspan="6" class="py-10 text-center text-on-surface-variant">No brokerage slab structures defined yet.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>

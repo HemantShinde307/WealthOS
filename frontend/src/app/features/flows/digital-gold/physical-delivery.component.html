@@ -1,0 +1,86 @@
+@if (!submitted()) {
+  <div class="space-y-6">
+    <div class="bg-surface-container-low rounded-lg p-4 text-sm text-on-surface-variant flex gap-2">
+      <span class="material-symbols-outlined text-[18px] shrink-0">info</span>
+      <span>You currently hold {{ state.holdingsGrams() }} g of digital gold. Convert any amount into a physical coin or bar, delivered securely to your address.</span>
+    </div>
+
+    <div>
+      <label class="text-sm font-medium text-on-background block mb-2">Select Format</label>
+      <div class="grid grid-cols-3 gap-2">
+        @for (f of formats; track f.id) {
+          <button
+            class="p-3 rounded-md border text-center transition-colors"
+            [class]="selectedFormatId() === f.id ? 'bg-primary-container text-on-primary border-primary-container' : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-low'"
+            (click)="selectedFormatId.set(f.id)"
+          >
+            <p class="font-semibold text-sm">{{ f.label }}</p>
+            <p class="text-xs opacity-80 mt-0.5">Making ₹{{ f.making | number }}</p>
+          </button>
+        }
+      </div>
+      @if (selectedFormat().grams > state.holdingsGrams()) {
+        <p class="text-xs text-error mt-2">Insufficient gold balance for this format.</p>
+      }
+    </div>
+
+    <div class="space-y-3">
+      <label class="text-sm font-medium text-on-background block">Delivery Address</label>
+      <input
+        class="w-full px-4 py-2.5 border border-outline-variant rounded-md text-sm bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+        placeholder="Full Name"
+        [value]="fullName()"
+        (input)="fullName.set($any($event.target).value)"
+      />
+      <input
+        class="w-full px-4 py-2.5 border border-outline-variant rounded-md text-sm bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+        placeholder="Address Line"
+        [value]="addressLine()"
+        (input)="addressLine.set($any($event.target).value)"
+      />
+      <div class="grid grid-cols-2 gap-3">
+        <input
+          class="w-full px-4 py-2.5 border border-outline-variant rounded-md text-sm bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+          placeholder="City"
+          [value]="city()"
+          (input)="city.set($any($event.target).value)"
+        />
+        <input
+          class="w-full px-4 py-2.5 border border-outline-variant rounded-md text-sm bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+          placeholder="Pincode"
+          maxlength="6"
+          [value]="pincode()"
+          (input)="pincode.set($any($event.target).value)"
+        />
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg divide-y divide-outline-variant">
+      <div class="p-3 flex justify-between text-sm">
+        <span class="text-on-surface-variant">Making Charges</span>
+        <span class="font-mono">₹{{ selectedFormat().making | number }}</span>
+      </div>
+      <div class="p-3 flex justify-between text-sm">
+        <span class="text-on-surface-variant">Shipping</span>
+        <span class="font-mono">₹{{ shippingCharge | number }}</span>
+      </div>
+      <div class="p-3 flex justify-between font-semibold">
+        <span>Total Due</span>
+        <span class="font-mono">₹{{ totalDue() | number }}</span>
+      </div>
+    </div>
+
+    <button class="w-full bg-primary-container text-on-primary py-3 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50" [disabled]="!formValid()" (click)="confirm()">
+      Confirm Delivery Request
+    </button>
+  </div>
+} @else {
+  <div class="flex flex-col items-center text-center py-8 gap-4">
+    <div class="w-20 h-20 rounded-full bg-tertiary-container/10 flex items-center justify-center">
+      <span class="material-symbols-outlined text-on-tertiary-container text-[48px] fill-icon">local_shipping</span>
+    </div>
+    <h2 class="text-headline-lg text-on-background">Delivery Request Placed</h2>
+    <p class="text-on-surface-variant max-w-sm">Your {{ selectedFormat().label }} will be dispatched within 5-7 business days to the address provided.</p>
+    <button class="mt-4 bg-primary-container text-on-primary px-6 py-3 rounded-md font-medium hover:opacity-90 transition-opacity" (click)="goToGoldPortfolio()">Back to Gold Portfolio</button>
+  </div>
+}

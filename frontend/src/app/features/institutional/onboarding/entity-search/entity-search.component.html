@@ -1,0 +1,111 @@
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+  <h3 class="text-title-lg text-on-background">Entity Verification</h3>
+  <p class="text-body-md text-on-surface-variant mt-1 mb-4">
+    Search global registries by Legal Entity Identifier (LEI), Corporate Identification Number (CIN), or exact legal name to initiate onboarding.
+  </p>
+  <div class="flex flex-col sm:flex-row gap-3">
+    <div class="relative flex-1">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+      <input
+        [value]="query()"
+        (input)="query.set($any($event.target).value)"
+        class="w-full pl-10 pr-4 py-2.5 border border-outline-variant rounded-md text-sm bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+        placeholder="Enter LEI, CIN, or Company Name..."
+      />
+    </div>
+    <select class="border border-outline-variant rounded-md px-3 py-2.5 text-sm bg-surface-container-lowest text-on-surface">
+      <option>All Jurisdictions</option>
+      <option>US (Delaware)</option>
+      <option>GB (England &amp; Wales)</option>
+      <option>DE (Berlin)</option>
+    </select>
+    <button class="px-6 py-2.5 bg-primary-container text-on-primary rounded-md text-sm font-medium hover:opacity-90 transition-opacity">Verify</button>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+  <!-- Selected entity card -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm flex flex-col">
+    <div class="flex justify-between items-start mb-4">
+      <div class="w-14 h-14 rounded-lg bg-surface-container-low flex items-center justify-center">
+        <span class="material-symbols-outlined text-on-surface-variant text-[28px]">account_balance</span>
+      </div>
+      <span
+        class="px-2 py-0.5 rounded text-xs font-semibold"
+        [class]="selectedEntity().status === 'Active' ? 'bg-tertiary-container text-on-tertiary-container' : 'bg-error-container text-on-error-container'"
+      >
+        {{ selectedEntity().status | uppercase }}
+      </span>
+    </div>
+    <h4 class="text-title-lg text-on-background">{{ selectedEntity().name }}</h4>
+    <p class="text-sm text-on-surface-variant mb-4">{{ selectedEntity().jurisdiction }}</p>
+
+    <div class="space-y-3 text-sm">
+      <div>
+        <p class="text-label-md text-on-surface-variant uppercase tracking-wider">LEI</p>
+        <p class="font-mono text-on-background">{{ selectedEntity().lei }}</p>
+      </div>
+      <div>
+        <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Registration Number</p>
+        <p class="font-mono text-on-background">{{ selectedEntity().registrationNumber }}</p>
+      </div>
+      <div>
+        <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Registered Address</p>
+        <p class="text-on-background">{{ selectedEntity().registeredAddress }}</p>
+      </div>
+    </div>
+
+    <button
+      (click)="beginOnboarding()"
+      [disabled]="selectedEntity().status !== 'Active'"
+      class="mt-6 flex items-center justify-center gap-2 bg-tertiary-container text-on-tertiary-container py-2.5 rounded-md text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+    >
+      <span class="material-symbols-outlined text-[18px]">person_add</span>
+      Begin Onboarding
+    </button>
+  </div>
+
+  <!-- Registry matches table -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden flex flex-col">
+    <div class="p-6 border-b border-outline-variant flex justify-between items-center">
+      <h3 class="text-title-lg text-on-background">Registry Matches</h3>
+      <span class="text-sm text-on-surface-variant">{{ matches().length }} results found</span>
+    </div>
+    <div class="overflow-x-auto table-scroll">
+      <table class="w-full text-left border-collapse min-w-[480px]">
+        <thead class="bg-surface-container-low border-b border-outline-variant">
+          <tr>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Entity Name</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Identifier</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Jurisdiction</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+          @for (m of matches(); track m.entityId) {
+            <tr
+              class="cursor-pointer transition-colors"
+              [class.bg-surface-container-low]="m.entityId === selectedMatch().entityId"
+              (click)="select(m)"
+            >
+              <td class="py-3 px-4 font-medium text-on-background">{{ m.entityName }}</td>
+              <td class="py-3 px-4 font-mono text-xs">{{ m.identifier }}</td>
+              <td class="py-3 px-4">{{ m.jurisdiction }}</td>
+              <td class="py-3 px-4">
+                @if (m.status === 'Active') {
+                  <span class="flex items-center gap-1 text-on-tertiary-container text-xs font-medium">
+                    <span class="material-symbols-outlined text-[16px]">check_circle</span> Active
+                  </span>
+                } @else {
+                  <span class="flex items-center gap-1 text-error text-xs font-medium">
+                    <span class="material-symbols-outlined text-[16px]">cancel</span> Dissolved
+                  </span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

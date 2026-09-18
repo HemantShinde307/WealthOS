@@ -1,0 +1,41 @@
+<div class="space-y-3 mb-2">
+  <div class="flex justify-between items-end text-sm">
+    <span class="text-on-surface-variant">{{ answeredCount() }} of {{ questions.length }} answered</span>
+    <span class="font-mono text-on-surface-variant">{{ progressPct() | number: '1.0-0' }}%</span>
+  </div>
+  <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+    <div class="h-full bg-secondary transition-all duration-300" [style.width.%]="progressPct()"></div>
+  </div>
+</div>
+
+<div class="space-y-6">
+  @for (q of questions; track q.id; let i = $index) {
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+      <p class="text-xs font-semibold text-secondary uppercase tracking-wider mb-1">Question {{ i + 1 }}</p>
+      <h3 class="text-title-lg text-on-background mb-1">{{ q.question }}</h3>
+      <p class="text-xs text-on-surface-variant mb-4">{{ q.helper }}</p>
+      <div class="grid grid-cols-1 gap-2" role="radiogroup">
+        @for (opt of q.options; track opt.label) {
+          <button
+            class="text-left px-4 py-3 rounded-md border text-sm transition-colors flex items-center justify-between gap-2"
+            [class]="state.answers()[q.id] === opt.score ? 'border-secondary bg-secondary/5 text-on-background font-medium' : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-low'"
+            (click)="select(q.id, opt.score)"
+          >
+            <span>{{ opt.label }}</span>
+            @if (state.answers()[q.id] === opt.score) {
+              <span class="material-symbols-outlined text-secondary text-[18px] shrink-0">check_circle</span>
+            }
+          </button>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<button
+  class="w-full mt-6 bg-primary-container text-on-primary py-3 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+  [disabled]="!state.allAnswered()"
+  (click)="continue()"
+>
+  See My Risk Profile
+</button>

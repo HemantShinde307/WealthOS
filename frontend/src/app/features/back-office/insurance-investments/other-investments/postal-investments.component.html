@@ -1,0 +1,81 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Postal Investments</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">{{ svc.postal().length }} post office scheme investments (NSC, KVP, SSY, etc.)</p>
+  </div>
+  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openNew()">+ New Investment</button>
+</div>
+
+@if (formVisible()) {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+    @if (error()) {
+      <div class="md:col-span-3 bg-error/10 border border-error/40 rounded-lg p-3 text-error text-sm">{{ error() }}</div>
+    }
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Customer</label>
+      <input class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="customerName()" (input)="customerName.set($any($event.target).value)" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Scheme</label>
+      <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="schemeName()" (change)="schemeName.set($any($event.target).value)">
+        @for (s of schemes; track s) { <option [value]="s">{{ s }}</option> }
+      </select>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Certificate No.</label>
+      <input class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="certificateNumber()" (input)="certificateNumber.set($any($event.target).value)" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Amount (₹)</label>
+      <input type="number" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="amount()" (input)="amount.set($any($event.target).valueAsNumber || null)" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Interest Rate (%)</label>
+      <input type="number" step="0.1" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="interestRate()" (input)="interestRate.set($any($event.target).valueAsNumber || null)" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Investment Date</label>
+      <input type="date" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="investmentDate()" (input)="investmentDate.set($any($event.target).value)" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Maturity Date</label>
+      <input type="date" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="maturityDate()" (input)="maturityDate.set($any($event.target).value)" />
+    </div>
+    <div class="md:col-span-3 flex justify-end gap-2">
+      <button class="px-4 py-2 border border-outline-variant rounded-md text-sm font-medium hover:bg-surface-container-low" (click)="cancel()">Cancel</button>
+      <button class="bg-primary-container text-on-primary px-5 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="save()">{{ editingId() ? 'Save Changes' : 'Add Investment' }}</button>
+    </div>
+  </div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Customer</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Scheme</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Certificate No.</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Amount</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Rate</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Maturity</th>
+        <th class="py-2.5 px-4"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (p of svc.postal(); track p.id) {
+        <tr>
+          <td class="py-2 px-4">{{ p.customerName }}</td>
+          <td class="py-2 px-4 text-xs">{{ p.schemeName }}</td>
+          <td class="py-2 px-4 font-mono text-xs">{{ p.certificateNumber }}</td>
+          <td class="py-2 px-4 text-right font-mono">₹{{ p.amount | number }}</td>
+          <td class="py-2 px-4 text-right font-mono text-xs">{{ p.interestRate }}%</td>
+          <td class="py-2 px-4 text-xs">{{ p.maturityDate | date: 'mediumDate' }}</td>
+          <td class="py-2 px-4 text-right whitespace-nowrap">
+            <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="edit(p)">Edit</button>
+            <button class="text-error text-xs font-medium hover:underline" (click)="remove(p.id)">Delete</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

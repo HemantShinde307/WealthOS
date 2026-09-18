@@ -1,0 +1,115 @@
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background font-bold">Sharma Family Aggregator</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Consolidated view of all linked accounts ({{ members().length }} members)</p>
+  </div>
+  <div class="flex gap-2">
+    <button class="bg-surface-container border border-outline-variant px-4 py-2 rounded flex items-center gap-2 hover:bg-surface-container-high transition-colors text-sm">
+      <span class="material-symbols-outlined text-[18px]">download</span>
+      Export CSV
+    </button>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 flex flex-col justify-between">
+    <div class="flex justify-between items-start mb-4">
+      <span class="text-on-surface-variant text-label-caps uppercase">Total Family AUM</span>
+      <span class="material-symbols-outlined text-secondary bg-secondary-fixed/30 p-1.5 rounded">account_balance</span>
+    </div>
+    <div>
+      <div class="text-3xl font-mono font-bold text-on-surface">{{ totalAum() | inrCompact }}</div>
+      <div class="flex items-center gap-1 mt-2 text-success text-body-sm font-semibold">
+        <span class="material-symbols-outlined text-[16px]">trending_up</span>
+        Across all entities
+      </div>
+    </div>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 flex flex-col justify-between">
+    <div class="flex justify-between items-start mb-4">
+      <span class="text-on-surface-variant text-label-caps uppercase">Unrealized Gains (Platform)</span>
+      <span class="material-symbols-outlined text-success bg-success/10 p-1.5 rounded">insights</span>
+    </div>
+    <div>
+      <div class="text-3xl font-mono font-bold text-success">{{ unrealizedPl() | inrCompact }}</div>
+      <div class="flex items-center gap-1 mt-2 text-on-surface-variant text-body-sm">
+        <span class="w-2 h-2 rounded-full bg-success"></span>
+        {{ absoluteReturnPct() }}% Absolute Return
+      </div>
+    </div>
+  </div>
+  <div class="bg-error-container border border-error rounded-xl p-6 flex flex-col">
+    <div class="flex justify-between items-start mb-3">
+      <span class="text-error text-label-caps uppercase flex items-center gap-1">
+        <span class="material-symbols-outlined text-[16px]">warning</span> Concentration Risk
+      </span>
+    </div>
+    @if (largestHolding(); as top) {
+      <p class="text-title-lg text-on-error-container mb-2">High exposure to {{ top.schemeName }}</p>
+      <p class="text-on-error-container text-body-sm mb-4">This single scheme represents {{ ((top.currentValue / totalAum()) * 100).toFixed(1) }}% of total tracked equity allocation.</p>
+    } @else {
+      <p class="text-on-error-container text-body-sm">No holdings tracked yet — concentration risk will appear once investments are made.</p>
+    }
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl flex flex-col">
+  <div class="p-4 border-b border-outline-variant flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-surface-bright rounded-t-xl">
+    <div class="flex flex-wrap gap-2">
+      <select class="py-1.5 px-3 text-body-sm border border-outline-variant rounded bg-surface-container-lowest text-on-surface" (change)="onMemberFilterChange($event)">
+        <option value="all">All Members</option>
+        @for (m of members(); track m.id) {
+          <option [value]="m.id">{{ m.name }}</option>
+        }
+      </select>
+      <select class="py-1.5 px-3 text-body-sm border border-outline-variant rounded bg-surface-container-lowest text-on-surface" (change)="onAssetClassFilterChange($event)">
+        <option value="all">All Asset Classes</option>
+        @for (c of assetClasses; track c) {
+          <option [value]="c">{{ c }}</option>
+        }
+      </select>
+    </div>
+    <div class="text-body-sm text-on-surface-variant whitespace-nowrap">
+      Showing <span class="font-semibold text-on-surface">{{ filteredHoldings().length }}</span> of <span class="font-semibold text-on-surface">{{ familyOffice.memberHoldings().length }}</span> folios
+    </div>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead class="sticky top-0 bg-surface-container-low border-b-2 border-primary">
+        <tr>
+          <th class="py-3 px-4 text-label-caps text-on-surface-variant uppercase whitespace-nowrap">Scheme Name</th>
+          <th class="py-3 px-4 text-label-caps text-on-surface-variant uppercase whitespace-nowrap">Member Owner</th>
+          <th class="py-3 px-4 text-label-caps text-on-surface-variant uppercase whitespace-nowrap text-right">Current Value</th>
+          <th class="py-3 px-4 text-label-caps text-on-surface-variant uppercase whitespace-nowrap text-right">Gain/Loss</th>
+          <th class="py-3 px-4 text-label-caps text-on-surface-variant uppercase whitespace-nowrap">Category</th>
+        </tr>
+      </thead>
+      <tbody class="text-body-sm text-on-surface">
+        @for (h of filteredHoldings(); track h.schemeId) {
+          <tr class="border-b border-outline-variant/50 hover:bg-surface-container-low transition-colors">
+            <td class="py-3 px-4">
+              <div class="font-semibold text-on-surface">{{ h.schemeName }}</div>
+              <div class="text-xs text-on-surface-variant mt-0.5">{{ h.category }}</div>
+            </td>
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center text-xs font-bold">{{ ownerInitials(h.ownerId) }}</div>
+                <span>{{ ownerName(h.ownerId) }}</span>
+              </div>
+            </td>
+            <td class="py-3 px-4 text-right font-mono">{{ h.currentValue | inrCompact }}</td>
+            <td class="py-3 px-4 text-right font-mono" [class]="h.unrealizedPl >= 0 ? 'text-success' : 'text-error'">
+              {{ h.unrealizedPl >= 0 ? '+' : '' }}{{ h.unrealizedPl | inrCompact }}
+              <span class="text-[10px] bg-surface-container px-1 py-0.5 rounded ml-1">{{ h.unrealizedPlPct }}%</span>
+            </td>
+            <td class="py-3 px-4"><span class="bg-surface-container px-2 py-1 rounded text-xs border border-outline-variant">{{ h.category }}</span></td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="py-8 text-center text-on-surface-variant">No holdings match the selected filters.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

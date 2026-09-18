@@ -1,0 +1,110 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">P2P Investment</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Peer-to-peer lending options sourced from partner NBFC-P2P platforms.</p>
+</div>
+
+@if (lastOrderMessage()) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">check_circle</span> {{ lastOrderMessage() }}
+  </div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Platform Partner</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Plan</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Tenure</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Expected Return</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Min Investment</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Risk Grade</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (p of svc.p2pOptions; track p.id) {
+        <tr class="hover:bg-surface-container-low/50 transition-colors">
+          <td class="py-3 px-4 font-medium text-on-background">{{ p.platformPartner }}</td>
+          <td class="py-3 px-4 text-xs">{{ p.planName }} @if (p.lockIn) {<span class="text-on-surface-variant">(lock-in)</span>}</td>
+          <td class="py-3 px-4 font-mono text-right">{{ p.tenureMonths }} mo</td>
+          <td class="py-3 px-4 font-mono text-right text-on-tertiary-container">{{ p.expectedReturnPct }}%</td>
+          <td class="py-3 px-4 font-mono text-right">₹{{ p.minInvestment | number: '1.0-0' }}</td>
+          <td class="py-3 px-4">
+            <span
+              class="text-xs px-2 py-0.5 rounded font-medium"
+              [class]="{
+                'bg-on-tertiary-container/10 text-on-tertiary-container': p.riskGrade === 'A',
+                'bg-secondary-container text-on-secondary-container': p.riskGrade === 'B',
+                'bg-error/10 text-error': p.riskGrade === 'C'
+              }"
+            >Grade {{ p.riskGrade }}</span>
+          </td>
+          <td class="py-3 px-4 text-right">
+            <button class="px-3 py-1.5 bg-primary-container text-on-primary rounded-md hover:opacity-90 transition-opacity text-xs font-medium" (click)="openInvest(p)">Invest</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+@if (investingOption(); as p) {
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" (click)="closeInvest()">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 w-full max-w-md flex flex-col gap-4" (click)="$event.stopPropagation()">
+      <div>
+        <h4 class="text-title-lg text-on-background font-semibold">Invest in {{ p.planName }}</h4>
+        <p class="text-xs text-on-surface-variant mt-1">{{ p.platformPartner }} · {{ p.tenureMonths }} months · Min ₹{{ p.minInvestment | number: '1.0-0' }}</p>
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Customer</label>
+        <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="investCustomer()" (change)="investCustomer.set($any($event.target).value)">
+          @for (c of customers; track c.pan) {
+            <option [value]="c.name">{{ c.name }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Amount (₹)</label>
+        <input type="number" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="investAmount()" (input)="investAmount.set(+$any($event.target).value)" />
+        @if (investAmount() < p.minInvestment) {
+          <p class="text-error text-xs mt-1">Minimum investment is ₹{{ p.minInvestment | number: '1.0-0' }}.</p>
+        }
+      </div>
+      <div class="flex gap-2 justify-end">
+        <button class="px-4 py-2 border border-outline-variant bg-surface-container-lowest text-on-surface rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium" (click)="closeInvest()">Cancel</button>
+        <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="confirmInvest()">Confirm Order</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (svc.p2pOrders().length) {
+  <div>
+    <h3 class="text-title-lg text-on-background font-semibold mb-2">Recent Orders</h3>
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-surface-container-low border-b border-outline-variant">
+          <tr>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Order</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Plan</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Customer</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Amount</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+          @for (o of svc.p2pOrders(); track o.id) {
+            <tr>
+              <td class="py-3 px-4 font-mono text-xs">{{ o.id }}</td>
+              <td class="py-3 px-4">{{ o.planName }}</td>
+              <td class="py-3 px-4">{{ o.customerName }}</td>
+              <td class="py-3 px-4 font-mono text-right">₹{{ o.amount | number: '1.0-0' }}</td>
+              <td class="py-3 px-4"><span class="bg-secondary-container text-on-secondary-container text-xs px-2 py-0.5 rounded font-medium">{{ o.status }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

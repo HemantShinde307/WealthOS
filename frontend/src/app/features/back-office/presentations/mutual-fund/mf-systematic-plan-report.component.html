@@ -1,0 +1,59 @@
+<app-report-header [title]="title" [subtitle]="subtitle">
+  <button reportActions (click)="exportCsv()" class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium shadow-sm">
+    <span class="material-symbols-outlined text-[18px]">download</span>
+    Export CSV
+  </button>
+</app-report-header>
+
+<div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+  <app-stat-card [label]="'Active ' + planType + 's'" [value]="activeCount() + ''" />
+  <app-stat-card label="Total Monthly Amount" [value]="totalMonthlyAmount() | inrCompact" />
+  <app-stat-card [label]="planType + ' Records'" [value]="rows().length + ''" />
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[900px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Scheme</th>
+          @if (planType === 'STP') {
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Target Scheme</th>
+          }
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Amount</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Frequency</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Installments Done</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Next Due</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (r of rows(); track r.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4">
+              <div class="font-medium text-on-background">{{ r.schemeName }}</div>
+              <div class="text-xs text-on-surface-variant font-mono">{{ r.folioNo }}</div>
+            </td>
+            @if (planType === 'STP') {
+              <td class="py-3 px-4 text-on-background">{{ r.targetSchemeName }}</td>
+            }
+            <td class="py-3 px-4 text-right font-mono font-medium">₹{{ r.amount | number }}</td>
+            <td class="py-3 px-4">{{ r.frequency }}</td>
+            <td class="py-3 px-4 text-right font-mono">{{ r.installmentsPaid }}</td>
+            <td class="py-3 px-4 font-mono">{{ r.nextDueDate | date: 'dd-MMM-yyyy' }}</td>
+            <td class="py-3 px-4">
+              <span
+                class="px-2 py-0.5 rounded text-xs font-medium"
+                [class]="r.status === 'Active' ? 'bg-tertiary-container text-on-tertiary-container' : r.status === 'Paused' ? 'bg-secondary-container/30 text-on-surface' : 'bg-error-container text-error'"
+              >
+                {{ r.status }}
+              </span>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td [attr.colspan]="planType === 'STP' ? 7 : 6" class="py-6 px-4 text-center text-on-surface-variant">No {{ planType }} plans for this customer.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

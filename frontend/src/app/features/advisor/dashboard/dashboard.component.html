@@ -1,0 +1,111 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Welcome back, {{ auth.currentUser().name.split(' ')[0] }}</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Here's how your book of business is performing today.</p>
+  </div>
+  <a routerLink="/mf-purchase/select-scheme" class="flex items-center gap-2 bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium">
+    <span class="material-symbols-outlined text-[18px]">add</span>
+    New Transaction
+  </a>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <app-stat-card label="Total AUM" [value]="clientService.totalAum() | inrCompact" />
+  <app-stat-card label="Active Clients" [value]="clientCount().toString()" />
+  <app-stat-card label="Pending Transactions" [value]="pendingTransactions().length.toString()" [valueClass]="pendingTransactions().length ? 'text-payout-gold' : 'text-on-background'" />
+  <app-stat-card label="Commission Pending" [value]="commissionService.totalPending() | inrCompact" subtext="Awaiting payout" />
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- Top Clients -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden flex flex-col lg:col-span-2">
+    <div class="p-6 border-b border-outline-variant flex justify-between items-center">
+      <h3 class="text-title-lg text-on-background">Top Clients by AUM</h3>
+      <a routerLink="/advisor/clients" class="text-secondary font-medium text-sm hover:underline flex items-center gap-1">
+        View All <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+      </a>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-surface-container-low border-b border-outline-variant">
+          <tr>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Client</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Segment</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">KYC</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">AUM</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+          @for (c of topClients(); track c.id) {
+            <tr class="hover:bg-surface-container-low/50 transition-colors cursor-pointer" [routerLink]="['/advisor/clients', c.id]">
+              <td class="py-3 px-4 font-medium text-on-background">{{ c.name }}</td>
+              <td class="py-3 px-4"><span class="bg-surface-container-low text-on-surface px-2 py-0.5 rounded text-xs">{{ c.segment }}</span></td>
+              <td class="py-3 px-4">
+                <span class="text-xs px-2 py-0.5 rounded font-medium"
+                  [class]="c.kycStatus === 'Verified' ? 'bg-tertiary-container text-on-tertiary-container' : c.kycStatus === 'Pending' ? 'bg-surface-container text-on-surface-variant' : 'bg-error-container text-error'">
+                  {{ c.kycStatus }}
+                </span>
+              </td>
+              <td class="py-3 px-4 text-right font-mono font-medium">{{ c.aum | inrCompact }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Alerts / Actions -->
+  <div class="flex flex-col gap-4">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-sm">
+      <h3 class="text-title-lg text-on-background mb-3">Needs Attention</h3>
+      <div class="flex items-center justify-between py-2 border-b border-outline-variant/50">
+        <span class="text-body-md text-on-surface-variant">KYC pending / rejected</span>
+        <span class="font-mono font-bold" [class]="kycAlerts() ? 'text-error' : 'text-on-background'">{{ kycAlerts() }}</span>
+      </div>
+      <div class="flex items-center justify-between py-2">
+        <span class="text-body-md text-on-surface-variant">Transactions in progress</span>
+        <span class="font-mono font-bold text-payout-gold">{{ pendingTransactions().length }}</span>
+      </div>
+      <a routerLink="/advisor/clients" class="mt-3 inline-flex items-center gap-1 text-secondary font-medium text-sm hover:underline">
+        Review clients <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+      </a>
+    </div>
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-sm flex-1">
+      <h3 class="text-title-lg text-on-background mb-3">Recent Transactions</h3>
+      <div class="flex flex-col divide-y divide-outline-variant">
+        @for (t of recentTransactions(); track t.id) {
+          <div class="py-2 flex justify-between items-center">
+            <div>
+              <div class="font-medium text-on-background text-sm">{{ t.clientName }}</div>
+              <div class="text-xs text-on-surface-variant">{{ t.type }} &middot; {{ t.date }}</div>
+            </div>
+            <div class="text-right">
+              <div class="font-mono text-sm">₹{{ t.amount | number: '1.0-0' }}</div>
+              <div class="text-xs" [class]="t.status === 'Completed' ? 'text-on-tertiary-container' : t.status === 'Failed' || t.status === 'Cancelled' ? 'text-error' : 'text-payout-gold'">{{ t.status }}</div>
+            </div>
+          </div>
+        }
+      </div>
+      <a routerLink="/advisor/transactions" class="mt-3 inline-flex items-center gap-1 text-secondary font-medium text-sm hover:underline">
+        View all transactions <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+      </a>
+    </div>
+
+    @if (churnRisks().length > 0) {
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-sm">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="material-symbols-outlined text-warning text-[20px]">auto_awesome</span>
+          <h3 class="text-title-lg text-on-background">AI Churn Risk</h3>
+        </div>
+        <div class="space-y-3">
+          @for (r of churnRisks(); track r.client.id) {
+            <a [routerLink]="['/advisor/clients', r.client.id]" class="block hover:bg-surface-container-low/50 -mx-2 px-2 py-1 rounded transition-colors">
+              <p class="text-sm font-medium text-on-background">{{ r.client.name }}</p>
+              <p class="text-xs text-on-surface-variant">{{ r.reason }}</p>
+            </a>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

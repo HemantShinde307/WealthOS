@@ -1,0 +1,42 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Policy Alteration</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Pick an existing policy and alter its sum assured, premium or nominee.</p>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 flex flex-col gap-4">
+  <div class="flex flex-col gap-1 max-w-md">
+    <label class="text-label-md text-on-surface-variant">Select Policy</label>
+    <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" (change)="selectPolicy($any($event.target).value)">
+      <option value="">— Choose a policy —</option>
+      @for (p of svc.policies(); track p.id) {
+        <option [value]="p.id">{{ p.policyNumber }} — {{ p.policyholderName }} ({{ p.insurer }})</option>
+      }
+    </select>
+  </div>
+
+  @if (selectedPolicy(); as p) {
+    @if (saved()) {
+      <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-3 text-on-tertiary-container text-sm flex items-center gap-2">
+        <span class="material-symbols-outlined text-[18px]">check_circle</span> Policy {{ p.policyNumber }} updated.
+      </div>
+    }
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-outline-variant pt-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-label-md text-on-surface-variant">Sum Assured (₹)</label>
+        <input type="number" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="sumAssured()" (input)="sumAssured.set($any($event.target).valueAsNumber || null)" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-label-md text-on-surface-variant">Premium (₹)</label>
+        <input type="number" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="premium()" (input)="premium.set($any($event.target).valueAsNumber || null)" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-label-md text-on-surface-variant">Nominee</label>
+        <input class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="nominee()" (input)="nominee.set($any($event.target).value)" />
+      </div>
+      <div class="md:col-span-3 flex justify-between items-center text-xs text-on-surface-variant">
+        <span>Policy Type: {{ p.policyType }} · Frequency: {{ p.premiumFrequency }} · Status: {{ p.status }}</span>
+        <button class="bg-primary-container text-on-primary px-5 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="save()">Save Alteration</button>
+      </div>
+    </div>
+  }
+</div>

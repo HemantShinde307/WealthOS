@@ -1,0 +1,115 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">IPO</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Open and upcoming IPOs available for customer application through the desk.</p>
+</div>
+
+@if (lastApplicationMessage()) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">check_circle</span> {{ lastApplicationMessage() }}
+  </div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Company</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Sector</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Price Band</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Lot Size</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Open — Close</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (i of svc.ipoListings; track i.id) {
+        <tr class="hover:bg-surface-container-low/50 transition-colors">
+          <td class="py-3 px-4 font-medium text-on-background">
+            {{ i.companyName }}
+            <span class="block text-xs text-on-surface-variant font-normal">{{ i.issueType }}</span>
+          </td>
+          <td class="py-3 px-4 text-xs">{{ i.sector }}</td>
+          <td class="py-3 px-4 font-mono text-right">₹{{ i.priceBandLow }} - ₹{{ i.priceBandHigh }}</td>
+          <td class="py-3 px-4 font-mono text-right">{{ i.lotSize }}</td>
+          <td class="py-3 px-4 text-xs">{{ i.openDate }} to {{ i.closeDate }}</td>
+          <td class="py-3 px-4">
+            <span
+              class="text-xs px-2 py-0.5 rounded font-medium"
+              [class]="{
+                'bg-on-tertiary-container/10 text-on-tertiary-container': i.status === 'Open',
+                'bg-secondary-container text-on-secondary-container': i.status === 'Upcoming',
+                'bg-surface-container-low text-on-surface-variant': i.status === 'Closed'
+              }"
+            >{{ i.status }}</span>
+          </td>
+          <td class="py-3 px-4 text-right">
+            @if (i.status !== 'Closed') {
+              <button class="px-3 py-1.5 bg-primary-container text-on-primary rounded-md hover:opacity-90 transition-opacity text-xs font-medium" (click)="openApply(i)">Apply</button>
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+@if (applyingListing(); as i) {
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" (click)="closeApply()">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 w-full max-w-md flex flex-col gap-4" (click)="$event.stopPropagation()">
+      <div>
+        <h4 class="text-title-lg text-on-background font-semibold">Apply for {{ i.companyName }}</h4>
+        <p class="text-xs text-on-surface-variant mt-1">Lot size {{ i.lotSize }} shares · Price band ₹{{ i.priceBandLow }} - ₹{{ i.priceBandHigh }}</p>
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Customer</label>
+        <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="applyCustomer()" (change)="applyCustomer.set($any($event.target).value)">
+          @for (c of customers; track c.pan) {
+            <option [value]="c.name">{{ c.name }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Number of Lots</label>
+        <input type="number" min="1" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="applyLots()" (input)="applyLots.set(+$any($event.target).value)" />
+        <p class="text-xs text-on-surface-variant mt-1">Estimated amount: ₹{{ estimatedAmount(i) | number: '1.0-0' }}</p>
+      </div>
+      <div class="flex gap-2 justify-end">
+        <button class="px-4 py-2 border border-outline-variant bg-surface-container-lowest text-on-surface rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium" (click)="closeApply()">Cancel</button>
+        <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="confirmApply()">Confirm Application</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (svc.ipoApplications().length) {
+  <div>
+    <h3 class="text-title-lg text-on-background font-semibold mb-2">Applications Submitted</h3>
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-surface-container-low border-b border-outline-variant">
+          <tr>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Application</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Company</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Customer</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Lots</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Amount</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+          @for (a of svc.ipoApplications(); track a.id) {
+            <tr>
+              <td class="py-3 px-4 font-mono text-xs">{{ a.id }}</td>
+              <td class="py-3 px-4">{{ a.companyName }}</td>
+              <td class="py-3 px-4">{{ a.customerName }}</td>
+              <td class="py-3 px-4 font-mono text-right">{{ a.lots }}</td>
+              <td class="py-3 px-4 font-mono text-right">₹{{ a.amount | number: '1.0-0' }}</td>
+              <td class="py-3 px-4"><span class="bg-secondary-container text-on-secondary-container text-xs px-2 py-0.5 rounded font-medium">{{ a.status }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

@@ -1,0 +1,105 @@
+@if (holding(); as h) {
+  <div class="space-y-6">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div class="col-span-2 sm:col-span-4">
+        <p class="font-semibold text-on-background">{{ h.schemeName }}</p>
+        <p class="text-xs text-on-surface-variant mt-0.5">{{ h.category }}</p>
+      </div>
+      <div>
+        <p class="text-[10px] uppercase text-on-surface-variant">Available Units</p>
+        <p class="font-mono text-on-background">{{ h.units | number: '1.3-3' }}</p>
+      </div>
+      <div>
+        <p class="text-[10px] uppercase text-on-surface-variant">Current NAV</p>
+        <p class="font-mono text-on-background">₹{{ h.currentNav }}</p>
+      </div>
+      <div class="col-span-2 sm:col-span-2">
+        <p class="text-[10px] uppercase text-on-surface-variant">Current Value</p>
+        <p class="font-mono text-on-background">₹{{ h.currentValue | number }}</p>
+      </div>
+    </div>
+
+    <div>
+      <label class="text-sm font-medium text-on-background block mb-2">Redeem By</label>
+      <div class="flex bg-surface-container-low rounded-md p-1 max-w-xs border border-outline-variant">
+        <button
+          class="flex-1 py-2 px-4 rounded text-sm font-medium transition-colors"
+          [class]="state.redeemBy() === 'Amount' ? 'bg-surface-container-lowest border border-outline-variant shadow-sm text-on-background' : 'text-on-surface-variant hover:bg-surface-container-highest'"
+          (click)="setRedeemBy('Amount')"
+        >
+          Amount
+        </button>
+        <button
+          class="flex-1 py-2 px-4 rounded text-sm font-medium transition-colors"
+          [class]="state.redeemBy() === 'Units' ? 'bg-surface-container-lowest border border-outline-variant shadow-sm text-on-background' : 'text-on-surface-variant hover:bg-surface-container-highest'"
+          (click)="setRedeemBy('Units')"
+        >
+          Units
+        </button>
+      </div>
+    </div>
+
+    <div>
+      <div class="flex justify-between items-end mb-2">
+        <label class="text-sm font-medium text-on-background">{{ state.redeemBy() === 'Amount' ? 'Redemption Amount' : 'Units to Redeem' }}</label>
+        <label class="flex items-center gap-2 cursor-pointer text-xs text-on-surface-variant">
+          <input type="checkbox" class="rounded text-secondary focus:ring-secondary border-outline-variant w-4 h-4" [checked]="state.fullRedemption()" (change)="toggleFull($any($event.target).checked)" />
+          Full Redemption
+        </label>
+      </div>
+      @if (state.redeemBy() === 'Amount') {
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-mono">₹</span>
+          <input
+            type="number"
+            class="w-full pl-8 pr-4 py-3 border border-outline-variant rounded-md text-2xl font-mono font-bold bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30 disabled:opacity-60"
+            [value]="state.amount()"
+            [disabled]="state.fullRedemption()"
+            (input)="onAmountInput($event)"
+          />
+        </div>
+      } @else {
+        <input
+          type="number"
+          class="w-full px-4 py-3 border border-outline-variant rounded-md text-2xl font-mono font-bold bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30 disabled:opacity-60"
+          [value]="state.units()"
+          [disabled]="state.fullRedemption()"
+          (input)="onUnitsInput($event)"
+        />
+      }
+      <p class="text-xs text-on-surface-variant mt-2">
+        Estimated {{ state.redeemBy() === 'Amount' ? 'units' : 'amount' }}: {{ state.redeemBy() === 'Amount' ? (estimatedUnits() | number: '1.3-3') : ('₹' + (estimatedAmount() | number)) }}
+      </p>
+      @if (!isValid() && !state.fullRedemption()) {
+        <p class="text-xs text-error mt-1">Amount exceeds available holding value.</p>
+      }
+    </div>
+
+    <div>
+      <label class="text-sm font-medium text-on-background block mb-2">Payout Bank Account</label>
+      <div class="relative">
+        <select
+          class="w-full appearance-none px-4 py-3 border border-outline-variant rounded-md text-sm bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+          [value]="state.bankAccountId()"
+          (change)="state.bankAccountId.set($any($event.target).value)"
+        >
+          @for (b of bankAccounts; track b.id) {
+            <option [value]="b.id">{{ b.bankName }} &middot; {{ b.accountMasked }}</option>
+          }
+        </select>
+        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+      </div>
+      <p class="text-xs text-on-surface-variant mt-2">Redemption proceeds typically settle in 1-3 business days.</p>
+    </div>
+
+    <button
+      class="w-full bg-primary-container text-on-primary py-3 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+      [disabled]="!isValid()"
+      (click)="continue()"
+    >
+      Continue to Review
+    </button>
+  </div>
+} @else {
+  <p class="text-on-surface-variant">No holding selected. Please go back and choose a scheme to redeem.</p>
+}

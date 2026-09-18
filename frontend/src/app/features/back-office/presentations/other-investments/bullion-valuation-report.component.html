@@ -1,0 +1,47 @@
+<app-report-header title="Bullion Valuation Report" subtitle="Physical and digital gold/silver holdings marked to the latest bullion rate." />
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <app-stat-card label="Invested Value" [value]="totalInvested() | inrCompact" />
+  <app-stat-card label="Current Value" [value]="totalCurrent() | inrCompact" />
+  <app-stat-card label="Gold Held" [value]="(totalGoldGrams() | number: '1.1-1') + ' g'" />
+  <app-stat-card label="Silver Held" [value]="(totalSilverGrams() | number: '1.0-0') + ' g'" />
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[900px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Metal / Form</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Grams</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Purchase Rate/g</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Current Rate/g</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Current Value</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Gain / Loss</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (r of rows(); track r.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4">
+              <div class="font-medium text-on-background">{{ r.metal }}</div>
+              <div class="text-xs text-on-surface-variant">{{ r.form }} · since {{ r.purchaseDate | date: 'MMM yyyy' }}</div>
+            </td>
+            <td class="py-3 px-4 text-right font-mono">{{ r.grams | number: '1.1-1' }}</td>
+            <td class="py-3 px-4 text-right font-mono">₹{{ r.purchaseRatePerGram | number: '1.2-2' }}</td>
+            <td class="py-3 px-4 text-right font-mono">₹{{ r.currentRatePerGram | number: '1.2-2' }}</td>
+            <td class="py-3 px-4 text-right font-mono font-medium">₹{{ r.current | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-right">
+              <div class="flex flex-col items-end">
+                <span class="font-mono font-medium" [class]="r.gain >= 0 ? 'text-on-tertiary-container' : 'text-error'">{{ r.gain >= 0 ? '+' : '' }}₹{{ r.gain | number: '1.0-0' }}</span>
+                <span class="text-xs font-medium" [class]="r.gain >= 0 ? 'text-on-tertiary-container' : 'text-error'">{{ r.gain >= 0 ? '+' : '' }}{{ r.gainPct }}%</span>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="6" class="py-6 px-4 text-center text-on-surface-variant">No bullion holdings for this customer.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

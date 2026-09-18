@@ -1,0 +1,123 @@
+<div class="flex items-center gap-2 text-body-sm text-on-surface-variant mb-1">
+  <a routerLink="/family-office/consolidated-wealth" class="hover:text-primary transition-colors">Consolidated Wealth</a>
+  <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+  <span class="text-on-surface font-medium">CAS Reconciliation</span>
+</div>
+
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background font-bold">CAS Impact Analysis</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Review externally-discovered assets and folio reconciliation from the latest CAS import.</p>
+  </div>
+  <div class="flex gap-2">
+    <button class="px-4 py-2 bg-surface-container border border-outline-variant rounded-lg text-on-surface text-body-sm flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+      <span class="material-symbols-outlined text-sm">filter_list</span>
+      Filter View
+    </button>
+    <button class="px-4 py-2 bg-success text-on-success rounded-lg text-body-sm flex items-center gap-2 hover:opacity-90 transition-opacity">
+      <span class="material-symbols-outlined text-sm">check_circle</span>
+      Approve Reconciliation
+    </button>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+  <!-- Impact Summary -->
+  <div class="md:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+    <h3 class="text-title-lg text-on-surface mb-4 flex items-center gap-2">
+      <span class="material-symbols-outlined text-secondary">trending_up</span>
+      Wealth Impact (Before vs. After)
+    </h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-surface-container-low rounded-lg p-4 border border-outline-variant">
+        <p class="text-label-caps text-on-surface-variant mb-1">Previously Tracked AUM</p>
+        <p class="font-mono text-2xl font-bold text-on-surface">{{ previouslyTracked() | inrCompact }}</p>
+        <div class="mt-2 text-xs text-on-surface-variant">Internal platform folios only</div>
+      </div>
+      <div class="bg-surface-bright rounded-lg p-4 border border-success border-l-4 relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-2 opacity-10">
+          <span class="material-symbols-outlined text-4xl text-success">manage_search</span>
+        </div>
+        <p class="text-label-caps text-success mb-1">Newly Discovered Assets</p>
+        <p class="font-mono text-2xl font-bold text-success">+{{ newlyDiscovered() | inrCompact }}</p>
+        <div class="mt-2 text-xs text-on-surface-variant font-medium">From CAS import &amp; family statements</div>
+      </div>
+      <div class="bg-primary-container rounded-lg p-4 border border-primary-container text-on-primary">
+        <p class="text-label-caps text-primary-fixed-dim mb-1">Total Consolidated Wealth</p>
+        <p class="font-mono text-2xl font-bold">{{ totalConsolidated() | inrCompact }}</p>
+        <div class="mt-2 text-xs flex items-center gap-1 text-tertiary-fixed">
+          <span class="material-symbols-outlined text-xs">arrow_upward</span>
+          {{ increasePct() }}% increase
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Required -->
+  <div class="md:col-span-4 bg-error-container border border-error rounded-lg p-6 flex flex-col justify-between">
+    <div>
+      <h3 class="text-title-lg text-on-error-container flex items-center gap-2 mb-2">
+        <span class="material-symbols-outlined">warning</span>
+        Action Required
+      </h3>
+      <p class="text-body-sm text-on-error-container">{{ pendingMembers().length }} member folio(s) require CAS reconciliation before this quarter's report can be finalized.</p>
+    </div>
+    <a routerLink="/family-office/members" class="mt-4 w-full bg-error text-on-error py-2 rounded-lg text-body-sm flex items-center justify-center gap-2">
+      Resolve Now
+      <span class="material-symbols-outlined text-sm">arrow_forward</span>
+    </a>
+  </div>
+
+  <!-- Folio Reconciliation Table -->
+  <div class="md:col-span-12 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden flex flex-col">
+    <div class="p-4 border-b border-outline-variant bg-surface-container-low">
+      <h3 class="text-title-lg text-on-surface">Folio Reconciliation</h3>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse min-w-[800px]">
+        <thead>
+          <tr class="bg-surface-bright border-b-2 border-primary">
+            <th class="p-3 text-label-caps text-on-surface-variant">Scheme / AMC</th>
+            <th class="p-3 text-label-caps text-on-surface-variant">Asset Class</th>
+            <th class="p-3 text-label-caps text-on-surface-variant text-right">Current Value</th>
+            <th class="p-3 text-label-caps text-on-surface-variant">Family Member Tag</th>
+            <th class="p-3 text-label-caps text-on-surface-variant text-center">CAS Status</th>
+          </tr>
+        </thead>
+        <tbody class="text-body-sm text-on-surface divide-y divide-outline-variant">
+          @for (h of holdings(); track h.schemeId) {
+            <tr class="hover:bg-surface-container-low transition-colors" [class.bg-error-container]="!isMapped(h.ownerId)" [class.bg-opacity-10]="!isMapped(h.ownerId)">
+              <td class="p-3">
+                <div class="font-mono text-on-surface font-bold">{{ h.schemeId }}</div>
+                <div class="text-xs text-on-surface-variant">{{ h.schemeName }}</div>
+              </td>
+              <td class="p-3">
+                <span class="px-2 py-1 rounded bg-surface-container text-xs font-medium border border-outline-variant">{{ h.category }}</span>
+              </td>
+              <td class="p-3 font-mono text-right text-on-surface">{{ h.currentValue | inrCompact }}</td>
+              <td class="p-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center text-xs font-bold">
+                    {{ familyOffice.getById(h.ownerId)?.initials }}
+                  </div>
+                  <span>{{ ownerName(h.ownerId) }}</span>
+                </div>
+              </td>
+              <td class="p-3 text-center">
+                @if (isMapped(h.ownerId)) {
+                  <span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-success/10 text-success text-[10px] uppercase font-semibold">
+                    <span class="material-symbols-outlined text-[12px]">check_circle</span> Mapped
+                  </span>
+                } @else {
+                  <span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-error-container text-on-error-container text-[10px] uppercase font-semibold">
+                    <span class="material-symbols-outlined text-[12px]">warning</span> Needs Review
+                  </span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

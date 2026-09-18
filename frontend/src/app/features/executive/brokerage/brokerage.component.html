@@ -1,0 +1,84 @@
+<div>
+  <h1 class="text-headline-lg text-on-background mb-1">Brokerage &amp; Commissions</h1>
+  <p class="text-body-lg text-on-surface-variant">Distributor commission business, platform-wide.</p>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Commission Paid</span>
+    <span class="font-mono text-headline-lg text-success">{{ totalPaid() | inrCompact }}</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Commission Pending</span>
+    <span class="font-mono text-headline-lg text-secondary">{{ totalPending() | inrCompact }}</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Transaction Volume</span>
+    <span class="font-mono text-headline-lg text-on-surface">{{ totalTransactionVolume() | inrCompact }}</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Active Advisors</span>
+    <span class="font-mono text-headline-lg text-on-surface">{{ advisorSummaries().length }}</span>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+    <div class="p-6 border-b border-outline-variant">
+      <h3 class="text-title-lg text-on-background">Top Advisors by Commission</h3>
+    </div>
+    <div class="overflow-x-auto table-scroll">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-surface-container-high border-b border-outline-variant">
+          <tr>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider">Advisor</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider text-right">Transactions</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider text-right">Commission</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+          @for (a of advisorSummaries(); track a.advisorName) {
+            <tr class="hover:bg-surface-container-high/50 transition-colors">
+              <td class="py-3 px-4 font-medium">{{ a.advisorName }}</td>
+              <td class="py-3 px-4 text-right font-mono">{{ a.transactionCount }}</td>
+              <td class="py-3 px-4 text-right font-mono font-medium">₹{{ a.totalCommission | number: '1.0-0' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+    <div class="p-6 border-b border-outline-variant">
+      <h3 class="text-title-lg text-on-background">Recent Commission Entries</h3>
+    </div>
+    <div class="overflow-x-auto table-scroll">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-surface-container-high border-b border-outline-variant">
+          <tr>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider">Client / Scheme</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider text-right">Amount</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider text-right">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+          @for (e of entries(); track e.id) {
+            <tr class="hover:bg-surface-container-high/50 transition-colors">
+              <td class="py-3 px-4">
+                <div class="flex flex-col">
+                  <span class="font-medium">{{ e.clientName }}</span>
+                  <span class="text-on-surface-variant text-[11px]">{{ e.schemeName }}</span>
+                </div>
+              </td>
+              <td class="py-3 px-4 text-right font-mono">₹{{ e.commissionAmount | number: '1.0-0' }}</td>
+              <td class="py-3 px-4 text-right">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border" [class]="statusBadgeClass(e.status)">{{ e.status }}</span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

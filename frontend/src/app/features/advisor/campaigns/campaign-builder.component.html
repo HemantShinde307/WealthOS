@@ -1,0 +1,108 @@
+@if (!launched()) {
+  <div class="flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <a routerLink="/advisor/campaigns" class="text-on-surface-variant hover:text-on-background transition-colors">
+        <span class="material-symbols-outlined">close</span>
+      </a>
+      <h2 class="text-title-lg text-on-background">Create New Campaign</h2>
+    </div>
+    <span class="text-body-sm text-on-surface-variant hidden md:inline">Draft saved automatically</span>
+  </div>
+
+  <div class="max-w-3xl mx-auto w-full flex flex-col gap-8">
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Campaign Name</label>
+      <input
+        class="w-full border border-outline-variant rounded-md bg-surface-container-lowest px-4 py-2 text-sm focus:outline-none focus:border-primary"
+        placeholder="e.g. Diwali SIP Booster"
+        type="text"
+        [value]="campaignName()"
+        (input)="campaignName.set($any($event.target).value)"
+      />
+    </div>
+
+    <!-- Segments -->
+    <div class="space-y-4">
+      <h3 class="text-title-md text-on-background border-b border-outline-variant pb-2">Target Segments</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        @for (s of segments; track s.id) {
+          <label
+            class="relative flex cursor-pointer rounded-lg border p-4 transition-all"
+            [class]="selectedSegments().has(s.id) ? 'border-primary-container bg-primary-container/10' : 'border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low'"
+          >
+            <input type="checkbox" class="sr-only" [checked]="selectedSegments().has(s.id)" (change)="toggleSegment(s.id)" />
+            <div class="flex w-full items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center" [class]="selectedSegments().has(s.id) ? 'bg-primary-container text-on-primary' : 'bg-surface-container text-on-surface-variant'">
+                  <span class="material-symbols-outlined">{{ s.icon }}</span>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold text-on-background">{{ s.label }}</div>
+                  <div class="text-xs text-on-surface-variant">{{ s.description }}</div>
+                </div>
+              </div>
+              <div class="w-5 h-5 rounded border flex items-center justify-center" [class]="selectedSegments().has(s.id) ? 'bg-primary-container border-primary-container' : 'border-outline'">
+                @if (selectedSegments().has(s.id)) {
+                  <span class="material-symbols-outlined text-on-primary text-[16px]">check</span>
+                }
+              </div>
+            </div>
+          </label>
+        }
+      </div>
+    </div>
+
+    <!-- Channels -->
+    <div class="space-y-4">
+      <h3 class="text-title-md text-on-background border-b border-outline-variant pb-2">Distribution Channels</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        @for (c of channels; track c.id) {
+          <div class="flex items-center justify-between p-4 border border-outline-variant rounded-lg bg-surface-container-lowest">
+            <div class="flex items-center gap-2 text-on-background">
+              <span class="material-symbols-outlined text-secondary">{{ c.icon }}</span>
+              <span class="text-sm font-medium">{{ c.label }}</span>
+            </div>
+            <button
+              class="relative w-11 h-6 rounded-full transition-colors"
+              [class]="selectedChannels().has(c.id) ? 'bg-primary-container' : 'bg-surface-container-high'"
+              (click)="toggleChannel(c.id)"
+            >
+              <span class="absolute top-0.5 left-0.5 w-5 h-5 bg-surface-container-lowest rounded-full transition-transform" [class.translate-x-5]="selectedChannels().has(c.id)"></span>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Est reach -->
+    <div class="p-4 bg-primary-container/10 rounded-lg border border-primary-container/20 flex items-center justify-between">
+      <div>
+        <div class="text-label-md text-on-background mb-1">Estimated Reach</div>
+        <div class="text-headline-lg-mobile text-on-background">{{ estimatedReach() | number }} <span class="text-body-sm text-on-surface-variant font-normal">contacts</span></div>
+      </div>
+      <div class="w-12 h-12 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary-container shadow-sm">
+        <span class="material-symbols-outlined">group</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sticky bottom-0 bg-surface-container-lowest border-t border-outline-variant p-4 -mx-6 -mb-6 flex justify-between items-center">
+    <a routerLink="/advisor/campaigns" class="px-6 py-2 rounded-lg border border-outline text-on-surface-variant text-sm font-medium hover:bg-surface-container-low transition-colors">Cancel</a>
+    <button
+      class="px-6 py-2 rounded-lg bg-primary-container text-on-primary text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-40"
+      [disabled]="!campaignName().trim() || !selectedSegments().size"
+      (click)="launch()"
+    >
+      Launch Campaign <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+    </button>
+  </div>
+} @else {
+  <div class="flex flex-col items-center justify-center text-center py-20 gap-4">
+    <span class="material-symbols-outlined text-on-tertiary-container text-[56px]">check_circle</span>
+    <h2 class="text-headline-lg text-on-background">Campaign Launched</h2>
+    <p class="text-on-surface-variant max-w-sm">"{{ campaignName() }}" is now live, targeting an estimated {{ estimatedReach() | number }} contacts across {{ selectedChannels().size }} channel(s).</p>
+    <a routerLink="/advisor/campaigns" class="mt-2 inline-flex items-center gap-2 bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium">
+      Back to Campaigns Hub
+    </a>
+  </div>
+}

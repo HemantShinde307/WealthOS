@@ -1,0 +1,24 @@
+<div class="space-y-4">
+  <p class="text-sm text-on-surface-variant">Choose a holding from your portfolio to redeem.</p>
+
+  <div class="space-y-3">
+    @for (h of portfolioService.holdings(); track h.schemeId) {
+      <button class="w-full text-left bg-surface-container-lowest border border-outline-variant rounded-lg p-4 hover:border-secondary transition-colors flex justify-between items-center gap-4" (click)="select(h.schemeId)">
+        <div class="min-w-0">
+          <p class="font-semibold text-on-background truncate">{{ h.schemeName }}</p>
+          <p class="text-xs text-on-surface-variant mt-0.5">{{ h.category }} &middot; {{ h.units | number: '1.3-3' }} units &middot; NAV ₹{{ h.currentNav }}</p>
+          <p class="text-xs mt-1" [class]="h.unrealizedPl >= 0 ? 'text-on-tertiary-container' : 'text-error'">
+            {{ h.unrealizedPl >= 0 ? '+' : '' }}{{ h.unrealizedPlPct }}% overall
+          </p>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="font-mono text-lg font-bold text-on-background">₹{{ h.currentValue | number }}</p>
+          <p class="text-xs text-on-surface-variant">Current Value</p>
+        </div>
+      </button>
+    }
+    @if (!portfolioService.holdings().length) {
+      <p class="text-center text-on-surface-variant py-8">You have no holdings available to redeem.</p>
+    }
+  </div>
+</div>

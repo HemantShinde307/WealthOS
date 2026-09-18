@@ -1,0 +1,234 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <div class="flex items-center gap-2 text-on-surface-variant text-xs mb-2">
+      <a routerLink="/analytics/report-center" class="hover:underline">Report Center</a>
+      <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+      <span class="text-on-background font-semibold">New Configuration</span>
+    </div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Portfolio Presentation</h2>
+  </div>
+  <div class="flex gap-2">
+    <button class="px-4 py-2 border border-outline-variant bg-surface-container-lowest text-on-surface rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium">
+      Save Template
+    </button>
+    <button
+      class="flex items-center gap-2 bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium"
+      (click)="generatePreview()"
+    >
+      <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+      Generate Preview
+    </button>
+  </div>
+</div>
+
+<!-- Stepper -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
+  <div class="flex items-center justify-between relative">
+    <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-surface-container-high z-0"></div>
+    <div
+      class="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-secondary z-0 transition-all"
+      [style.width.%]="(currentStep() / (steps.length - 1)) * 100"
+    ></div>
+    @for (step of steps; track step; let i = $index) {
+      <button class="flex flex-col items-center relative z-10 bg-surface-container-lowest px-4" (click)="goToStep(i)">
+        <div
+          class="w-8 h-8 rounded-full flex items-center justify-center font-mono font-bold text-sm mb-2"
+          [class]="i <= currentStep() ? 'bg-secondary text-on-secondary shadow-sm' : 'bg-surface-container text-on-surface-variant border border-outline-variant'"
+        >
+          {{ i + 1 }}
+        </div>
+        <span class="text-label-md" [class]="i <= currentStep() ? 'text-on-background font-semibold' : 'text-on-surface-variant'">{{ step }}</span>
+      </button>
+    }
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- Configuration Panel -->
+  <div class="lg:col-span-8 flex flex-col gap-6">
+    @if (currentStep() === 0) {
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
+        <h3 class="text-title-lg text-on-background mb-4 pb-2 border-b border-outline-variant">Report Context</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Target Portfolio</label>
+            <select
+              class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary text-on-background"
+              [value]="targetPortfolio()"
+              (change)="setTargetPortfolio($any($event.target).value)"
+            >
+              <option>The Malhotra Family Trust (Acct ending 4402)</option>
+              <option>Rajesh Mehta — Individual</option>
+              <option>Kabir Enterprises Pvt Ltd</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Prepared For (Cover Name)</label>
+            <input
+              class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary text-on-background"
+              type="text"
+              [value]="preparedFor()"
+              (input)="setPreparedFor($any($event.target).value)"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col">
+        <div class="p-6 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+          <div>
+            <h3 class="text-title-lg text-on-background">Available Modules</h3>
+            <p class="text-body-md text-on-surface-variant text-sm">Select the sections to include in this presentation.</p>
+          </div>
+          <span class="bg-surface-container px-2 py-1 rounded text-label-md text-on-surface-variant">{{ selectedCount() }} Selected</span>
+        </div>
+        <div class="divide-y divide-outline-variant">
+          @for (m of modules(); track m.id) {
+            <div class="p-4 flex items-center justify-between hover:bg-surface-container-low/50 transition-colors">
+              <div class="flex items-center gap-4">
+                <span class="material-symbols-outlined text-on-surface-variant cursor-grab">drag_indicator</span>
+                <input
+                  type="checkbox"
+                  class="w-4 h-4 accent-secondary rounded border-outline-variant"
+                  [checked]="m.selected"
+                  [disabled]="!!m.standardized"
+                  (change)="toggleModule(m.id)"
+                />
+                <div [class.opacity-60]="!m.selected">
+                  <h4 class="text-title-lg text-on-background text-sm">{{ m.name }}</h4>
+                  <p class="text-body-md text-on-surface-variant text-xs">{{ m.description }}</p>
+                </div>
+              </div>
+              @if (m.standardized) {
+                <span class="material-symbols-outlined text-on-tertiary-container text-sm" title="Standardized Module">verified</span>
+              } @else if (m.tag) {
+                <span class="text-on-surface-variant text-label-md bg-surface-container-low px-2 py-0.5 rounded">{{ m.tag }}</span>
+              } @else {
+                <button class="text-secondary text-label-md hover:underline">Edit Params</button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (currentStep() === 1) {
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
+        <h3 class="text-title-lg text-on-background mb-4 pb-2 border-b border-outline-variant">Branding</h3>
+        <p class="text-body-md text-on-surface-variant mb-4">Choose an accent color and logo placement for the client-facing cover page.</p>
+        <div class="flex gap-3">
+          @for (accent of ['primary', 'secondary', 'tertiary']; track accent) {
+            <button
+              class="w-10 h-10 rounded-full border-2 transition-all"
+              [class]="coverAccent() === accent ? 'border-on-background scale-110' : 'border-transparent'"
+              [style.background]="'var(--color-' + accent + '-container)'"
+              (click)="setAccent($any(accent))"
+            ></button>
+          }
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          <div>
+            <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Firm Name</label>
+            <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-background" type="text" value="WealthOS Advisory" />
+          </div>
+          <div>
+            <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Footer Disclosure</label>
+            <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-background" type="text" value="Confidential — For Client Use Only" />
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (currentStep() === 2) {
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
+        <h3 class="text-title-lg text-on-background mb-4 pb-2 border-b border-outline-variant">Schedule</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Frequency</label>
+            <select
+              class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-background"
+              [value]="frequency()"
+              (change)="setFrequency($any($event.target).value)"
+            >
+              <option>One-Time</option>
+              <option>Monthly</option>
+              <option>Quarterly</option>
+              <option>Annually</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Delivery Method</label>
+            <select
+              class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-background"
+              [value]="deliveryMethod()"
+              (change)="setDeliveryMethod($any($event.target).value)"
+            >
+              <option>Portal</option>
+              <option>Email</option>
+              <option>Portal & Print</option>
+            </select>
+          </div>
+        </div>
+        <a
+          routerLink="/analytics/report-center/scheduled"
+          class="inline-flex items-center gap-2 mt-6 text-secondary text-sm font-medium hover:underline"
+        >
+          View all scheduled reports <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+        </a>
+      </div>
+    }
+
+    <div class="flex justify-between">
+      <button
+        class="px-4 py-2 border border-outline-variant bg-surface-container-lowest text-on-surface rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium disabled:opacity-40"
+        [disabled]="currentStep() === 0"
+        (click)="back()"
+      >
+        Back
+      </button>
+      @if (currentStep() < steps.length - 1) {
+        <button class="px-4 py-2 bg-primary-container text-on-primary rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="next()">
+          Next
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Live Preview -->
+  <div class="lg:col-span-4 flex flex-col">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 sticky top-6 shadow-sm flex flex-col">
+      <div class="flex justify-between items-center mb-4 pb-2 border-b border-outline-variant">
+        <h3 class="text-title-lg text-on-background">Live Preview</h3>
+      </div>
+      <div class="bg-surface-container-low p-4 rounded flex items-center justify-center overflow-hidden">
+        <div class="w-full max-w-[220px] aspect-[8.5/11] bg-surface-container-lowest shadow-md rounded-sm flex flex-col relative overflow-hidden p-5 border border-outline-variant">
+          <div class="flex justify-between items-start mb-10">
+            <div class="w-14 h-3" [style.background]="'var(--color-' + coverAccent() + '-container)'"></div>
+            <div class="w-6 h-6 rounded-sm bg-surface-container-high"></div>
+          </div>
+          <div class="mb-auto">
+            <div class="text-[9px] font-bold tracking-wider text-on-surface-variant uppercase mb-1">{{ frequency() }} Review</div>
+            <div class="text-sm font-bold text-on-background leading-tight mb-3 border-l-2 pl-2" [style.borderColor]="'var(--color-' + coverAccent() + '-container)'">
+              Portfolio<br />Performance<br />Report
+            </div>
+            <div class="text-[8px] text-on-surface-variant mt-6">Prepared for:</div>
+            <div class="text-[10px] font-semibold text-on-background">{{ preparedFor() }}</div>
+          </div>
+          <div class="border-t border-outline-variant pt-2 flex justify-between items-center text-[6px] text-on-surface-variant">
+            <div>WealthOS Advisory</div>
+            <div>Confidential</div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-4 pt-4 border-t border-outline-variant text-center">
+        <p class="text-body-md text-on-surface-variant text-xs mb-3">Estimated length: {{ estimatedPages() }} pages</p>
+        <button
+          class="w-full py-2 border border-secondary text-secondary rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium"
+          (click)="generatePreview()"
+        >
+          Full Screen Preview
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

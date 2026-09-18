@@ -1,0 +1,42 @@
+<app-report-header title="Portfolio Valuation (CAGR Report)" subtitle="Annualised CAGR for every folio, computed from its original investment date to today." />
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <app-stat-card label="Invested Value" [value]="presentations.mfInvestedValue() | inrCompact" />
+  <app-stat-card label="Current Value" [value]="presentations.mfCurrentValue() | inrCompact" />
+  <app-stat-card label="Portfolio CAGR" [value]="presentations.mfPortfolioCagr() + '%'" trend="up" valueClass="text-on-tertiary-container" />
+  <app-stat-card label="Folios" [value]="rows().length + ''" />
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[800px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Scheme</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Invested Since</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Invested Value</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Current Value</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">CAGR</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (r of rows(); track r.holding.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4">
+              <div class="font-medium text-on-background">{{ r.holding.schemeName }}</div>
+              <div class="text-xs text-on-surface-variant font-mono">{{ r.holding.folioNo }}</div>
+            </td>
+            <td class="py-3 px-4 text-right font-mono">{{ r.holding.startDate | date: 'MMM yyyy' }}</td>
+            <td class="py-3 px-4 text-right font-mono">₹{{ r.invested | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-right font-mono font-medium">₹{{ r.current | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-right">
+              <span class="font-mono font-medium" [class]="r.cagrPct >= 0 ? 'text-on-tertiary-container' : 'text-error'">{{ r.cagrPct >= 0 ? '+' : '' }}{{ r.cagrPct }}%</span>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5" class="py-6 px-4 text-center text-on-surface-variant">No mutual fund folios for this customer.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

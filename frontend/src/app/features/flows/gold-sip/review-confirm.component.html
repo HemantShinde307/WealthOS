@@ -1,0 +1,40 @@
+@if (!submitted()) {
+  <div class="space-y-6">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg divide-y divide-outline-variant">
+      <div class="p-4 flex justify-between">
+        <span class="text-on-surface-variant text-sm">Plan Name</span>
+        <span class="font-medium text-on-background text-right">{{ state.planName() }}</span>
+      </div>
+      <div class="p-4 flex justify-between">
+        <span class="text-on-surface-variant text-sm">Frequency</span>
+        <span class="font-medium text-on-background">{{ state.frequency() }}</span>
+      </div>
+      <div class="p-4 flex justify-between">
+        <span class="text-on-surface-variant text-sm">Instalment Amount</span>
+        <span class="font-mono font-semibold text-on-background">₹{{ state.amount() | number }}</span>
+      </div>
+    </div>
+
+    <div class="bg-surface-container-low rounded-lg p-4 text-xs text-on-surface-variant flex gap-2">
+      <span class="material-symbols-outlined text-[18px] shrink-0">info</span>
+      <span>Your {{ state.frequency() | lowercase }} instalment will be auto-debited and converted to 24K digital gold at the prevailing rate on each due date.</span>
+    </div>
+
+    <button class="w-full bg-primary-container text-on-primary py-3 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50" [disabled]="submitting()" (click)="confirm()">
+      {{ submitting() ? 'Setting up…' : 'Confirm & Start SIP' }}
+    </button>
+  </div>
+} @else {
+  <div class="flex flex-col items-center text-center py-8 gap-4">
+    <div class="w-20 h-20 rounded-full bg-tertiary-container/10 flex items-center justify-center">
+      <span class="material-symbols-outlined text-on-tertiary-container text-[48px] fill-icon">check_circle</span>
+    </div>
+    <h2 class="text-headline-lg text-on-background">Gold SIP Activated</h2>
+    <p class="text-on-surface-variant max-w-sm">
+      Plan {{ state.lastPlanId() }} — "{{ state.planName() }}" — is now active. ₹{{ state.amount() | number }} will be debited {{ state.frequency() | lowercase }}.
+    </p>
+    <button class="mt-4 bg-primary-container text-on-primary px-6 py-3 rounded-md font-medium hover:opacity-90 transition-opacity" (click)="goToGoldSipPortfolio()">
+      Back to Gold SIP
+    </button>
+  </div>
+}

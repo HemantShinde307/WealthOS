@@ -1,0 +1,41 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Sort Group Members</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Choose a group and reorder its members — order controls display sequence on statements and reports.</p>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col gap-4 max-w-2xl">
+  <div>
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Group</label>
+    <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="groupId()" (change)="selectGroup($any($event.target).value)">
+      <option value="">Select a group...</option>
+      @for (s of boService.groupSummaries(); track s.group.id) {
+        <option [value]="s.group.id">{{ s.group.name }} ({{ s.memberCount }} members)</option>
+      }
+    </select>
+  </div>
+
+  @if (groupId()) {
+    <div class="border border-outline-variant rounded-lg divide-y divide-outline-variant">
+      @for (m of members(); track m.id; let i = $index) {
+        <div class="flex items-center gap-3 p-3">
+          <span class="font-mono text-xs text-on-surface-variant w-6">{{ i + 1 }}</span>
+          <span class="text-sm text-on-background flex-1">{{ m.name }}</span>
+          <button class="text-on-surface-variant hover:text-on-background disabled:opacity-30" [disabled]="i === 0" (click)="moveUp(i)">
+            <span class="material-symbols-outlined text-[20px]">arrow_upward</span>
+          </button>
+          <button class="text-on-surface-variant hover:text-on-background disabled:opacity-30" [disabled]="i === members().length - 1" (click)="moveDown(i)">
+            <span class="material-symbols-outlined text-[20px]">arrow_downward</span>
+          </button>
+        </div>
+      }
+      @if (!members().length) {
+        <p class="p-4 text-sm text-on-surface-variant">This group has no members.</p>
+      }
+    </div>
+    @if (saved()) {
+      <p class="text-on-tertiary-container text-sm flex items-center gap-1">
+        <span class="material-symbols-outlined text-[16px]">check_circle</span> Order saved
+      </p>
+    }
+  }
+</div>

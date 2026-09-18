@@ -1,0 +1,67 @@
+@if (!submitting()) {
+  <div class="space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col items-center">
+        <h3 class="text-title-lg text-on-background self-start mb-4">Suggested Allocation</h3>
+        <div class="w-40 h-40 rounded-full relative flex items-center justify-center" [style.background]="'conic-gradient(' + donutGradient() + ')'">
+          <div class="text-center bg-surface-container-lowest w-[calc(100%-28px)] h-[calc(100%-28px)] rounded-full flex flex-col items-center justify-center z-10">
+            <span class="font-mono text-lg font-bold">{{ profile().expectedReturn }}%</span>
+            <span class="text-xs text-on-surface-variant">Est. Return</span>
+          </div>
+        </div>
+        <div class="mt-6 w-full space-y-2">
+          @for (seg of allocationSegments(); track seg.label) {
+            <div class="flex justify-between items-center text-sm">
+              <div class="flex items-center gap-2">
+                <div class="w-3 h-3 rounded-full" [style.background]="'var(' + seg.colorVar + ')'"></div>
+                <span class="text-on-surface">{{ seg.label }}</span>
+              </div>
+              <span class="font-mono font-medium">{{ seg.pct }}%</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
+        <h3 class="text-title-lg text-on-background mb-4">Investment Plan</h3>
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between">
+            <span class="text-on-surface-variant">Time Horizon</span>
+            <span class="font-medium text-on-background">{{ years() }} years</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-on-surface-variant">Target Amount</span>
+            <span class="font-mono font-medium text-on-background">₹{{ state.targetAmount() | number }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-on-surface-variant">Current Savings</span>
+            <span class="font-mono font-medium text-on-background">₹{{ state.currentSavings() | number }}</span>
+          </div>
+        </div>
+        <div class="mt-6 pt-6 border-t border-outline-variant text-center">
+          <p class="text-xs text-on-surface-variant uppercase tracking-wider mb-1">Required Monthly SIP</p>
+          <p class="font-mono text-3xl font-bold text-on-tertiary-container">₹{{ requiredSip() | number }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h3 class="text-title-lg text-on-background mb-3">Suggested Schemes</h3>
+      <div class="space-y-2">
+        @for (row of suggestedSchemes(); track row.scheme.id) {
+          <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex justify-between items-center gap-4">
+            <div class="min-w-0">
+              <p class="font-medium text-on-background truncate">{{ row.scheme.name }}</p>
+              <p class="text-xs text-on-surface-variant">{{ row.scheme.assetClass }} &middot; {{ row.allocPct }}% allocation</p>
+            </div>
+            <p class="font-mono font-semibold text-on-background shrink-0">₹{{ row.sipAmount | number }}/mo</p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <button class="w-full bg-primary-container text-on-primary py-3 rounded-md font-medium hover:opacity-90 transition-opacity" (click)="createGoal()">
+      Create Goal
+    </button>
+  </div>
+}

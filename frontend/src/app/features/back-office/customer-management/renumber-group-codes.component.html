@@ -1,0 +1,46 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Renumbering of Group Codes</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Re-sequence group codes into a clean GRP-001, GRP-002... order based on creation date.</p>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Group</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Current Code</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold"></th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">New Code</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (row of preview(); track row.oldId) {
+        <tr>
+          <td class="py-3 px-4 font-medium text-on-background">{{ row.name }}</td>
+          <td class="py-3 px-4 font-mono text-xs">{{ row.oldId }}</td>
+          <td class="py-3 px-4 text-on-surface-variant">
+            @if (row.oldId !== row.newId) {
+              <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+            }
+          </td>
+          <td class="py-3 px-4 font-mono text-xs" [class.text-on-tertiary-container]="row.oldId !== row.newId" [class.font-semibold]="row.oldId !== row.newId">{{ row.newId }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<div class="flex items-center gap-3">
+  <button
+    class="bg-primary-container text-on-primary px-5 py-2.5 rounded-md hover:opacity-90 transition-opacity text-sm font-medium disabled:opacity-40"
+    [disabled]="changedCount() === 0 || applied()"
+    (click)="apply()"
+  >
+    Apply Renumbering ({{ changedCount() }} changed)
+  </button>
+  @if (applied()) {
+    <span class="text-on-tertiary-container text-sm flex items-center gap-1">
+      <span class="material-symbols-outlined text-[16px]">check_circle</span> Applied
+    </span>
+  }
+</div>

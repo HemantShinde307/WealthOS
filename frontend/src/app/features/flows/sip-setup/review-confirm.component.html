@@ -1,0 +1,39 @@
+@if (scheme(); as s) {
+  <div class="space-y-6">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg divide-y divide-outline-variant">
+      <div class="p-4 flex justify-between">
+        <span class="text-on-surface-variant text-sm">Scheme</span>
+        <span class="font-medium text-on-background text-right">{{ s.name }}</span>
+      </div>
+      <div class="p-4 flex justify-between">
+        <span class="text-on-surface-variant text-sm">SIP Amount</span>
+        <span class="font-mono font-semibold text-on-background">₹{{ state.amount() | number }} / month</span>
+      </div>
+      <div class="p-4 flex justify-between">
+        <span class="text-on-surface-variant text-sm">SIP Date</span>
+        <span class="font-mono text-on-background">{{ state.sipDate() }} of every month</span>
+      </div>
+      <div class="p-4 flex justify-between">
+        <span class="text-on-surface-variant text-sm">NAV (as of today)</span>
+        <span class="font-mono text-on-background">₹{{ s.nav }}</span>
+      </div>
+      <div class="p-4 flex justify-between">
+        <span class="text-on-surface-variant text-sm">Debit Account</span>
+        <span class="font-medium text-on-background text-right">{{ bankAccount()?.bankName }} &middot; {{ bankAccount()?.accountMasked }}</span>
+      </div>
+      <div class="p-4 flex justify-between">
+        <span class="text-on-surface-variant text-sm">Mandate Status</span>
+        <span class="font-medium text-on-tertiary-container">Authorized</span>
+      </div>
+    </div>
+
+    <div class="bg-surface-container-low rounded-lg p-4 text-xs text-on-surface-variant flex gap-2">
+      <span class="material-symbols-outlined text-[18px] shrink-0">info</span>
+      <span>Your first SIP installment will be debited on the next available {{ state.sipDate() }} of the month via e-NACH. Units will be allotted at the applicable NAV.</span>
+    </div>
+
+    <button class="w-full bg-primary-container text-on-primary py-3 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50" [disabled]="submitting()" (click)="confirm()">
+      {{ submitting() ? 'Activating…' : 'Confirm & Activate SIP' }}
+    </button>
+  </div>
+}

@@ -1,0 +1,95 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Intimation Templates</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">{{ setup.intimationTemplates().length }} templates across SMS, Email, Push, and WhatsApp</p>
+  </div>
+  <button class="flex items-center gap-2 bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openAdd()">
+    <span class="material-symbols-outlined text-[18px]">add</span> Add Template
+  </button>
+</div>
+
+@if (formMode() !== 'closed') {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col gap-4">
+    <h3 class="text-title-lg text-on-background">{{ formMode() === 'edit' ? 'Edit Template' : 'New Template' }}</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="md:col-span-2">
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Template Name</label>
+        <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="draft().name" (input)="setField('name', $any($event.target).value)" />
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Channel</label>
+        <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="draft().channel" (change)="setField('channel', $any($event.target).value)">
+          <option>SMS</option>
+          <option>Email</option>
+          <option>Push</option>
+          <option>WhatsApp</option>
+        </select>
+      </div>
+      <div class="md:col-span-3">
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Trigger</label>
+        <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" placeholder="e.g. T-2 days before SIP due date" [value]="draft().trigger" (input)="setField('trigger', $any($event.target).value)" />
+      </div>
+      <div class="md:col-span-3">
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Content</label>
+        <textarea class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" rows="3" [value]="draft().content" (input)="setField('content', $any($event.target).value)"></textarea>
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Status</label>
+        <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="draft().status" (change)="setField('status', $any($event.target).value)">
+          <option>Active</option>
+          <option>Inactive</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="save()">Save Template</button>
+      <button class="px-4 py-2 border border-outline-variant rounded-md text-sm font-medium text-on-surface hover:bg-surface-container-low" (click)="cancel()">Cancel</button>
+    </div>
+  </div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="p-4 border-b border-outline-variant">
+    <div class="relative w-full sm:w-72">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+      <input
+        class="w-full pl-9 pr-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-md text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary"
+        placeholder="Search by name, trigger, channel..."
+        [value]="searchTerm()"
+        (input)="searchTerm.set($any($event.target).value)"
+      />
+    </div>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[900px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Name</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Channel</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Trigger</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (t of filtered(); track t.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4 font-medium text-on-background">{{ t.name }}</td>
+            <td class="py-3 px-4"><span class="bg-surface-container-low text-on-surface px-2 py-0.5 rounded text-xs">{{ t.channel }}</span></td>
+            <td class="py-3 px-4 text-on-surface-variant">{{ t.trigger }}</td>
+            <td class="py-3 px-4">
+              <span class="text-xs px-2 py-0.5 rounded" [class]="t.status === 'Active' ? 'bg-on-tertiary-container/10 text-on-tertiary-container' : 'bg-surface-container-low text-on-surface-variant'">{{ t.status }}</span>
+            </td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="openEdit(t)">Edit</button>
+              <button class="text-error text-xs font-medium hover:underline" (click)="remove(t.id)">Delete</button>
+            </td>
+          </tr>
+        }
+        @if (!filtered().length) {
+          <tr><td colspan="5" class="py-10 text-center text-on-surface-variant">No templates match your search.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

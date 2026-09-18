@@ -1,0 +1,92 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">PPF Accounts</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">{{ svc.ppfAccounts().length }} Public Provident Fund accounts.</p>
+  </div>
+  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openNew()">+ New PPF Account</button>
+</div>
+
+@if (formVisible()) {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+    @if (error()) {
+      <div class="md:col-span-3 bg-error/10 border border-error/40 rounded-lg p-3 text-error text-sm">{{ error() }}</div>
+    }
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Account Number</label>
+      <input class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="accountNumber()" (input)="accountNumber.set($any($event.target).value)" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Holder Name</label>
+      <input class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="holderName()" (input)="holderName.set($any($event.target).value)" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Institution</label>
+      <input class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="institution()" (input)="institution.set($any($event.target).value)" placeholder="e.g. State Bank of India" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Opening Date</label>
+      <input type="date" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="openingDate()" (input)="openingDate.set($any($event.target).value)" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Opening Balance (₹)</label>
+      <input type="number" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="balance()" (input)="balance.set($any($event.target).valueAsNumber || null)" />
+    </div>
+    <div class="md:col-span-3 flex justify-end gap-2">
+      <button class="px-4 py-2 border border-outline-variant rounded-md text-sm font-medium hover:bg-surface-container-low" (click)="cancel()">Cancel</button>
+      <button class="bg-primary-container text-on-primary px-5 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="save()">Create Account</button>
+    </div>
+  </div>
+}
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+  @for (p of svc.ppfAccounts(); track p.id) {
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col gap-3">
+      <div class="flex justify-between items-start">
+        <div>
+          <h4 class="text-title-lg text-on-background text-sm font-semibold">{{ p.holderName }}</h4>
+          <p class="text-xs text-on-surface-variant font-mono">{{ p.accountNumber }} · {{ p.institution }}</p>
+        </div>
+        <button class="text-error text-xs font-medium hover:underline" (click)="remove(p.id)">Delete</button>
+      </div>
+      <div class="flex justify-between items-end">
+        <div>
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Balance</p>
+          <p class="font-mono text-lg font-bold text-on-background">₹{{ p.balance | number }}</p>
+        </div>
+        <p class="text-xs text-on-surface-variant">Opened {{ p.openingDate | date: 'mediumDate' }}</p>
+      </div>
+
+      <button class="text-secondary text-xs font-medium hover:underline text-left" (click)="startContribution(p)">
+        {{ contributingAccountId() === p.id ? '− Cancel Contribution' : '+ Add Contribution' }}
+      </button>
+
+      @if (contributingAccountId() === p.id) {
+        <div class="flex flex-col sm:flex-row gap-2 items-end border-t border-outline-variant pt-3">
+          <div class="flex flex-col gap-1 flex-1">
+            <label class="text-label-md text-on-surface-variant">Amount (₹)</label>
+            <input type="number" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="contributionAmount()" (input)="contributionAmount.set($any($event.target).valueAsNumber || null)" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-label-md text-on-surface-variant">Date</label>
+            <input type="date" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="contributionDate()" (input)="contributionDate.set($any($event.target).value)" />
+          </div>
+          <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium whitespace-nowrap" (click)="addContribution(p.id)">Add</button>
+        </div>
+      }
+
+      @if (p.contributions.length) {
+        <div class="border-t border-outline-variant pt-2">
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Contribution Log</p>
+          <ul class="text-xs text-on-surface divide-y divide-outline-variant">
+            @for (c of p.contributions; track c.id) {
+              <li class="py-1 flex justify-between"><span class="text-on-surface-variant">{{ c.date | date: 'mediumDate' }}</span><span class="font-mono">₹{{ c.amount | number }}</span></li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  }
+  @if (!svc.ppfAccounts().length) {
+    <p class="text-on-surface-variant text-sm col-span-full text-center py-8">No PPF accounts yet — create one above.</p>
+  }
+</div>

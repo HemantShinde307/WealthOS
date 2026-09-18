@@ -1,0 +1,211 @@
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+  <div>
+    <h1 class="text-display-lg text-on-background mb-1">Executive Summary</h1>
+    <p class="text-body-lg text-on-surface-variant">Platform at a Glance · Live Rollup Across Every Business Line</p>
+  </div>
+  <button class="px-4 py-2 bg-surface-container-lowest border border-outline-variant text-on-surface text-label-caps uppercase rounded hover:bg-surface-container-high transition-colors flex items-center gap-2">
+    <span class="material-symbols-outlined text-[16px]">download</span> Export Report
+  </button>
+</div>
+
+<!-- KPI Ribbon -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-28">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Total Managed AUM</span>
+    <div class="flex items-baseline gap-2">
+      <span class="font-mono text-headline-xl text-on-surface">{{ totalAum() | inrCompact }}</span>
+      <span class="text-success text-body-sm flex items-center"><span class="material-symbols-outlined text-[14px]">arrow_upward</span> 4.2%</span>
+    </div>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-28">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Active Distributors</span>
+    <div class="flex items-baseline gap-2">
+      <span class="font-mono text-headline-xl text-on-surface">{{ activeDistributors() }}</span>
+      <span class="text-on-surface-variant text-body-sm">this cycle</span>
+    </div>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-28">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Client Households</span>
+    <div class="flex items-baseline gap-2">
+      <span class="font-mono text-headline-xl text-on-surface">{{ totalClients() }}</span>
+      <span class="text-success text-body-sm flex items-center"><span class="material-symbols-outlined text-[14px]">arrow_upward</span> 8%</span>
+    </div>
+  </div>
+  <div class="bg-surface-container-lowest border border-gold/30 p-5 rounded-lg flex flex-col justify-between h-28 relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-gold/10 to-transparent pointer-events-none"></div>
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider relative z-10">Revenue (Commissions)</span>
+    <div class="flex items-baseline gap-2 relative z-10">
+      <span class="font-mono text-headline-xl text-on-surface">{{ revenueProjection() | inrCompact }}</span>
+      <span class="text-on-surface-variant text-body-sm">Paid + Pending</span>
+    </div>
+  </div>
+</div>
+
+<!-- Growth trend + Compliance -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <div class="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h3 class="text-label-caps text-on-surface uppercase tracking-wider">Platform AUM Growth</h3>
+        <p class="text-body-sm text-on-surface-variant mt-1">Portfolio value trend vs Nifty 50 (12 months)</p>
+      </div>
+      <a routerLink="/executive/advanced-analytics" class="text-secondary text-body-sm hover:underline">View Detailed Report</a>
+    </div>
+    <div class="flex-1 relative w-full h-[220px] border-b border-l border-outline-variant/50 pt-4">
+      <svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+        <path [attr.d]="benchmarkPath" fill="none" stroke="var(--color-outline-variant)" stroke-dasharray="4 4" stroke-width="1.5" />
+        <path [attr.d]="chartPath" fill="none" stroke="var(--color-secondary)" stroke-width="2.5" />
+      </svg>
+      <div class="absolute -bottom-6 left-0 w-full flex justify-between text-xs text-on-surface-variant font-mono">
+        @for (p of growthSeries; track p.date) {
+          <span>{{ p.date }}</span>
+        }
+      </div>
+    </div>
+
+    <h3 class="text-label-caps text-on-surface uppercase tracking-wider mt-10 mb-4">Asset Allocation</h3>
+    <div class="w-full h-8 bg-surface-container-highest rounded-full overflow-hidden flex mb-4 border border-outline-variant/20">
+      @for (a of assetAllocation(); track a.label) {
+        <div class="h-full" [style.width.%]="a.pct" [style.background]="'var(' + a.colorVar + ')'" [attr.title]="a.label + ' ' + a.pct + '%'"></div>
+      }
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+      @for (a of assetAllocation(); track a.label) {
+        <div class="flex flex-col gap-1 border-l-2 pl-3" [style.border-color]="'var(' + a.colorVar + ')'">
+          <span class="text-body-sm text-on-surface-variant">{{ a.label }}</span>
+          <span class="font-mono text-headline-md text-on-surface">{{ a.pct }}%</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="lg:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-label-caps text-on-surface uppercase tracking-wider">Regulatory &amp; Compliance</h3>
+      <span class="material-symbols-outlined text-outline text-[18px]">gavel</span>
+    </div>
+    <div class="space-y-4 flex-1">
+      <div class="flex items-center justify-between p-3 bg-surface-container-high/50 rounded border border-outline-variant/10">
+        <div class="flex items-center gap-3">
+          <div class="w-2 h-2 rounded-full bg-success"></div>
+          <span class="text-body-md text-on-surface">System Health</span>
+        </div>
+        <span class="text-label-caps text-on-surface-variant">Operational</span>
+      </div>
+      <div class="flex items-center justify-between p-3 bg-surface-container-high/50 rounded border border-outline-variant/10">
+        <div class="flex items-center gap-3">
+          <div class="w-2 h-2 rounded-full bg-success"></div>
+          <span class="text-body-md text-on-surface">KYC Status</span>
+        </div>
+        <span class="font-mono text-on-surface-variant">{{ kycCompliantPct() }}% Compliant</span>
+      </div>
+      <div class="flex items-center justify-between p-3 bg-surface-container-high/50 rounded border border-outline-variant/10">
+        <div class="flex items-center gap-3">
+          <div class="w-2 h-2 rounded-full" [class]="auditReviewPending() ? 'bg-secondary' : 'bg-success'"></div>
+          <span class="text-body-md text-on-surface">Audit Readiness</span>
+        </div>
+        <span class="text-label-caps" [class]="auditReviewPending() ? 'text-secondary' : 'text-success'">
+          {{ auditReviewPending() ? 'Review Pending' : 'Clear' }}
+        </span>
+      </div>
+      <a routerLink="/executive/onboarding" class="flex items-center justify-between p-3 bg-surface-container-high/50 rounded border border-outline-variant/10 hover:bg-surface-container-high transition-colors">
+        <span class="text-body-md text-on-surface">Onboarding Queue</span>
+        <span class="material-symbols-outlined text-outline text-[18px]">arrow_forward</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Growth Pillars -->
+<div>
+  <h2 class="text-headline-lg text-on-background mb-4">Growth Pillars</h2>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <a routerLink="/nri/hub" class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 relative group hover:bg-surface-container-high transition-colors cursor-pointer block">
+      <div class="absolute top-4 right-4 text-primary opacity-50 group-hover:opacity-100 transition-opacity">
+        <span class="material-symbols-outlined text-[24px]">language</span>
+      </div>
+      <h3 class="text-title-lg text-on-surface mb-2">NRI Wealth Hub</h3>
+      <p class="text-body-sm text-on-surface-variant mb-6">Global client distribution spanning UAE, USA, and UK corridors.</p>
+      <div class="space-y-3">
+        <div class="flex justify-between items-end">
+          <span class="text-body-sm text-outline">Total NRI AUM ({{ nriClients().length }} clients)</span>
+          <span class="font-mono text-body-lg text-primary">{{ nriAum() | inrCompact }}</span>
+        </div>
+        <div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+          <div class="bg-primary h-full" [style.width.%]="nriAumSharePct()"></div>
+        </div>
+      </div>
+    </a>
+
+    <a routerLink="/executive/aurum" class="bg-surface-container-lowest border border-gold/40 rounded-lg p-6 relative group hover:bg-surface-container-high transition-colors cursor-pointer block shadow-[0_0_15px_rgba(197,160,89,0.08)]">
+      <div class="absolute top-4 right-4 text-gold opacity-80 group-hover:opacity-100 transition-opacity">
+        <span class="material-symbols-outlined text-[24px] fill-icon">star</span>
+      </div>
+      <h3 class="text-title-lg text-gold mb-2">Aurum Tier</h3>
+      <p class="text-body-sm text-on-surface-variant mb-6">Digital gold holdings sourced from platform-wide gold transactions.</p>
+      <div class="space-y-3">
+        <div class="flex justify-between items-end">
+          <span class="text-body-sm text-outline">Gold Holdings (est.)</span>
+          <span class="font-mono text-body-lg text-gold">{{ goldHoldingsKg() | number: '1.2-2' }} Kg</span>
+        </div>
+        <div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+          <div class="bg-gold h-full" [style.width.%]="goldSharePct()"></div>
+        </div>
+      </div>
+    </a>
+
+    <a routerLink="/family-office/dashboard" class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 relative group hover:bg-surface-container-high transition-colors cursor-pointer block">
+      <div class="absolute top-4 right-4 text-tertiary opacity-50 group-hover:opacity-100 transition-opacity">
+        <span class="material-symbols-outlined text-[24px]">home_work</span>
+      </div>
+      <h3 class="text-title-lg text-on-surface mb-2">Family Office</h3>
+      <p class="text-body-sm text-on-surface-variant mb-6">Consolidated wealth management for ultra-HNW groups.</p>
+      <div class="space-y-3">
+        <div class="flex justify-between items-end">
+          <span class="text-body-sm text-outline">{{ familyOfficeClients().length }} Group(s) · AUM</span>
+          <span class="font-mono text-body-lg text-on-surface">{{ familyOfficeAum() | inrCompact }}</span>
+        </div>
+        <div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+          <div class="bg-tertiary h-full" [style.width.%]="familyOfficeSharePct()"></div>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Recent Global Activity -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 overflow-hidden">
+  <div class="flex justify-between items-center mb-6">
+    <h3 class="text-label-caps text-on-surface uppercase tracking-wider">Recent Global Activity</h3>
+    <a routerLink="/advisor/transactions" class="text-secondary text-body-sm hover:underline">View All</a>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="border-b border-outline-variant/40">
+          <th class="py-3 px-4 text-label-caps text-outline uppercase tracking-wider">Event / Type</th>
+          <th class="py-3 px-4 text-label-caps text-outline uppercase tracking-wider">Client</th>
+          <th class="py-3 px-4 text-label-caps text-outline uppercase tracking-wider text-right">Value (INR)</th>
+          <th class="py-3 px-4 text-label-caps text-outline uppercase tracking-wider text-right">Status</th>
+        </tr>
+      </thead>
+      <tbody class="text-body-sm text-on-surface divide-y divide-outline-variant/10">
+        @for (t of recentActivity; track t.id) {
+          <tr class="hover:bg-surface-container-high/30 transition-colors">
+            <td class="py-3 px-4">
+              <div class="flex flex-col">
+                <span class="font-mono text-on-surface">{{ t.id }}</span>
+                <span class="text-on-surface-variant text-[11px]">{{ t.type }}</span>
+              </div>
+            </td>
+            <td class="py-3 px-4">{{ t.clientName }}</td>
+            <td class="py-3 px-4 font-mono text-right">₹{{ t.amount | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-right">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border" [class]="statusBadgeClass(t.status)">{{ t.status }}</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,37 @@
+<app-report-header title="Goal wise Portfolio Report" subtitle="Mutual fund folios mapped to each of the customer's financial goals, with progress-to-target." />
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  @for (g of goals(); track g.id) {
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm flex flex-col">
+      <div class="flex justify-between items-start mb-4">
+        <div>
+          <h3 class="text-title-lg text-on-background">{{ g.name }}</h3>
+          <p class="text-xs text-on-surface-variant mt-1">Target {{ g.targetDate | date: 'MMM yyyy' }} · {{ g.yearsLeft }} yr(s) left</p>
+        </div>
+        <span class="font-mono text-sm font-semibold text-on-background">{{ g.pctAchieved }}%</span>
+      </div>
+      <div class="h-2 rounded-full bg-surface-container-low overflow-hidden mb-4">
+        <div class="h-full bg-primary-container" [style.width.%]="g.pctAchieved"></div>
+      </div>
+      <div class="flex justify-between text-sm mb-4">
+        <span class="text-on-surface-variant">Current Value</span>
+        <span class="font-mono font-medium">{{ g.currentValue | inrCompact }}</span>
+      </div>
+      <div class="flex justify-between text-sm mb-4">
+        <span class="text-on-surface-variant">Target Amount</span>
+        <span class="font-mono font-medium">{{ g.targetAmount | inrCompact }}</span>
+      </div>
+      <div class="border-t border-outline-variant pt-3 mt-auto space-y-2">
+        <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Linked Folios</p>
+        @for (h of g.linkedHoldings; track h.id) {
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-on-background">{{ h.schemeName }}</span>
+            <span class="font-mono">₹{{ h.units * h.currentNav | number: '1.0-0' }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  } @empty {
+    <p class="text-sm text-on-surface-variant">No goals defined for this customer.</p>
+  }
+</div>

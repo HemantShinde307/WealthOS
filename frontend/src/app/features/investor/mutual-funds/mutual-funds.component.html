@@ -1,0 +1,107 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Mutual Funds</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Manage your mutual fund investments — buy, start a SIP, or redeem.</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <a routerLink="/cas-import/upload-statement" class="flex items-center gap-1.5 bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium">
+      <span class="material-symbols-outlined text-[18px]">upload_file</span>
+      Import from CAS
+    </a>
+    <a routerLink="/redemption/select-scheme" class="bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium">Redeem</a>
+    <a routerLink="/sip-setup/select-scheme" class="bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium">Start SIP</a>
+    <a routerLink="/mf-purchase/select-scheme" class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium">Buy</a>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Schemes Held</p>
+    <p class="font-mono text-xl font-bold text-on-background">{{ portfolio.holdings().length }}</p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Invested Value</p>
+    <p class="font-mono text-xl font-bold text-on-background">{{ portfolio.investedValue() | inrCompact }}</p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Current Value</p>
+    <p class="font-mono text-xl font-bold text-on-background">{{ portfolio.currentValue() | inrCompact }}</p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Returns</p>
+    <p class="font-mono text-xl font-bold text-on-tertiary-container">+{{ portfolio.absoluteReturnPct() }}%</p>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="p-6 border-b border-outline-variant flex justify-between items-center gap-4">
+    <h3 class="text-title-lg text-on-background">Your Holdings</h3>
+    <div class="relative w-full max-w-xs">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+      <input
+        class="w-full pl-9 pr-3 py-1.5 border border-outline-variant rounded-md text-sm bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+        placeholder="Filter schemes..."
+        [value]="search()"
+        (input)="search.set($any($event.target).value)"
+      />
+    </div>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[900px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="sticky-col py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold border-r border-outline-variant/50 bg-surface-container-low">Scheme Name</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Category</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Units</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Current Value</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">P/L</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (h of filteredHoldings(); track h.schemeId) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="sticky-col py-3 px-4 border-r border-outline-variant/50 bg-surface-container-lowest font-medium text-on-background">{{ h.schemeName }}</td>
+            <td class="py-3 px-4"><span class="bg-surface-container-low text-on-surface px-2 py-0.5 rounded text-xs">{{ h.category }}</span></td>
+            <td class="py-3 px-4 text-right font-mono">{{ h.units | number: '1.2-2' }}</td>
+            <td class="py-3 px-4 text-right font-mono font-medium">₹{{ h.currentValue | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-right font-mono font-medium" [class]="h.unrealizedPl >= 0 ? 'text-on-tertiary-container' : 'text-error'">
+              {{ h.unrealizedPl >= 0 ? '+' : '' }}{{ h.unrealizedPlPct }}%
+            </td>
+            <td class="py-3 px-4 text-right">
+              <a routerLink="/redemption/select-scheme" class="text-secondary text-sm font-medium hover:underline">Redeem</a>
+            </td>
+          </tr>
+        }
+        @if (!filteredHoldings().length) {
+          <tr>
+            <td colspan="6" class="py-10 text-center text-on-surface-variant">
+              @if (portfolio.holdings().length === 0) {
+                No holdings yet — import your CAS statement or make your first investment below.
+              } @else {
+                No schemes match your filter.
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div>
+  <h3 class="text-title-lg text-on-background mb-3">Explore More Schemes</h3>
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    @for (s of exploreSchemes(); track s.id) {
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col gap-3">
+        <div>
+          <span class="text-xs font-medium px-2 py-0.5 rounded bg-surface-container-low text-on-surface-variant">{{ s.category }}</span>
+          <h4 class="font-semibold text-on-background mt-2 truncate">{{ s.name }}</h4>
+          <p class="text-xs text-on-surface-variant">{{ s.amc }}</p>
+        </div>
+        <p class="font-mono text-lg font-bold text-on-tertiary-container">{{ s.returns3y }}% <span class="text-xs font-normal text-on-surface-variant">3Y</span></p>
+        <a routerLink="/mf-purchase/select-scheme" class="text-center bg-primary-container text-on-primary py-2 rounded-md text-sm font-medium hover:opacity-90 transition-opacity">Invest Now</a>
+      </div>
+    }
+  </div>
+</div>

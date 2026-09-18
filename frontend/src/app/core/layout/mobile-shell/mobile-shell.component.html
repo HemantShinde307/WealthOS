@@ -1,0 +1,31 @@
+<div class="h-screen flex flex-col bg-background text-on-surface max-w-md mx-auto border-x border-outline-variant overflow-hidden">
+  <header class="flex items-center justify-between px-4 h-14 border-b border-outline-variant bg-surface-container-lowest shrink-0">
+    <div class="flex items-center gap-2">
+      <img src="/branding/logo-icon.png" alt="" class="w-7 h-7 rounded-md object-cover" />
+      <span class="font-semibold text-on-background text-sm">{{ config().brand }}</span>
+    </div>
+    <button class="p-2 text-on-surface-variant relative" routerLink="/alerts-notifications">
+      <span class="material-symbols-outlined text-[20px]">notifications</span>
+      @if (unreadCount() > 0) {
+        <span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-error rounded-full"></span>
+      }
+    </button>
+  </header>
+
+  <main class="flex-1 overflow-y-auto bg-background">
+    <router-outlet />
+  </main>
+
+  <nav class="grid shrink-0 border-t border-outline-variant bg-surface-container-lowest" [style.grid-template-columns]="'repeat(' + config().navItems.length + ', minmax(0, 1fr))'">
+    @for (item of config().navItems; track item.route) {
+      <a
+        class="flex flex-col items-center justify-center gap-0.5 py-2 text-on-surface-variant text-[11px]"
+        [routerLink]="item.route"
+        routerLinkActive="text-secondary"
+      >
+        <span class="material-symbols-outlined text-[22px]" [class.fill-icon]="item.filled">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
+      </a>
+    }
+  </nav>
+</div>

@@ -1,0 +1,44 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Bulk Merge Customers</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Auto-detected duplicate records (matching PAN or phone number). Pick a survivor per cluster and merge.</p>
+  </div>
+  @if (clusters().length) {
+    <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="mergeAll()">
+      Merge All Detected ({{ clusters().length }})
+    </button>
+  }
+</div>
+
+@if (!clusters().length) {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-10 text-center text-on-surface-variant flex flex-col items-center gap-2">
+    <span class="material-symbols-outlined text-[32px]">verified</span>
+    No duplicate customer records detected.
+    <a routerLink="/back-office/customer-management/master" class="text-secondary text-sm hover:underline">Back to Customers Master</a>
+  </div>
+} @else {
+  <div class="flex flex-col gap-4">
+    @for (cluster of clusters(); track cluster[0].id) {
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+        <div class="p-3 bg-surface-container-low border-b border-outline-variant flex justify-between items-center">
+          <span class="text-xs text-on-surface-variant">Matching PAN/phone across {{ cluster.length }} records</span>
+          <button class="text-secondary text-xs font-medium hover:underline" (click)="mergeCluster(cluster)">Merge This Cluster</button>
+        </div>
+        <table class="w-full text-left border-collapse">
+          <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+            @for (c of cluster; track c.id) {
+              <tr>
+                <td class="py-2.5 px-4 w-10"><input type="radio" [name]="'survivor-' + cluster[0].id" [checked]="survivorFor(cluster) === c.id" (change)="setSurvivor(cluster, c.id)" /></td>
+                <td class="py-2.5 px-4 font-medium text-on-background">{{ c.name }}</td>
+                <td class="py-2.5 px-4 font-mono text-xs">{{ c.pan }}</td>
+                <td class="py-2.5 px-4 text-xs">{{ c.phone }}</td>
+                <td class="py-2.5 px-4 text-xs">{{ c.email }}</td>
+                <td class="py-2.5 px-4 text-right font-mono">{{ c.aum | inrCompact }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+}

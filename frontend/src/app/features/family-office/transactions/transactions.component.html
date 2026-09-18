@@ -1,0 +1,99 @@
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-outline-variant pb-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background font-bold">Ledger</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Chronological log of all investment activities across the family office.</p>
+  </div>
+  <button class="h-9 px-4 border border-outline-variant rounded bg-surface-container-lowest text-label-caps text-on-surface hover:bg-surface-container-low transition-colors flex items-center gap-2">
+    <span class="material-symbols-outlined text-[16px]">download</span>
+    Export CSV
+  </button>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded p-5 shadow-sm">
+    <div class="flex justify-between items-start mb-2">
+      <span class="text-label-caps text-on-surface-variant uppercase">Total Deployment</span>
+      <span class="material-symbols-outlined text-secondary text-[20px]">trending_up</span>
+    </div>
+    <div class="font-mono text-[28px] font-bold text-on-surface tracking-tight">{{ totalDeployment() | inrCompact }}</div>
+    <div class="mt-3 text-body-sm text-on-surface-variant">Across purchases &amp; SIPs</div>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded p-5 shadow-sm">
+    <div class="flex justify-between items-start mb-2">
+      <span class="text-label-caps text-on-surface-variant uppercase">Active SIPs</span>
+      <span class="material-symbols-outlined text-secondary text-[20px]">autorenew</span>
+    </div>
+    <div class="font-mono text-[28px] font-bold text-on-surface tracking-tight">{{ activeSips() }}</div>
+    <div class="mt-3 text-body-sm text-on-surface-variant">Recurring across the family</div>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded p-5 shadow-sm">
+    <div class="flex justify-between items-start mb-2">
+      <span class="text-label-caps text-on-surface-variant uppercase">Pending Actions</span>
+      <span class="material-symbols-outlined text-warning text-[20px]">pending_actions</span>
+    </div>
+    <div class="font-mono text-[28px] font-bold text-on-surface tracking-tight">{{ pendingActions() }}</div>
+    <div class="mt-3 flex items-center gap-2 text-body-sm text-warning">
+      <span class="material-symbols-outlined text-[16px]">warning</span>
+      Awaiting approval
+    </div>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded shadow-sm flex flex-col">
+  <div class="p-4 border-b border-outline-variant flex flex-wrap items-center gap-2 bg-surface-bright">
+    <span class="text-label-caps text-on-surface-variant mr-2">FILTER BY MEMBER:</span>
+    <button
+      class="px-3 py-1 rounded text-body-sm whitespace-nowrap transition-colors border"
+      [class]="selectedMember() === 'all' ? 'bg-surface-container-highest border-outline-variant text-on-surface font-medium' : 'bg-surface border-outline-variant text-on-surface-variant hover:bg-surface-container'"
+      (click)="selectMember('all')"
+    >
+      All Members
+    </button>
+    @for (m of members(); track m.id) {
+      <button
+        class="px-3 py-1 rounded text-body-sm whitespace-nowrap transition-colors border"
+        [class]="selectedMember() === m.id ? 'bg-surface-container-highest border-outline-variant text-on-surface font-medium' : 'bg-surface border-outline-variant text-on-surface-variant hover:bg-surface-container'"
+        (click)="selectMember(m.id)"
+      >
+        {{ m.name }}
+      </button>
+    }
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse min-w-[900px]">
+      <thead class="bg-surface-container-low border-b-2 border-primary">
+        <tr>
+          <th class="py-3 px-4 text-label-caps text-on-surface-variant uppercase">Date</th>
+          <th class="py-3 px-4 text-label-caps text-on-surface-variant uppercase">Member</th>
+          <th class="py-3 px-4 text-label-caps text-on-surface-variant uppercase">Activity</th>
+          <th class="py-3 px-4 text-label-caps text-on-surface-variant uppercase">Scheme</th>
+          <th class="py-3 px-4 text-label-caps text-on-surface-variant uppercase text-right">Amount</th>
+          <th class="py-3 px-4 text-label-caps text-on-surface-variant uppercase text-center">Status</th>
+        </tr>
+      </thead>
+      <tbody class="text-body-sm text-on-surface divide-y divide-outline-variant">
+        @for (t of filteredTransactions(); track t.id) {
+          <tr class="hover:bg-surface-container-low transition-colors">
+            <td class="py-3 px-4 font-mono text-on-surface-variant text-[12px]">{{ t.date | date: 'dd MMM yyyy' }}</td>
+            <td class="py-3 px-4">{{ t.ownerName }}</td>
+            <td class="py-3 px-4">{{ t.type }}</td>
+            <td class="py-3 px-4">
+              <div class="font-medium text-on-surface">{{ t.schemeName }}</div>
+              @if (t.folio) {
+                <div class="text-[11px] text-on-surface-variant">Folio: {{ t.folio }}</div>
+              }
+            </td>
+            <td class="py-3 px-4 text-right font-mono">₹{{ t.amount | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-center">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-semibold" [class]="statusClass(t.status)">{{ t.status }}</span>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="py-8 text-center text-on-surface-variant">No transactions for this member.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

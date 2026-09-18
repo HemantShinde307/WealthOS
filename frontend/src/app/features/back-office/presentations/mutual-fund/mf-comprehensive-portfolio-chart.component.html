@@ -1,0 +1,171 @@
+<app-report-header [title]="isBeta ? 'Comprehensive Portfolio Chart (Beta)' : 'Comprehensive Portfolio Chart'" subtitle="Invested vs. current value trajectory across the full mutual fund portfolio, with category break-up." [beta]="isBeta" />
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <app-stat-card label="Invested Value" [value]="presentations.mfInvestedValue() | inrCompact" />
+  <app-stat-card label="Current Value" [value]="presentations.mfCurrentValue() | inrCompact" />
+  <app-stat-card label="Gain / Loss" [value]="(presentations.mfGainLoss() >= 0 ? '+' : '') + (presentations.mfGainLoss() | inrCompact)" [valueClass]="presentations.mfGainLoss() >= 0 ? 'text-on-tertiary-container' : 'text-error'" />
+  <app-stat-card label="Portfolio CAGR" [value]="presentations.mfPortfolioCagr() + '%'" trend="up" valueClass="text-on-tertiary-container" />
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+  <h3 class="text-title-lg text-on-background mb-1">Invested vs. Current Value</h3>
+  <p class="text-body-md text-on-surface-variant text-sm mb-6">Illustrative growth curve derived from this customer's actual invested and current totals.</p>
+  <div class="relative w-full h-[260px] border-b border-l border-outline-variant/50 pt-4">
+    <svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+      <path [attr.d]="investedPath()" fill="none" stroke="var(--color-outline-variant)" stroke-dasharray="4 4" stroke-width="1.5" />
+      <path [attr.d]="currentPath()" fill="none" stroke="var(--color-primary-container)" stroke-width="2.5" />
+    </svg>
+    <div class="absolute -bottom-6 left-0 w-full flex justify-between text-xs text-on-surface-variant font-mono">
+      @for (p of trend(); track p.label) {
+        <span>{{ p.label }}</span>
+      }
+    </div>
+  </div>
+  <div class="mt-10 flex justify-center gap-6">
+    <div class="flex items-center gap-2"><div class="w-3 h-0.5 border-t border-dashed border-outline-variant"></div><span class="text-label-md text-on-surface">Invested Value</span></div>
+    <div class="flex items-center gap-2"><div class="w-3 h-0.5 bg-primary-container"></div><span class="text-label-md text-on-surface">Current Value</span></div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+    <h3 class="text-title-lg text-on-background mb-4">Portfolio Snapshot</h3>
+    <table class="w-full text-sm">
+      <tbody>
+        <tr class="border-b border-outline-variant/50"><td class="py-1.5 text-on-surface-variant">Lump sum Investments</td><td class="py-1.5 text-right font-mono">₹{{ portfolioSnapshot().a | number: '1.0-0' }}</td></tr>
+        <tr class="border-b border-outline-variant/50"><td class="py-1.5 text-on-surface-variant">SIP Investments</td><td class="py-1.5 text-right font-mono">₹{{ portfolioSnapshot().b | number: '1.0-0' }}</td></tr>
+        <tr class="border-b border-outline-variant/50"><td class="py-1.5 text-on-surface-variant">Switch-Ins</td><td class="py-1.5 text-right font-mono">₹{{ portfolioSnapshot().c | number: '1.0-0' }}</td></tr>
+        <tr class="border-b border-outline-variant/50"><td class="py-1.5 text-on-surface-variant">Redemptions</td><td class="py-1.5 text-right font-mono">₹{{ portfolioSnapshot().d | number: '1.0-0' }}</td></tr>
+        <tr class="border-b border-outline-variant/50"><td class="py-1.5 text-on-surface-variant">Systematic Withdrawals</td><td class="py-1.5 text-right font-mono">₹{{ portfolioSnapshot().e | number: '1.0-0' }}</td></tr>
+        <tr class="border-b border-outline-variant/50"><td class="py-1.5 text-on-surface-variant">Switch-Outs</td><td class="py-1.5 text-right font-mono">₹{{ portfolioSnapshot().f | number: '1.0-0' }}</td></tr>
+        <tr class="border-b border-outline-variant/50"><td class="py-1.5 text-on-surface-variant">Dividend Payouts</td><td class="py-1.5 text-right font-mono">₹{{ portfolioSnapshot().g | number: '1.0-0' }}</td></tr>
+        <tr class="border-b border-outline-variant"><td class="py-1.5 text-on-surface-variant">Dividend Reinvestments</td><td class="py-1.5 text-right font-mono">₹{{ portfolioSnapshot().h | number: '1.0-0' }}</td></tr>
+        <tr class="border-b border-outline-variant/50 font-semibold"><td class="py-1.5 text-on-background">Net Investments</td><td class="py-1.5 text-right font-mono">₹{{ portfolioSnapshot().netInvestments | number: '1.0-0' }}</td></tr>
+        <tr class="border-b border-outline-variant/50 font-semibold"><td class="py-1.5 text-on-background">Market Value</td><td class="py-1.5 text-right font-mono">₹{{ portfolioSnapshot().marketValue | number: '1.0-0' }}</td></tr>
+        <tr class="border-b border-outline-variant/50 font-semibold"><td class="py-1.5 text-on-background">Net Gain</td><td class="py-1.5 text-right font-mono" [class.text-error]="portfolioSnapshot().netGain < 0" [class.text-on-tertiary-container]="portfolioSnapshot().netGain >= 0">₹{{ portfolioSnapshot().netGain | number: '1.0-0' }}</td></tr>
+        <tr class="border-b border-outline-variant/50 font-semibold"><td class="py-1.5 text-on-background">Abs. Ret. of unrealized gains</td><td class="py-1.5 text-right font-mono">{{ portfolioSnapshot().absRetUnrealizedPct }}%</td></tr>
+        <tr class="border-b border-outline-variant/50 font-semibold"><td class="py-1.5 text-on-background">CAGR of unrealized gains</td><td class="py-1.5 text-right font-mono">{{ portfolioSnapshot().cagrUnrealizedPct }}%</td></tr>
+        <tr class="border-b border-outline-variant/50 font-semibold"><td class="py-1.5 text-on-background">Overall Absolute Returns</td><td class="py-1.5 text-right font-mono">{{ portfolioSnapshot().overallAbsRetPct }}%</td></tr>
+        <tr class="font-semibold"><td class="py-1.5 text-on-background">Overall XIRR</td><td class="py-1.5 text-right font-mono">{{ portfolioSnapshot().overallXirrPct }}%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+    <h3 class="text-title-lg text-on-background mb-4">Asset Allocation</h3>
+    <div class="flex items-center gap-6">
+      <div class="w-36 h-36 rounded-full shrink-0" [style.background]="'conic-gradient(' + assetAllocationGradient() + ')'"></div>
+      <table class="w-full text-sm">
+        <tbody>
+          @for (seg of assetAllocationSegments(); track seg.label) {
+            <tr class="border-b border-outline-variant/50">
+              <td class="py-1.5"><span class="inline-block w-2.5 h-2.5 rounded-sm mr-2 align-middle" [style.background]="'var(' + seg.colorVar + ')'"></span>{{ seg.label }}</td>
+              <td class="py-1.5 text-right font-mono">₹{{ seg.value | number: '1.0-0' }}</td>
+            </tr>
+          } @empty {
+            <tr><td class="py-1.5 text-on-surface-variant">No holdings for this customer.</td></tr>
+          }
+          <tr class="font-semibold">
+            <td class="py-1.5">Total</td>
+            <td class="py-1.5 text-right font-mono">₹{{ presentations.mfCurrentValue() | number: '1.0-0' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm overflow-x-auto">
+  <h3 class="text-title-lg text-on-background mb-4">Fund Category-wise Summary</h3>
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="text-left text-on-surface-variant border-b border-outline-variant">
+        <th class="py-2 pr-4 font-medium">Fund Category</th>
+        <th class="py-2 pr-4 font-medium text-right">Invested</th>
+        <th class="py-2 pr-4 font-medium text-right">Present Value</th>
+        <th class="py-2 pr-4 font-medium text-right">Gain</th>
+        <th class="py-2 pr-4 font-medium text-right">Abs. Ret. %</th>
+        <th class="py-2 pr-4 font-medium text-right">CAGR %</th>
+        <th class="py-2 font-medium text-right">Alloc. %</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of categorySummary(); track row.category) {
+        <tr class="border-b border-outline-variant/50">
+          <td class="py-2 pr-4 text-on-background">{{ row.category }}</td>
+          <td class="py-2 pr-4 text-right font-mono">₹{{ row.invested | number: '1.0-0' }}</td>
+          <td class="py-2 pr-4 text-right font-mono">₹{{ row.current | number: '1.0-0' }}</td>
+          <td class="py-2 pr-4 text-right font-mono" [class.text-error]="row.gain < 0" [class.text-on-tertiary-container]="row.gain >= 0">₹{{ row.gain | number: '1.0-0' }}</td>
+          <td class="py-2 pr-4 text-right font-mono">{{ row.absRetPct }}%</td>
+          <td class="py-2 pr-4 text-right font-mono">{{ row.cagrPct }}%</td>
+          <td class="py-2 text-right font-mono">{{ row.allocPct }}%</td>
+        </tr>
+      } @empty {
+        <tr><td colspan="7" class="py-4 text-center text-on-surface-variant">No mutual fund holdings for this customer.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+  <h3 class="text-title-lg text-on-background mb-4">Category-wise Exposure</h3>
+  <div class="space-y-3">
+    @for (c of categoryExposure(); track c.category) {
+      <div>
+        <div class="flex justify-between text-sm mb-1">
+          <span class="text-on-surface">{{ c.category }}</span>
+          <span class="font-mono font-medium">₹{{ c.value | number: '1.0-0' }} ({{ c.pct }}%)</span>
+        </div>
+        <div class="h-2 rounded-full bg-surface-container-low overflow-hidden">
+          <div class="h-full bg-primary-container" [style.width.%]="c.pct"></div>
+        </div>
+      </div>
+    } @empty {
+      <p class="text-sm text-on-surface-variant">No mutual fund holdings for this customer.</p>
+    }
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm overflow-x-auto">
+  <h3 class="text-title-lg text-on-background mb-4">Scheme-wise Summary</h3>
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="text-left text-on-surface-variant border-b border-outline-variant">
+        <th class="py-2 pr-4 font-medium">Scheme</th>
+        <th class="py-2 pr-4 font-medium text-right">Invested</th>
+        <th class="py-2 pr-4 font-medium text-right">Present Value</th>
+        <th class="py-2 pr-4 font-medium text-right">Gain</th>
+        <th class="py-2 pr-4 font-medium text-right">Abs. Ret. %</th>
+        <th class="py-2 font-medium text-right">CAGR %</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of schemeSummary(); track row.holding.id) {
+        <tr class="border-b border-outline-variant/50">
+          <td class="py-2 pr-4 text-on-background">{{ row.holding.schemeName }}</td>
+          <td class="py-2 pr-4 text-right font-mono">₹{{ row.invested | number: '1.0-0' }}</td>
+          <td class="py-2 pr-4 text-right font-mono">₹{{ row.current | number: '1.0-0' }}</td>
+          <td class="py-2 pr-4 text-right font-mono" [class.text-error]="row.current - row.invested < 0" [class.text-on-tertiary-container]="row.current - row.invested >= 0">
+            ₹{{ row.current - row.invested | number: '1.0-0' }}
+          </td>
+          <td class="py-2 pr-4 text-right font-mono">{{ row.absRetPct }}%</td>
+          <td class="py-2 text-right font-mono">{{ row.cagrPct }}%</td>
+        </tr>
+      } @empty {
+        <tr><td colspan="6" class="py-4 text-center text-on-surface-variant">No mutual fund holdings for this customer.</td></tr>
+      }
+    </tbody>
+    @if (schemeSummary().length) {
+      <tfoot>
+        <tr class="border-t-2 border-outline-variant font-semibold">
+          <td class="py-2 pr-4">Total</td>
+          <td class="py-2 pr-4 text-right font-mono">₹{{ presentations.mfInvestedValue() | number: '1.0-0' }}</td>
+          <td class="py-2 pr-4 text-right font-mono">₹{{ presentations.mfCurrentValue() | number: '1.0-0' }}</td>
+          <td class="py-2 pr-4 text-right font-mono">₹{{ presentations.mfGainLoss() | number: '1.0-0' }}</td>
+          <td class="py-2 pr-4 text-right font-mono">{{ presentations.mfGainLossPct() }}%</td>
+          <td class="py-2 text-right font-mono">{{ presentations.mfPortfolioCagr() }}%</td>
+        </tr>
+      </tfoot>
+    }
+  </table>
+</div>

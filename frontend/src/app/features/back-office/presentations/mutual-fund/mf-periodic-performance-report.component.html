@@ -1,0 +1,33 @@
+<app-report-header title="Periodic Performance Report" subtitle="Trailing-period point-to-point returns for every scheme held by this customer." />
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[900px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="sticky-col py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold border-r border-outline-variant/50">Scheme</th>
+          @for (p of periods; track p) {
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">{{ p }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (r of rows(); track r.scheme) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="sticky-col py-3 px-4 border-r border-outline-variant/50 bg-surface-container-lowest">
+              <div class="font-medium text-on-background">{{ r.scheme }}</div>
+              <div class="text-xs text-on-surface-variant">{{ r.category }}</div>
+            </td>
+            @for (v of r.returns; track $index) {
+              <td class="py-3 px-4 text-right font-mono font-medium" [class]="v >= 0 ? 'text-on-tertiary-container' : 'text-error'">{{ v >= 0 ? '+' : '' }}{{ v }}%</td>
+            }
+          </tr>
+        } @empty {
+          <tr><td [attr.colspan]="periods.length + 1" class="py-6 px-4 text-center text-on-surface-variant">No mutual fund holdings for this customer.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<p class="text-xs text-on-surface-variant">Returns above 1 year are annualised (CAGR). Past performance is not indicative of future returns; figures are for illustration.</p>

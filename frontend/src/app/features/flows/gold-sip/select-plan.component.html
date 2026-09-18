@@ -1,0 +1,52 @@
+<div class="space-y-6">
+  <div>
+    <label class="text-sm font-medium text-on-background block mb-2">Plan Name</label>
+    <input
+      type="text"
+      class="w-full px-4 py-2.5 border border-outline-variant rounded-md text-sm bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+      [value]="state.planName()"
+      (input)="state.planName.set($any($event.target).value)"
+    />
+  </div>
+
+  <div>
+    <label class="text-sm font-medium text-on-background block mb-2">Quick Start Templates</label>
+    <div class="flex flex-wrap gap-2">
+      @for (p of presetPlans; track p.name) {
+        <button
+          class="px-3 py-1.5 rounded-full text-xs font-medium border transition-colors"
+          [class]="state.planName() === p.name ? 'bg-primary-container text-on-primary border-primary-container' : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-low'"
+          (click)="selectPreset(p.name, p.frequency)"
+        >
+          {{ p.name }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div>
+    <label class="text-sm font-medium text-on-background block mb-2">SIP Frequency</label>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      @for (f of frequencies; track f.value) {
+        <button
+          class="text-left p-4 rounded-lg border transition-colors flex flex-col gap-2"
+          [class]="state.frequency() === f.value ? 'border-secondary bg-secondary/5' : 'border-outline-variant hover:bg-surface-container-low'"
+          (click)="selectFrequency(f.value)"
+        >
+          <div class="flex items-center justify-between">
+            <span class="material-symbols-outlined text-gold">{{ f.icon }}</span>
+            @if (state.frequency() === f.value) {
+              <span class="material-symbols-outlined text-secondary text-[18px]">check_circle</span>
+            }
+          </div>
+          <p class="font-semibold text-on-background">{{ f.label }}</p>
+          <p class="text-xs text-on-surface-variant">{{ f.description }}</p>
+        </button>
+      }
+    </div>
+  </div>
+
+  <button class="w-full bg-primary-container text-on-primary py-3 rounded-md font-medium hover:opacity-90 transition-opacity" (click)="continue()">
+    Continue
+  </button>
+</div>

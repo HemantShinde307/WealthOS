@@ -1,0 +1,82 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Reports & Statements</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Download statements for your records or tax filing.</p>
+  </div>
+  <div class="flex items-center gap-2">
+    <span class="text-sm text-on-surface-variant hidden sm:inline">Period</span>
+    <select
+      class="px-3 py-2 border border-outline-variant rounded-md text-sm bg-surface-container-lowest focus:outline-none focus:border-secondary"
+      [(ngModel)]="selectedPeriod"
+    >
+      @for (p of periods; track p) {
+        <option [value]="p">{{ p }}</option>
+      }
+    </select>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  @for (r of reports; track r.id) {
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-sm flex items-start gap-4">
+      <div class="w-11 h-11 rounded-lg bg-surface-container-low flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-on-surface-variant">{{ r.icon }}</span>
+      </div>
+      <div class="min-w-0 flex-1">
+        <h3 class="font-semibold text-on-background">{{ r.title }}</h3>
+        <p class="text-xs text-on-surface-variant mt-1">{{ r.description }}</p>
+        <p class="text-xs text-on-surface-variant mt-2">{{ selectedPeriod }}</p>
+      </div>
+      <button
+        class="px-4 py-2 rounded-md text-sm font-medium shrink-0 transition-colors"
+        [class]="generatedIds().has(r.id) ? 'bg-tertiary-container/10 text-on-tertiary-container' : 'bg-primary-container text-on-primary hover:opacity-90'"
+        [disabled]="generatingId() === r.id"
+        (click)="generate(r.id)"
+      >
+        @if (generatingId() === r.id) {
+          Generating…
+        } @else if (generatedIds().has(r.id)) {
+          <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] fill-icon">check_circle</span> Downloaded</span>
+        } @else {
+          Download PDF
+        }
+      </button>
+    </div>
+  }
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="p-6 border-b border-outline-variant">
+    <h3 class="text-title-lg text-on-background">Recent Transactions Preview</h3>
+    <p class="text-xs text-on-surface-variant mt-1">A preview of what's included in your Transaction History report.</p>
+  </div>
+  <table class="w-full text-left">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase font-semibold">Date</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase font-semibold">Type</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase font-semibold">Scheme</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase font-semibold text-right">Amount</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase font-semibold text-right">Status</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant">
+      @for (t of recentTransactions(); track t.id) {
+        <tr>
+          <td class="py-3 px-4 text-on-surface-variant">{{ t.date | date: 'mediumDate' }}</td>
+          <td class="py-3 px-4 font-medium text-on-background">{{ t.type }}</td>
+          <td class="py-3 px-4 truncate max-w-xs">{{ t.schemeName }}</td>
+          <td class="py-3 px-4 text-right font-mono">₹{{ t.amount | number }}</td>
+          <td class="py-3 px-4 text-right">
+            <span
+              class="text-xs font-medium px-2 py-1 rounded-full"
+              [class]="t.status === 'Completed' ? 'bg-tertiary-container/10 text-on-tertiary-container' : t.status === 'Failed' || t.status === 'Cancelled' ? 'bg-error-container text-on-error-container' : 'bg-surface-container-high text-on-surface-variant'"
+            >
+              {{ t.status }}
+            </span>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

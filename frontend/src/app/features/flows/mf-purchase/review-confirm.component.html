@@ -1,0 +1,35 @@
+@if (scheme(); as s) {
+  <div class="space-y-6">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg divide-y divide-outline-variant">
+      <div class="p-4 flex justify-between">
+        <span class="text-on-surface-variant text-sm">Scheme</span>
+        <span class="font-medium text-on-background text-right">{{ s.name }}</span>
+      </div>
+      <div class="p-4 flex justify-between">
+        <span class="text-on-surface-variant text-sm">Investment Amount</span>
+        <span class="font-mono font-semibold text-on-background">₹{{ state.amount() | number }}</span>
+      </div>
+      <div class="p-4 flex justify-between">
+        <span class="text-on-surface-variant text-sm">NAV (applicable)</span>
+        <span class="font-mono text-on-background">₹{{ s.nav }}</span>
+      </div>
+      <div class="p-4 flex justify-between">
+        <span class="text-on-surface-variant text-sm">Estimated Units</span>
+        <span class="font-mono text-on-background">{{ estimatedUnits() | number: '1.3-3' }}</span>
+      </div>
+      <div class="p-4 flex justify-between">
+        <span class="text-on-surface-variant text-sm">Payment Mode</span>
+        <span class="font-medium text-on-background">{{ state.paymentMode() }}</span>
+      </div>
+    </div>
+
+    <div class="bg-surface-container-low rounded-lg p-4 text-xs text-on-surface-variant flex gap-2">
+      <span class="material-symbols-outlined text-[18px] shrink-0">info</span>
+      <span>Units will be allotted at the NAV applicable on realization of funds, subject to the cut-off time rules of the AMC.</span>
+    </div>
+
+    <button class="w-full bg-primary-container text-on-primary py-3 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50" [disabled]="submitting()" (click)="confirm()">
+      {{ submitting() ? 'Processing…' : 'Confirm & Pay ₹' + (state.amount() | number) }}
+    </button>
+  </div>
+}

@@ -1,0 +1,82 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Customer Login Management</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">{{ activeCount() }} active · {{ lockedCount() }} locked · {{ disabledCount() }} disabled</p>
+</div>
+
+@if (resetMessage(); as rm) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/30 rounded-lg p-4 flex items-center justify-between gap-4">
+    <p class="text-sm text-on-background flex items-center gap-2">
+      <span class="material-symbols-outlined text-[18px] text-on-tertiary-container">check_circle</span>
+      Temporary password generated: <span class="font-mono font-semibold">{{ rm.password }}</span> — share this with the customer through a verified channel.
+    </p>
+    <button class="text-on-surface-variant hover:text-on-background" (click)="dismissReset()">
+      <span class="material-symbols-outlined text-[18px]">close</span>
+    </button>
+  </div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="p-4 border-b border-outline-variant flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+    <div class="relative w-full sm:w-72">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+      <input
+        class="w-full pl-9 pr-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-md text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary"
+        placeholder="Search by customer, username, email..."
+        [value]="searchTerm()"
+        (input)="searchTerm.set($any($event.target).value)"
+      />
+    </div>
+    <div class="flex gap-2 flex-wrap">
+      @for (s of ['All', 'Active', 'Disabled', 'Locked']; track s) {
+        <button
+          class="px-3 py-1.5 rounded-md text-xs font-medium border transition-colors"
+          [class]="s === statusFilter() ? 'bg-primary-container text-on-primary border-transparent' : 'bg-surface-container-lowest border-outline-variant text-on-surface hover:bg-surface-container-low'"
+          (click)="statusFilter.set($any(s))"
+        >
+          {{ s }}
+        </button>
+      }
+    </div>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[900px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Customer</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Username</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Last Login</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-center">Failed Attempts</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (c of filtered(); track c.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4 font-medium text-on-background">{{ c.customerName }}</td>
+            <td class="py-3 px-4 font-mono text-sm">{{ c.username }}</td>
+            <td class="py-3 px-4 font-mono text-sm">{{ c.lastLogin ?? 'Never' }}</td>
+            <td class="py-3 px-4 text-center font-mono" [class.text-error]="c.failedAttempts > 0">{{ c.failedAttempts }}</td>
+            <td class="py-3 px-4">
+              <span
+                class="text-xs px-2 py-0.5 rounded"
+                [class]="c.status === 'Active' ? 'bg-on-tertiary-container/10 text-on-tertiary-container' : c.status === 'Locked' ? 'bg-error/10 text-error' : 'bg-surface-container-low text-on-surface-variant'"
+              >{{ c.status }}</span>
+            </td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              @if (c.status === 'Active') {
+                <button class="text-error text-xs font-medium hover:underline mr-3" (click)="setStatus(c.id, 'Disabled')">Disable</button>
+              } @else {
+                <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="setStatus(c.id, 'Active')">Enable</button>
+              }
+              <button class="text-secondary text-xs font-medium hover:underline" (click)="reset(c.id)">Reset Password</button>
+            </td>
+          </tr>
+        }
+        @if (!filtered().length) {
+          <tr><td colspan="6" class="py-10 text-center text-on-surface-variant">No customer logins match your filters.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

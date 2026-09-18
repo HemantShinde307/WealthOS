@@ -1,0 +1,98 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Import Principal Broker Data</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Upload broker-of-record mappings. Columns: brokerCode, brokerName, arn, euin, folio.</p>
+  </div>
+  <button class="text-secondary text-sm font-medium hover:underline" (click)="downloadTemplate()">Download Template</button>
+</div>
+
+@if (imported() !== null) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">check_circle</span> Imported {{ imported() }} broker-folio mappings — see the table below.
+  </div>
+}
+
+<div class="bg-surface-container-lowest border-2 border-dashed border-outline-variant rounded-lg p-10 flex flex-col items-center justify-center gap-3 text-center">
+  <span class="material-symbols-outlined text-on-surface-variant text-[40px]">upload_file</span>
+  <p class="text-on-background font-medium">Drag & drop or choose a CSV file</p>
+  <input #fileInput type="file" accept=".csv,text/csv" class="hidden" (change)="onFileSelected($event)" />
+  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openFilePicker()">Choose File</button>
+  @if (fileName()) {
+    <p class="text-xs text-on-surface-variant font-mono">{{ fileName() }}</p>
+  }
+  @if (error()) {
+    <p class="text-error text-sm">{{ error() }}</p>
+  }
+</div>
+
+@if (parsedRows().length) {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+    <div class="p-4 border-b border-outline-variant flex justify-between items-center">
+      <h3 class="text-title-lg text-on-background">Preview — {{ validCount() }} of {{ parsedRows().length }} rows valid</h3>
+      <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium disabled:opacity-40" [disabled]="validCount() === 0" (click)="confirmImport()">
+        Import {{ validCount() }} Records
+      </button>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-surface-container-low border-b border-outline-variant">
+          <tr>
+            <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Broker Code</th>
+            <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Broker Name</th>
+            <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">ARN</th>
+            <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">EUIN</th>
+            <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Folio</th>
+            <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+          @for (row of parsedRows(); track $index) {
+            <tr [class.opacity-50]="!row.valid">
+              <td class="py-2 px-4 font-mono text-xs">{{ row.brokerCode || '—' }}</td>
+              <td class="py-2 px-4 text-xs">{{ row.brokerName || '—' }}</td>
+              <td class="py-2 px-4 font-mono text-xs">{{ row.arn || '—' }}</td>
+              <td class="py-2 px-4 font-mono text-xs">{{ row.euin || '—' }}</td>
+              <td class="py-2 px-4 font-mono text-xs">{{ row.folio || '—' }}</td>
+              <td class="py-2 px-4 text-xs">
+                @if (row.valid) {
+                  <span class="text-on-tertiary-container">Ready</span>
+                } @else {
+                  <span class="text-error">{{ row.issue }}</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="p-4 border-b border-outline-variant"><h3 class="text-title-lg text-on-background">Broker-of-Record Mappings</h3></div>
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Broker Code</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Broker Name</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">ARN</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">EUIN</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Folio</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (b of mfService.brokerRecords(); track b.id) {
+        <tr>
+          <td class="py-2 px-4 font-mono text-xs">{{ b.brokerCode }}</td>
+          <td class="py-2 px-4 text-xs">{{ b.brokerName }}</td>
+          <td class="py-2 px-4 font-mono text-xs">{{ b.arn }}</td>
+          <td class="py-2 px-4 font-mono text-xs">{{ b.euin }}</td>
+          <td class="py-2 px-4 font-mono text-xs">{{ mfService.getFolio(b.folioId)?.folioNumber ?? b.folioId }}</td>
+        </tr>
+      }
+      @if (!mfService.brokerRecords().length) {
+        <tr><td colspan="5" class="py-10 text-center text-on-surface-variant">No broker-of-record mappings yet.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>

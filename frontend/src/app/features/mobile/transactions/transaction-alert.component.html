@@ -1,0 +1,81 @@
+<div class="p-4 space-y-5 pb-8">
+  <div class="flex items-center gap-3">
+    <button class="p-1 -ml-1 text-on-surface" (click)="goBack()">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <h1 class="text-title-lg text-on-background font-bold">Wealth Management</h1>
+  </div>
+
+  <div class="bg-surface-container-lowest border-l-4 border-error border-y border-r border-outline-variant rounded-lg p-4 shadow-sm space-y-3">
+    <div class="flex items-start justify-between gap-3">
+      <div class="flex items-start gap-2">
+        <span class="material-symbols-outlined text-error text-[20px]">warning</span>
+        <h2 class="text-base font-bold text-on-background leading-tight">Portfolio Rebalance Required</h2>
+      </div>
+      <span class="bg-error-container text-on-error-container text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full shrink-0">High Priority</span>
+    </div>
+    <p class="text-sm text-on-surface-variant">
+      Market movement has caused your Equity allocation to drift to {{ currentEquityPct }}%, above the
+      {{ targetEquityPct }}% target for your risk profile. Rebalancing is recommended to stay aligned.
+    </p>
+    <div class="bg-surface-container-low rounded-md px-3 py-2 flex items-center gap-2 text-xs text-on-surface-variant">
+      <span class="material-symbols-outlined text-[16px]">schedule</span>
+      Action recommended by end of day
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-3">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+      <p class="text-xs text-on-surface-variant">Portfolio Value</p>
+      <p class="font-mono text-lg font-bold text-on-background mt-1">{{ portfolio.currentValue() | inrCompact }}</p>
+      <p class="text-xs text-on-tertiary-container flex items-center gap-1 mt-1">
+        <span class="material-symbols-outlined text-[14px]">trending_up</span>
+        +{{ portfolio.absoluteReturnPct() }}% overall
+      </p>
+    </div>
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+      <p class="text-xs text-on-surface-variant">Current Equity Mix</p>
+      <p class="font-mono text-lg font-bold text-on-background mt-1">{{ currentEquityPct }}%</p>
+      <div class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden mt-2">
+        <div class="h-full bg-error rounded-full" [style.width.%]="currentEquityPct"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+    <div class="p-4 border-b border-outline-variant">
+      <h3 class="text-title-lg text-on-background">Proposed Adjustment</h3>
+    </div>
+    <div class="divide-y divide-outline-variant text-sm">
+      <div class="p-4 flex justify-between items-start">
+        <div>
+          <p class="text-error text-xs font-bold uppercase tracking-wider">Reduce Exposure</p>
+          <p class="font-medium text-on-background mt-0.5">Equity Mutual Funds</p>
+        </div>
+        <p class="font-mono text-on-background text-right shrink-0">~{{ driftAmount | inrCompact: 1 }}</p>
+      </div>
+      <div class="p-4 flex justify-between items-start">
+        <div>
+          <p class="text-on-tertiary-container text-xs font-bold uppercase tracking-wider">Increase Allocation</p>
+          <p class="font-medium text-on-background mt-0.5">Debt / Short Duration Funds</p>
+        </div>
+        <p class="font-mono text-on-background text-right shrink-0">~{{ driftAmount | inrCompact: 1 }}</p>
+      </div>
+    </div>
+    <div class="p-4 bg-surface-container-low flex justify-between text-sm">
+      <span class="text-on-surface-variant">Estimated Exit Load</span>
+      <span class="font-mono font-semibold text-on-background">₹0.00</span>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-3">
+    <button class="border border-outline-variant text-on-surface py-3 rounded-lg font-semibold flex items-center justify-center gap-2" (click)="modify()">
+      <span class="material-symbols-outlined text-[18px]">edit</span>
+      Modify
+    </button>
+    <button class="bg-tertiary-container text-on-tertiary py-3 rounded-lg font-semibold flex items-center justify-center gap-2" (click)="approve()">
+      <span class="material-symbols-outlined text-[18px]">check_circle</span>
+      Approve
+    </button>
+  </div>
+</div>

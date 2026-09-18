@@ -1,0 +1,101 @@
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+  <div class="flex items-center gap-3">
+    <a routerLink="/advisor/portfolio" class="text-on-surface-variant hover:text-on-background transition-colors">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </a>
+    <div>
+      <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Client Profitability Analysis</h2>
+      <p class="text-body-md text-on-surface-variant mt-1">Detailed breakdown of yield and holdings for the selected client.</p>
+    </div>
+  </div>
+  <select
+    class="border border-outline-variant rounded-md bg-surface-container-lowest px-3 py-2 text-sm focus:outline-none focus:border-primary"
+    [value]="selectedClientId()"
+    (change)="selectedClientId.set($any($event.target).value)"
+  >
+    @for (c of eligibleClients(); track c.id) {
+      <option [value]="c.id">{{ c.name }} ({{ c.segment }})</option>
+    }
+  </select>
+</div>
+
+@if (selectedClient(); as c) {
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+    <div class="md:col-span-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-col justify-between h-32 shadow-sm">
+        <div class="flex justify-between items-start">
+          <span class="text-label-md text-on-surface-variant uppercase">Total AUM</span>
+          <span class="material-symbols-outlined text-outline">account_balance</span>
+        </div>
+        <div class="font-mono text-2xl text-on-background tracking-tight">{{ totalAum() | inrCompact }}</div>
+      </div>
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-col justify-between h-32 shadow-sm">
+        <div class="flex justify-between items-start">
+          <span class="text-label-md text-on-surface-variant uppercase">Annualized Revenue</span>
+          <span class="material-symbols-outlined text-outline">payments</span>
+        </div>
+        <div class="font-mono text-2xl text-on-background tracking-tight">₹{{ annualRevenue() | number: '1.0-0' }}</div>
+      </div>
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-col justify-between h-32 shadow-sm">
+        <div class="flex justify-between items-start">
+          <span class="text-label-md text-on-surface-variant uppercase">Blended Yield</span>
+          <span class="material-symbols-outlined text-outline">percent</span>
+        </div>
+        <div class="font-mono text-2xl text-on-background tracking-tight">{{ blendedBps() }} bps</div>
+      </div>
+    </div>
+    <div class="md:col-span-4 bg-surface-container border border-outline-variant rounded-xl p-4 flex flex-col shadow-sm">
+      <h3 class="text-title-md text-on-background flex items-center gap-2 mb-3">
+        <span class="material-symbols-outlined text-payout-gold">lightbulb</span> Revenue Potential
+      </h3>
+      <p class="text-body-sm text-on-surface-variant mb-4">Suggested high-yield products based on '{{ c.riskProfile }}' risk profile to improve blended yield.</p>
+      <div class="space-y-2 flex-1">
+        <div class="bg-surface-container-lowest p-2 rounded border border-outline-variant flex justify-between items-center">
+          <div>
+            <div class="text-sm font-semibold">Nexus Midcap Opportunities Fund</div>
+            <div class="text-label-md text-on-surface-variant">Est. Trail: 85 bps</div>
+          </div>
+          <span class="material-symbols-outlined text-secondary">add_circle</span>
+        </div>
+        <div class="bg-surface-container-lowest p-2 rounded border border-outline-variant flex justify-between items-center">
+          <div>
+            <div class="text-sm font-semibold">Nexus Balanced Advantage Fund</div>
+            <div class="text-label-md text-on-surface-variant">Est. Trail: 62 bps</div>
+          </div>
+          <span class="material-symbols-outlined text-secondary">add_circle</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl flex flex-col overflow-hidden shadow-sm">
+    <div class="p-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+      <h3 class="text-title-lg text-on-background">Holdings &amp; Revenue Attribution</h3>
+      <a [routerLink]="['/advisor/clients', c.id]" class="text-secondary text-sm font-medium hover:underline">View Client Profile</a>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b-2 border-primary-container text-label-md text-on-surface-variant uppercase tracking-wider">
+            <th class="py-2 px-4">Scheme Name</th>
+            <th class="py-2 px-4 text-right">Current Value</th>
+            <th class="py-2 px-4 text-right">Trail (bps)</th>
+            <th class="py-2 px-4 text-right">Monthly Earned</th>
+          </tr>
+        </thead>
+        <tbody class="font-mono text-sm">
+          @for (h of holdings(); track h.schemeName) {
+            <tr class="border-b border-outline-variant/50 hover:bg-surface-container-low transition-colors">
+              <td class="py-2 px-4 font-sans text-on-surface">{{ h.schemeName }}</td>
+              <td class="py-2 px-4 text-right">₹{{ h.currentValue | number: '1.0-0' }}</td>
+              <td class="py-2 px-4 text-right text-on-surface-variant">{{ h.trailBps }}</td>
+              <td class="py-2 px-4 text-right text-on-tertiary-container font-semibold">₹{{ monthlyRevenue(h) | number: '1.0-0' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+} @else {
+  <p class="text-on-surface-variant py-10 text-center">Select a client to view profitability analysis.</p>
+}

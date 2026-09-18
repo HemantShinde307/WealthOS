@@ -1,0 +1,58 @@
+<div>
+  <h1 class="text-headline-lg text-on-background mb-1">Marketing Growth</h1>
+  <p class="text-body-lg text-on-surface-variant">Campaign performance across every channel.</p>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Total Campaigns</span>
+    <span class="font-mono text-headline-lg text-on-surface">{{ campaigns().length }}</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Audience Reached</span>
+    <span class="font-mono text-headline-lg text-on-surface">{{ totalAudience() | number }}</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Converted</span>
+    <span class="font-mono text-headline-lg text-success">{{ totalConverted() | number }}</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Conversion Rate</span>
+    <span class="font-mono text-headline-lg text-success">{{ overallConversionRate() }}%</span>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  <div class="p-6 border-b border-outline-variant flex justify-between items-center">
+    <h3 class="text-title-lg text-on-background">Campaigns</h3>
+    <span class="text-body-sm text-on-surface-variant">{{ activeCampaigns() }} active</span>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[800px] text-left border-collapse">
+      <thead class="bg-surface-container-high border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider">Campaign</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider">Channel</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider text-right">Audience</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider text-right">Open Rate</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider text-right">Conversion</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider text-right">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (c of campaigns(); track c.id) {
+          <tr class="hover:bg-surface-container-high/50 transition-colors">
+            <td class="py-3 px-4 font-medium">{{ c.name }}</td>
+            <td class="py-3 px-4"><span class="bg-surface-container-high px-2 py-0.5 rounded text-xs">{{ c.channel }}</span></td>
+            <td class="py-3 px-4 text-right font-mono">{{ c.audience | number }}</td>
+            <td class="py-3 px-4 text-right font-mono">{{ openRate(c.sent, c.opened) }}%</td>
+            <td class="py-3 px-4 text-right font-mono font-medium text-success">{{ conversionRate(c.sent, c.converted) }}%</td>
+            <td class="py-3 px-4 text-right">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border" [class]="statusBadgeClass(c.status)">{{ c.status }}</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

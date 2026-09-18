@@ -1,0 +1,74 @@
+<div>
+  <h1 class="text-headline-lg text-on-background mb-1">Client Onboarding</h1>
+  <p class="text-body-lg text-on-surface-variant">Acquisition &amp; KYC funnel, platform-wide.</p>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">In KYC Queue</span>
+    <span class="font-mono text-headline-lg text-on-surface">{{ records().length }}</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Verified Clients</span>
+    <span class="font-mono text-headline-lg text-success">{{ verifiedCount() }}</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Rejected</span>
+    <span class="font-mono text-headline-lg text-error">{{ rejectedCount() }}</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Verification Rate</span>
+    <span class="font-mono text-headline-lg text-success">{{ conversionRate() }}%</span>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
+  <h3 class="text-label-caps text-on-surface uppercase tracking-wider mb-6">Onboarding Funnel</h3>
+  <div class="space-y-5">
+    @for (stage of funnel(); track stage.label) {
+      <div>
+        <div class="flex justify-between items-baseline mb-1">
+          <span class="text-body-md text-on-surface">{{ stage.label }}</span>
+          <span class="font-mono text-body-md text-on-surface">{{ stage.count }} clients · {{ stage.pct }}%</span>
+        </div>
+        <div class="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
+          <div class="bg-secondary h-full" [style.width.%]="stage.pct"></div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  <div class="p-6 border-b border-outline-variant">
+    <h3 class="text-title-lg text-on-background">Active KYC Records</h3>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[700px] text-left border-collapse">
+      <thead class="bg-surface-container-high border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider">Client</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider">PAN</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider">Submitted</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider">Documents</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider text-right">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (r of records(); track r.id) {
+          <tr class="hover:bg-surface-container-high/50 transition-colors">
+            <td class="py-3 px-4 font-medium">{{ r.clientName }}</td>
+            <td class="py-3 px-4 font-mono text-on-surface-variant">{{ r.pan }}</td>
+            <td class="py-3 px-4 font-mono text-on-surface-variant">{{ r.submittedOn }}</td>
+            <td class="py-3 px-4">
+              <span class="text-body-sm text-on-surface-variant">{{ docsProgress(r).verified }} / {{ docsProgress(r).total }} verified</span>
+            </td>
+            <td class="py-3 px-4 text-right">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border" [class]="statusBadgeClass(r.status)">{{ r.status }}</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

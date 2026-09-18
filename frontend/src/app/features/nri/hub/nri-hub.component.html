@@ -1,0 +1,146 @@
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">NRI Wealth Hub</h2>
+    <p class="text-body-md text-on-surface-variant mt-2">Manage cross-border portfolios, regulatory compliance, and FATCA requirements.</p>
+  </div>
+  <a routerLink="/nri/onboarding-compliance" class="flex items-center gap-2 bg-primary-container text-on-primary px-5 py-2.5 rounded-md hover:opacity-90 transition-opacity text-sm font-semibold">
+    <span class="material-symbols-outlined text-[18px]">add</span>
+    New NRI Client
+  </a>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <app-stat-card label="Total NRI AUM" [value]="nri.totalAum() | inrCompact" />
+  <app-stat-card label="NRI Clients" [value]="nri.views().length + ''" />
+  <app-stat-card label="Pending Compliance" [value]="nri.pendingComplianceCount() + ''" valueClass="text-warning" />
+  <app-stat-card label="FATCA/CRS Pending" [value]="nri.pendingFatcaCount() + ''" valueClass="text-error" />
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+  <!-- Distribution by country -->
+  <div class="md:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col">
+    <div class="p-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+      <h3 class="text-title-lg text-on-background flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">public</span>
+        Global Distribution
+      </h3>
+      <span class="px-2 py-1 bg-surface-container rounded text-on-surface-variant text-label-caps uppercase">By tax residency</span>
+    </div>
+    <div class="flex-1 p-6 space-y-4">
+      @for (c of nri.countryBreakdown(); track c.country) {
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-body-md text-on-surface flex items-center gap-2">
+              <span class="text-lg">{{ c.flag }}</span> {{ c.country }}
+              <span class="text-xs text-on-surface-variant">&middot; {{ c.count }} client{{ c.count > 1 ? 's' : '' }}</span>
+            </span>
+            <span class="font-mono text-sm font-medium text-on-background">{{ c.aum | inrCompact }}</span>
+          </div>
+          <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+            <div class="h-full bg-secondary-container rounded-full" [style.width.%]="(c.aum / nri.totalAum()) * 100"></div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="md:col-span-4 flex flex-col gap-4">
+    <a routerLink="/nri/onboarding-compliance" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 hover:bg-surface-container-low transition-colors flex items-start gap-4">
+      <div class="bg-primary-fixed p-3 rounded-lg text-on-primary-fixed-variant">
+        <span class="material-symbols-outlined">account_balance</span>
+      </div>
+      <div>
+        <h4 class="text-title-lg text-on-background mb-1" style="font-size:16px">NRE / NRO Setup</h4>
+        <p class="text-body-sm text-on-surface-variant">Initiate rupee-denominated accounts with expedited KYC tracking.</p>
+      </div>
+    </a>
+    <a routerLink="/nri/portfolio-tracker" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 hover:bg-surface-container-low transition-colors flex items-start gap-4">
+      <div class="bg-secondary-fixed p-3 rounded-lg text-on-secondary-fixed-variant">
+        <span class="material-symbols-outlined">payments</span>
+      </div>
+      <div>
+        <h4 class="text-title-lg text-on-background mb-1" style="font-size:16px">FCNR Deposits</h4>
+        <p class="text-body-sm text-on-surface-variant">Foreign currency term deposits shielding against INR volatility.</p>
+      </div>
+    </a>
+    <a routerLink="/nri/taxation-repatriation" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 hover:bg-surface-container-low transition-colors flex items-start gap-4">
+      <div class="bg-surface-container p-3 rounded-lg text-error">
+        <span class="material-symbols-outlined">gavel</span>
+      </div>
+      <div>
+        <h4 class="text-title-lg text-on-background mb-1" style="font-size:16px">FATCA-Compliant MFs</h4>
+        <p class="text-body-sm text-on-surface-variant">DTAA and TDS simulator for US &amp; Canadian tax residents.</p>
+      </div>
+    </a>
+  </div>
+
+  <!-- Regulatory news feed -->
+  <div class="md:col-span-12 bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
+    <div class="p-4 border-b border-outline-variant bg-surface-container-low">
+      <h3 class="text-title-lg text-on-background flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">article</span>
+        FEMA &amp; RBI Compliance Updates
+      </h3>
+    </div>
+    <div class="divide-y divide-outline-variant">
+      @for (u of nri.regulatoryUpdates; track u.headline) {
+        <div class="p-4 flex gap-4 hover:bg-surface-container-low/50 transition-colors">
+          <div class="w-12 h-12 rounded bg-surface-container flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-on-surface-variant">{{ u.icon }}</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              @if (u.urgent) {
+                <span class="px-2 py-0.5 bg-error-container text-on-error-container text-label-caps rounded-sm">URGENT</span>
+              }
+              <span class="text-body-sm text-on-surface-variant">{{ u.source }} &middot; {{ u.timestamp }}</span>
+            </div>
+            <h4 class="text-body-md font-semibold text-on-background">{{ u.headline }}</h4>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Client directory -->
+  <div class="md:col-span-12 bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
+    <div class="p-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+      <h3 class="text-title-lg text-on-background">NRI Client Directory</h3>
+    </div>
+    <div class="overflow-x-auto table-scroll">
+      <table class="w-full min-w-[720px] text-left border-collapse">
+        <thead class="bg-surface-container-low border-b border-outline-variant">
+          <tr>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Client</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Country</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">AUM</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">FEMA Score</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">FATCA/CRS</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+          @for (v of nri.views(); track v.client.id) {
+            <tr class="hover:bg-surface-container-low/50 transition-colors">
+              <td class="py-3 px-4 font-medium text-on-background">{{ v.client.name }}</td>
+              <td class="py-3 px-4">{{ v.profile.countryFlag }} {{ v.profile.countryOfResidence }}</td>
+              <td class="py-3 px-4 text-right font-mono">{{ (v.profile.aumNre + v.profile.aumNro) | inrCompact }}</td>
+              <td class="py-3 px-4 text-right font-mono" [class]="v.profile.femaComplianceScore >= 90 ? 'text-on-tertiary-container' : v.profile.femaComplianceScore >= 70 ? 'text-warning' : 'text-error'">
+                {{ v.profile.femaComplianceScore }}%
+              </td>
+              <td class="py-3 px-4">
+                <span class="px-2 py-0.5 rounded text-xs font-medium" [class]="v.profile.fatcaCrsStatus === 'Filed' ? 'bg-tertiary-container text-on-tertiary-container' : 'bg-error-container text-on-error-container'">
+                  {{ v.profile.fatcaCrsStatus }}
+                </span>
+              </td>
+              <td class="py-3 px-4 text-right">
+                <a routerLink="/nri/onboarding-compliance" class="text-secondary font-medium text-sm hover:underline">Review</a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

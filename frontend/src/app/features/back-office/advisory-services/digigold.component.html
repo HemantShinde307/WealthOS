@@ -1,0 +1,122 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">DigiGold</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Admin view of all customers' digital gold transactions, with a desk-assisted buy/sell action.</p>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Current Rate</p>
+    <p class="text-title-lg font-mono font-bold text-on-background mt-1">₹{{ svc.currentGoldRate | number: '1.0-0' }}/g</p>
+  </div>
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4">
+    <p class="text-label-md text-on-tertiary-container uppercase tracking-wider">Total Buys (Completed)</p>
+    <p class="text-title-lg font-mono font-bold text-on-tertiary-container mt-1">₹{{ totalBuyAmount() | number: '1.0-0' }}</p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Total Sells (Completed)</p>
+    <p class="text-title-lg font-mono font-bold text-on-background mt-1">₹{{ totalSellAmount() | number: '1.0-0' }}</p>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+  <h3 class="text-title-lg text-on-background font-semibold text-sm mb-3">Desk-Assisted Buy / Sell</h3>
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 items-end">
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Customer</label>
+      <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="flowCustomer()" (change)="flowCustomer.set($any($event.target).value)">
+        @for (c of customers; track c.pan) {
+          <option [value]="c.name">{{ c.name }}</option>
+        }
+      </select>
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Amount (₹)</label>
+      <input type="number" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="flowAmount()" (input)="flowAmount.set(+$any($event.target).value)" />
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Grams (computed)</label>
+      <p class="font-mono text-sm text-on-background px-3 py-2 bg-surface-container-low rounded-md">{{ computedGrams() | number: '1.3-3' }} g</p>
+    </div>
+    <div class="flex gap-2">
+      <button class="flex-1 bg-on-tertiary-container/10 text-on-tertiary-container border border-on-tertiary-container/40 px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="execute('Buy')">Buy</button>
+      <button class="flex-1 bg-error/10 text-error border border-error/40 px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="execute('Sell')">Sell</button>
+    </div>
+  </div>
+</div>
+
+@if (lastActionMessage()) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">check_circle</span> {{ lastActionMessage() }}
+  </div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+  <div>
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Type</label>
+    <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="typeFilter()" (change)="typeFilter.set($any($event.target).value)">
+      <option value="All">All</option>
+      <option value="Buy">Buy</option>
+      <option value="Sell">Sell</option>
+    </select>
+  </div>
+  <div>
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Status</label>
+    <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)">
+      <option value="All">All</option>
+      <option value="Completed">Completed</option>
+      <option value="Pending">Pending</option>
+      <option value="Failed">Failed</option>
+    </select>
+  </div>
+  <div>
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Search Customer / Txn ID</label>
+    <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" placeholder="e.g. Mehta, DG-30011" [value]="search()" (input)="search.set($any($event.target).value)" />
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Txn ID</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Customer</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Type</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Grams</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Rate/g</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Amount</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Vendor</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Timestamp</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (t of filtered(); track t.id) {
+        <tr class="hover:bg-surface-container-low/50 transition-colors">
+          <td class="py-3 px-4 font-mono text-xs">{{ t.id }}</td>
+          <td class="py-3 px-4 font-medium text-on-background">{{ t.customerName }}</td>
+          <td class="py-3 px-4">
+            <span class="text-xs px-2 py-0.5 rounded font-medium" [class]="t.type === 'Buy' ? 'bg-on-tertiary-container/10 text-on-tertiary-container' : 'bg-error/10 text-error'">{{ t.type }}</span>
+          </td>
+          <td class="py-3 px-4 font-mono text-right">{{ t.grams | number: '1.3-3' }}</td>
+          <td class="py-3 px-4 font-mono text-right">₹{{ t.ratePerGram | number: '1.0-0' }}</td>
+          <td class="py-3 px-4 font-mono text-right">₹{{ t.amount | number: '1.0-0' }}</td>
+          <td class="py-3 px-4 text-xs text-on-surface-variant">{{ t.vendor }}</td>
+          <td class="py-3 px-4 text-xs">{{ t.timestamp }}</td>
+          <td class="py-3 px-4">
+            <span
+              class="text-xs px-2 py-0.5 rounded font-medium"
+              [class]="{
+                'bg-on-tertiary-container/10 text-on-tertiary-container': t.status === 'Completed',
+                'bg-secondary-container text-on-secondary-container': t.status === 'Pending',
+                'bg-error/10 text-error': t.status === 'Failed'
+              }"
+            >{{ t.status }}</span>
+          </td>
+        </tr>
+      }
+      @if (!filtered().length) {
+        <tr><td colspan="9" class="py-10 text-center text-on-surface-variant">No transactions match these filters.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>

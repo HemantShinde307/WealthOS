@@ -1,0 +1,80 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Roles Master</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">{{ setup.roles().length }} roles defined</p>
+  </div>
+  <div class="flex gap-2">
+    <a routerLink="/back-office/setup/users/role-privileges" class="px-4 py-2 border border-outline-variant bg-surface-container-lowest text-on-surface rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium">Manage Privileges</a>
+    <button class="flex items-center gap-2 bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openAdd()">
+      <span class="material-symbols-outlined text-[18px]">add</span> Add Role
+    </button>
+  </div>
+</div>
+
+@if (formMode() !== 'closed') {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col gap-4">
+    <h3 class="text-title-lg text-on-background">{{ formMode() === 'edit' ? 'Edit Role' : 'New Role' }}</h3>
+    <div class="grid grid-cols-1 gap-4">
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Role Name</label>
+        <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="draft().name" (input)="setField('name', $any($event.target).value)" />
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Description</label>
+        <textarea class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" rows="2" [value]="draft().description" (input)="setField('description', $any($event.target).value)"></textarea>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="save()">Save Role</button>
+      <button class="px-4 py-2 border border-outline-variant rounded-md text-sm font-medium text-on-surface hover:bg-surface-container-low" (click)="cancel()">Cancel</button>
+    </div>
+  </div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="p-4 border-b border-outline-variant">
+    <div class="relative w-full sm:w-72">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+      <input
+        class="w-full pl-9 pr-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-md text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary"
+        placeholder="Search roles..."
+        [value]="searchTerm()"
+        (input)="searchTerm.set($any($event.target).value)"
+      />
+    </div>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[800px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Role</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Description</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-center">Users</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-center">Privileges</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (r of filtered(); track r.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4 font-medium text-on-background">{{ r.name }}</td>
+            <td class="py-3 px-4 text-on-surface-variant max-w-md">{{ r.description }}</td>
+            <td class="py-3 px-4 text-center font-mono">{{ setup.userCountForRole(r.id) }}</td>
+            <td class="py-3 px-4 text-center font-mono">{{ privilegeCount(r.id) }}</td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="openEdit(r)">Edit</button>
+              @if (setup.userCountForRole(r.id) === 0) {
+                <button class="text-error text-xs font-medium hover:underline" (click)="remove(r.id)">Delete</button>
+              } @else {
+                <span class="text-xs text-on-surface-variant" title="Reassign users before deleting this role">Delete</span>
+              }
+            </td>
+          </tr>
+        }
+        @if (!filtered().length) {
+          <tr><td colspan="5" class="py-10 text-center text-on-surface-variant">No roles match your search.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

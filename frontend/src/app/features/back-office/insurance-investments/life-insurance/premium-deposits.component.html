@@ -1,0 +1,73 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Premium Deposits</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Record a premium payment against a policy. {{ svc.premiumDeposits().length }} deposits logged.</p>
+</div>
+
+@if (savedReceipt()) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">check_circle</span> Deposit recorded — receipt {{ savedReceipt() }}.
+  </div>
+}
+@if (error()) {
+  <div class="bg-error/10 border border-error/40 rounded-lg p-4 text-error text-sm">{{ error() }}</div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+  <div class="flex flex-col gap-1 md:col-span-2">
+    <label class="text-label-md text-on-surface-variant">Policy</label>
+    <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" (change)="policyId.set($any($event.target).value)">
+      <option value="">— Choose a policy —</option>
+      @for (p of svc.policies(); track p.id) {
+        <option [value]="p.id">{{ p.policyNumber }} — {{ p.policyholderName }}</option>
+      }
+    </select>
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Amount (₹)</label>
+    <input type="number" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="amount()" (input)="amount.set($any($event.target).valueAsNumber || null)" />
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Payment Date</label>
+    <input type="date" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="paymentDate()" (input)="paymentDate.set($any($event.target).value)" />
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Payment Mode</label>
+    <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="paymentMode()" (change)="paymentMode.set($any($event.target).value)">
+      @for (m of paymentModes; track m) { <option [value]="m">{{ m }}</option> }
+    </select>
+  </div>
+  <div class="md:col-span-4 flex justify-end">
+    <button class="bg-primary-container text-on-primary px-5 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="record()">Record Deposit</button>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="p-4 border-b border-outline-variant"><h3 class="text-title-lg text-on-background">Deposit Log</h3></div>
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Receipt No.</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Policy No.</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Policyholder</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Amount</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Date</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Mode</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (d of svc.premiumDeposits(); track d.id) {
+        <tr>
+          <td class="py-2 px-4 font-mono text-xs">{{ d.receiptNumber }}</td>
+          <td class="py-2 px-4 font-mono text-xs">{{ d.policyNumber }}</td>
+          <td class="py-2 px-4">{{ d.policyholderName }}</td>
+          <td class="py-2 px-4 text-right font-mono">₹{{ d.amount | number }}</td>
+          <td class="py-2 px-4 text-xs">{{ d.paymentDate | date: 'mediumDate' }}</td>
+          <td class="py-2 px-4 text-xs">{{ d.paymentMode }}</td>
+        </tr>
+      }
+      @if (!svc.premiumDeposits().length) {
+        <tr><td colspan="6" class="py-8 text-center text-on-surface-variant text-sm">No deposits recorded yet.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>

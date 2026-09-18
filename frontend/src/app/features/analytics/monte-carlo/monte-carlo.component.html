@@ -1,0 +1,131 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Monte Carlo Simulations</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Probability-weighted wealth projections against a target goal.</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- Goal Summary -->
+  <div class="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm flex flex-col">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Goal: Retirement Funding</p>
+    <div class="flex items-baseline gap-3">
+      <span class="font-mono text-4xl font-bold text-on-tertiary-container">{{ probabilityOfSuccess() }}%</span>
+      <span class="text-title-lg text-on-background">Probability of Success</span>
+    </div>
+    <div class="grid grid-cols-3 gap-4 mt-6 pt-4 border-t border-outline-variant/60">
+      <div>
+        <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Target Capital</p>
+        <span class="font-mono text-lg font-semibold text-on-background">{{ targetCapital | inrCompact }}</span>
+      </div>
+      <div>
+        <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Simulated Paths</p>
+        <span class="font-mono text-lg font-semibold text-on-background">{{ simulatedPaths | number }}</span>
+      </div>
+      <div>
+        <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Horizon</p>
+        <span class="font-mono text-lg font-semibold text-on-background">{{ horizonYears }} Years</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario Controls -->
+  <div class="lg:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm flex flex-col">
+    <h3 class="text-title-lg text-on-background mb-4 flex items-center gap-2">
+      <span class="material-symbols-outlined text-[20px]">tune</span>
+      Scenario Controls
+    </h3>
+    <div class="space-y-5">
+      <div>
+        <div class="flex justify-between text-body-md mb-1">
+          <span class="text-on-surface-variant">Initial Capital</span>
+          <span class="font-mono font-medium text-on-background">{{ initialCapital() | inrCompact }}</span>
+        </div>
+        <input
+          type="range" min="500000" max="10000000" step="100000"
+          [value]="initialCapital()"
+          (input)="onInitialCapitalChange($any($event.target).value)"
+          class="w-full accent-secondary"
+        />
+      </div>
+      <div>
+        <div class="flex justify-between text-body-md mb-1">
+          <span class="text-on-surface-variant">Monthly Contribution</span>
+          <span class="font-mono font-medium text-on-background">₹{{ monthlyContribution() | number }}</span>
+        </div>
+        <input
+          type="range" min="0" max="100000" step="1000"
+          [value]="monthlyContribution()"
+          (input)="onMonthlyContributionChange($any($event.target).value)"
+          class="w-full accent-secondary"
+        />
+      </div>
+      <div>
+        <div class="flex justify-between text-body-md mb-1">
+          <span class="text-on-surface-variant">Volatility Stress (VIX)</span>
+          <span class="font-mono font-medium text-error">+{{ volatilityStress() }}%</span>
+        </div>
+        <input
+          type="range" min="0" max="40" step="1"
+          [value]="volatilityStress()"
+          (input)="onVolatilityChange($any($event.target).value)"
+          class="w-full accent-error"
+        />
+      </div>
+    </div>
+    <button
+      class="mt-6 flex items-center justify-center gap-2 bg-primary-container text-on-primary px-4 py-2.5 rounded-md hover:opacity-90 transition-opacity text-sm font-medium"
+      (click)="recalculate()"
+    >
+      <span class="material-symbols-outlined text-[18px]">refresh</span>
+      Recalculate Paths
+    </button>
+
+    <div class="mt-6 pt-4 border-t border-outline-variant/60 space-y-3">
+      <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Terminal Value Percentiles</p>
+      <div class="flex justify-between items-baseline">
+        <span class="text-body-md text-on-surface-variant">95th Percentile (Upside)</span>
+        <span class="font-mono font-semibold text-on-tertiary-container">{{ percentile95() | inrCompact }}</span>
+      </div>
+      <div class="flex justify-between items-baseline">
+        <span class="text-body-md text-on-surface-variant">50th Percentile (Median)</span>
+        <span class="font-mono font-semibold text-on-background">{{ percentile50() | inrCompact }}</span>
+      </div>
+      <div class="flex justify-between items-baseline">
+        <span class="text-body-md text-on-surface-variant">5th Percentile (Downside)</span>
+        <span class="font-mono font-semibold text-error">{{ percentile5() | inrCompact }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wealth Path Distribution -->
+  <div class="lg:col-span-12 bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm flex flex-col">
+    <h3 class="text-title-lg text-on-background mb-6">Wealth Path Distribution ({{ horizonYears }}Yr)</h3>
+    <div class="relative w-full h-[320px] border-b border-l border-outline-variant/50">
+      <svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+        <!-- Outer 5th-95th percentile band -->
+        <path [attr.d]="outerBandPath()" fill="var(--color-secondary)" opacity="0.08" />
+        <!-- Inner percentile band -->
+        <path [attr.d]="innerBandPath()" fill="var(--color-secondary)" opacity="0.18" />
+        <!-- Target line -->
+        <line x1="0" [attr.y1]="targetLineY()" x2="100" [attr.y2]="targetLineY()" stroke="var(--color-tertiary-fixed-dim)" stroke-dasharray="2 2" stroke-width="0.6" />
+        <!-- Upper / Lower bounds -->
+        <path [attr.d]="upperPath()" fill="none" stroke="var(--color-on-tertiary-container)" stroke-dasharray="1.5 1.5" stroke-width="0.6" />
+        <path [attr.d]="lowerPath()" fill="none" stroke="var(--color-error)" stroke-dasharray="1.5 1.5" stroke-width="0.6" />
+        <!-- Median path -->
+        <path [attr.d]="medianPath()" fill="none" stroke="var(--color-secondary)" stroke-width="1.8" />
+      </svg>
+      <div class="absolute -bottom-6 left-0 w-full flex justify-between text-xs text-on-surface-variant font-mono">
+        @for (y of years; track y) {
+          <span>Y{{ y }}</span>
+        }
+      </div>
+    </div>
+    <div class="mt-10 flex flex-wrap justify-center gap-6">
+      <div class="flex items-center gap-2"><div class="w-3 h-0.5 bg-secondary"></div><span class="text-label-md text-on-surface">Median Path</span></div>
+      <div class="flex items-center gap-2"><div class="w-3 h-0.5 border-t border-dashed" style="border-color: var(--color-on-tertiary-container)"></div><span class="text-label-md text-on-surface">95th Percentile</span></div>
+      <div class="flex items-center gap-2"><div class="w-3 h-0.5 border-t border-dashed" style="border-color: var(--color-error)"></div><span class="text-label-md text-on-surface">5th Percentile</span></div>
+      <div class="flex items-center gap-2"><div class="w-3 h-0.5 border-t border-dashed" style="border-color: var(--color-tertiary-fixed-dim)"></div><span class="text-label-md text-on-surface">Target: {{ targetCapital | inrCompact }}</span></div>
+    </div>
+  </div>
+</div>

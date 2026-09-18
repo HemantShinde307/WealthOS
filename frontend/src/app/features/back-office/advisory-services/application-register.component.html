@@ -1,0 +1,78 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Application Register</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Log of customer applications — account opening, mandate registration, and service-change requests.</p>
+</div>
+
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+  @for (s of statusOptions; track s) {
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+      <p class="text-label-md text-on-surface-variant uppercase tracking-wider">{{ s }}</p>
+      <p class="text-title-lg font-mono font-bold text-on-background mt-1">{{ counts(s) }}</p>
+    </div>
+  }
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+  <div>
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Status</label>
+    <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)">
+      <option value="All">All</option>
+      @for (s of statusOptions; track s) {
+        <option [value]="s">{{ s }}</option>
+      }
+    </select>
+  </div>
+  <div class="flex-1 w-full">
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Search Customer / Application No. / Type</label>
+    <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" placeholder="e.g. Mehta, APP-2026-0301, Mandate" [value]="search()" (input)="search.set($any($event.target).value)" />
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Application No.</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Customer</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Type</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Branch</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Submitted On</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Update Status</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (a of filtered(); track a.id) {
+        <tr class="hover:bg-surface-container-low/50 transition-colors">
+          <td class="py-3 px-4 font-mono text-xs">{{ a.id }}</td>
+          <td class="py-3 px-4 font-medium text-on-background">{{ a.customerName }}</td>
+          <td class="py-3 px-4 text-xs">{{ a.applicationType }}</td>
+          <td class="py-3 px-4 text-xs text-on-surface-variant">{{ a.branch }}</td>
+          <td class="py-3 px-4 text-xs">{{ a.submittedOn }}</td>
+          <td class="py-3 px-4">
+            <span
+              class="text-xs px-2 py-0.5 rounded font-medium"
+              [class]="{
+                'bg-on-tertiary-container/10 text-on-tertiary-container': a.status === 'Completed',
+                'bg-secondary-container text-on-secondary-container': a.status === 'Processing',
+                'bg-surface-container-low text-on-surface-variant': a.status === 'Pending',
+                'bg-error/10 text-error': a.status === 'Rejected'
+              }"
+            >{{ a.status }}</span>
+            <p class="text-[11px] text-on-surface-variant mt-1">{{ a.remarks }}</p>
+          </td>
+          <td class="py-3 px-4">
+            <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-2 py-1 text-xs text-on-background" [value]="a.status" (change)="setStatus(a.id, $any($event.target).value)">
+              @for (s of statusOptions; track s) {
+                <option [value]="s">{{ s }}</option>
+              }
+            </select>
+          </td>
+        </tr>
+      }
+      @if (!filtered().length) {
+        <tr><td colspan="7" class="py-10 text-center text-on-surface-variant">No applications match these filters.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>

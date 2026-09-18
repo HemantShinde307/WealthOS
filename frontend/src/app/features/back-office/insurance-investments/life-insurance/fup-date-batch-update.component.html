@@ -1,0 +1,47 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">FUP Date Batch Update</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Select policies to bulk-update their First Unpaid Premium (FUP) date.</p>
+</div>
+
+@if (lastUpdateCount() !== null) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">check_circle</span> FUP date updated for {{ lastUpdateCount() }} polic{{ lastUpdateCount() === 1 ? 'y' : 'ies' }}.
+  </div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+  <div class="flex items-center gap-3">
+    <label class="text-label-md text-on-surface-variant">New FUP Date</label>
+    <input type="date" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="newFupDate()" (input)="newFupDate.set($any($event.target).value)" />
+  </div>
+  <button class="bg-primary-container text-on-primary px-5 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium disabled:opacity-40" [disabled]="selectedIds().size === 0" (click)="applyBatchUpdate()">
+    Apply to {{ selectedIds().size }} Selected
+  </button>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-2.5 px-4 w-10"><input type="checkbox" (change)="toggleAll($any($event.target).checked)" /></th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Policy No.</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Policyholder</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Insurer</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Current FUP Date</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (p of svc.policies(); track p.id) {
+        <tr [class.bg-secondary-container]="isSelected(p.id)">
+          <td class="py-2 px-4"><input type="checkbox" [checked]="isSelected(p.id)" (change)="toggle(p.id, $any($event.target).checked)" /></td>
+          <td class="py-2 px-4 font-mono text-xs">{{ p.policyNumber }}</td>
+          <td class="py-2 px-4">{{ p.policyholderName }}</td>
+          <td class="py-2 px-4 text-xs">{{ p.insurer }}</td>
+          <td class="py-2 px-4 text-xs">{{ p.fupDate | date: 'mediumDate' }}</td>
+          <td class="py-2 px-4 text-xs">{{ p.status }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

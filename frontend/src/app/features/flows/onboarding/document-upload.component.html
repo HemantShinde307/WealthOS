@@ -1,0 +1,39 @@
+<div class="space-y-6">
+  <div class="bg-surface-container-low rounded-lg p-4 text-sm text-on-surface-variant flex gap-2">
+    <span class="material-symbols-outlined text-[18px] shrink-0">info</span>
+    <span>Upload clear scans or photos of the following documents. Accepted formats: JPG, PNG, PDF (max 5MB each).</span>
+  </div>
+
+  <div class="space-y-3">
+    @for (doc of documents; track doc.key) {
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex items-center gap-4">
+        <div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-on-surface-variant">{{ doc.icon }}</span>
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="font-medium text-on-background">{{ doc.label }}</p>
+          <p class="text-xs text-on-surface-variant">{{ doc.description }}</p>
+        </div>
+        @if (state.documents()[doc.key]) {
+          <div class="flex items-center gap-2 text-on-tertiary-container text-sm font-medium shrink-0">
+            <span class="material-symbols-outlined text-[18px] fill-icon">check_circle</span>
+            Uploaded
+          </div>
+          <button class="text-xs text-on-surface-variant hover:underline shrink-0" (click)="state.toggleDocument(doc.key)">Remove</button>
+        } @else {
+          <button class="px-4 py-2 rounded-md border border-outline-variant text-sm font-medium text-on-surface hover:bg-surface-container-low transition-colors shrink-0" (click)="state.toggleDocument(doc.key)">
+            Upload
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  <button
+    class="w-full bg-primary-container text-on-primary py-3 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+    [disabled]="!state.allDocumentsUploaded()"
+    (click)="continue()"
+  >
+    Continue to Final Review
+  </button>
+</div>

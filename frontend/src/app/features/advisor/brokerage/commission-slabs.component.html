@@ -1,0 +1,139 @@
+<div class="flex items-center gap-3">
+  <a routerLink="/advisor/brokerage" class="text-on-surface-variant hover:text-on-background transition-colors">
+    <span class="material-symbols-outlined">arrow_back</span>
+  </a>
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Commission Slabs &amp; Rules</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Current brokerage structures across asset classes and active incentive rules.</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+  <!-- Equity Mutual Funds -->
+  <div class="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-lg flex flex-col overflow-hidden shadow-sm">
+    <div class="p-4 border-b border-outline-variant flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-secondary">trending_up</span>
+        <h3 class="text-title-lg text-on-background">Equity Mutual Funds</h3>
+      </div>
+      <span class="text-xs text-on-surface-variant bg-surface-container-low px-2 py-1 rounded uppercase font-medium">Active FY26</span>
+    </div>
+    <div class="overflow-x-auto p-4">
+      <table class="w-full text-left border-collapse min-w-[500px]">
+        <thead>
+          <tr class="border-b-2 border-primary-container text-label-md text-on-surface-variant uppercase tracking-wider">
+            <th class="pb-2">AUM Range (INR)</th>
+            <th class="pb-2 text-right">Upfront Comm.</th>
+            <th class="pb-2 text-right">Trail Comm.</th>
+            <th class="pb-2 text-center">B-30 Incentive</th>
+          </tr>
+        </thead>
+        <tbody class="font-mono text-sm">
+          @for (s of equitySlabs; track s.range) {
+            <tr class="border-b border-outline-variant/50 hover:bg-surface-container-low transition-colors" [class.bg-surface-container-low]="s.current">
+              <td class="py-2 flex items-center gap-2">
+                {{ s.range }}
+                @if (s.current) {
+                  <span class="bg-primary-container text-on-primary text-[9px] px-1 rounded uppercase font-bold">Current</span>
+                }
+              </td>
+              <td class="py-2 text-right">{{ s.upfront }}%</td>
+              <td class="py-2 text-right">{{ s.trail }}%</td>
+              <td class="py-2 text-center">
+                <span class="material-symbols-outlined text-[16px]" [class]="s.b30 ? 'text-on-tertiary-container' : 'text-outline-variant'">{{ s.b30 ? 'check_circle' : 'cancel' }}</span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Debt Mutual Funds -->
+  <div class="lg:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-lg flex flex-col overflow-hidden shadow-sm">
+    <div class="p-4 border-b border-outline-variant flex items-center gap-3">
+      <span class="material-symbols-outlined text-secondary">account_balance</span>
+      <h3 class="text-title-lg text-on-background">Debt Mutual Funds</h3>
+    </div>
+    <div class="p-4 flex-1 flex flex-col gap-1">
+      @for (s of debtSlabs; track s.range) {
+        <div class="flex justify-between items-center p-2 rounded" [class]="s.current ? 'bg-surface-container-low border-l-2 border-primary-container' : ''">
+          <span class="font-mono text-sm" [class]="s.current ? 'text-on-background font-bold' : 'text-on-surface-variant'">{{ s.range }}</span>
+          <span class="font-mono text-sm text-on-background" [class.font-bold]="s.current">{{ s.rate }}%</span>
+        </div>
+      }
+      <div class="mt-auto pt-4">
+        <div class="bg-surface-container p-3 rounded text-sm text-on-surface-variant border border-outline-variant/50">
+          <span class="font-bold text-on-background block mb-1">Notice:</span>
+          Debt structures are subject to quarterly review. Trail commissions are flat at 0.05% across all slabs.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Digital Gold -->
+  <div class="lg:col-span-5 bg-surface-container-lowest border border-outline-variant rounded-lg flex flex-col overflow-hidden shadow-sm relative">
+    <div class="p-4 border-b border-outline-variant flex items-center gap-3">
+      <span class="material-symbols-outlined text-payout-gold">monetization_on</span>
+      <h3 class="text-title-lg text-on-background">Digital Gold</h3>
+    </div>
+    <div class="p-4 flex-1 flex flex-col justify-center items-center gap-4">
+      <div class="text-center">
+        <span class="text-label-md text-on-surface-variant uppercase block mb-1">Flat Commission Rate</span>
+        <span class="font-mono text-3xl font-bold text-payout-gold">{{ goldFlatRate }}%</span>
+      </div>
+      <p class="text-sm text-on-surface-variant text-center max-w-[250px]">
+        Applicable on all buy transactions. No trail commission. Sell transactions are zero brokerage.
+      </p>
+    </div>
+  </div>
+
+  <!-- Global Incentive Rules -->
+  <div class="lg:col-span-7 bg-primary-container text-on-primary rounded-lg p-6 flex flex-col">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="material-symbols-outlined">rule</span>
+      <h3 class="text-title-lg font-bold">Global Incentive Rules</h3>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+      <div class="bg-black/10 border border-white/10 rounded p-4">
+        <h4 class="font-semibold mb-2">B-30 City Multiplier</h4>
+        <p class="text-sm opacity-90 mb-3">Additional 0.25% upfront commission for investments originating from beyond top 30 cities.</p>
+        <span class="inline-block bg-white/20 text-xs px-2 py-1 rounded uppercase">Applies to Equity Only</span>
+      </div>
+      <div class="bg-black/10 border border-white/10 rounded p-4">
+        <h4 class="font-semibold mb-2">Volume Bonus</h4>
+        <p class="text-sm opacity-90 mb-3">Achieve &gt; 10Cr net sales in a quarter to unlock a 1.1x multiplier on trail commissions for the next quarter.</p>
+        <div class="w-full bg-white/20 h-2 rounded-full overflow-hidden mt-auto">
+          <div class="bg-white h-full w-[65%]"></div>
+        </div>
+        <span class="text-xs opacity-80 mt-1 block text-right">6.5Cr / 10Cr</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- AMC Slab Progress -->
+  <div class="lg:col-span-12 bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-sm">
+    <h3 class="text-title-lg text-on-background mb-4">AMC Slab Progress</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      @for (a of amcProgress; track a.amc) {
+        <div class="border border-outline-variant rounded p-3">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-sm font-semibold text-on-background">{{ a.amc }}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded uppercase font-bold" [class]="a.hit ? 'bg-tertiary-container text-on-tertiary-container' : 'bg-surface-container-high text-on-surface-variant'">{{ a.label }}</span>
+          </div>
+          <div class="w-full bg-surface-variant rounded-full h-1.5 mb-2 overflow-hidden">
+            <div class="h-1.5 rounded-full" [class]="a.hit ? 'bg-on-tertiary-container' : 'bg-primary-container'" [style.width.%]="(a.aum / a.target) * 100"></div>
+          </div>
+          <div class="flex justify-between font-mono text-xs text-on-surface-variant">
+            <span>AUM: ₹{{ a.aum }}Cr</span>
+            <span>Target: ₹{{ a.target }}Cr</span>
+          </div>
+          <div class="mt-2 pt-2 border-t border-outline-variant/50 flex justify-between">
+            <span class="text-xs text-on-surface-variant">Rate:</span>
+            <span class="font-mono text-xs font-bold text-on-background">{{ a.bps }} bps</span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

@@ -1,0 +1,95 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Outward Transaction Entry</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Record a Redemption against an existing folio.</p>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col gap-4">
+  <div class="relative">
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Folio Lookup</label>
+    <input
+      class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background"
+      placeholder="Search by folio number, customer name or scheme"
+      [value]="folioQuery()"
+      (input)="folioQuery.set($any($event.target).value); selectedFolioId.set(null)"
+    />
+    @if (matches().length) {
+      <div class="absolute z-10 mt-1 w-full bg-surface-container-lowest border border-outline-variant rounded-md shadow-lg max-h-64 overflow-y-auto">
+        @for (f of matches(); track f.id) {
+          <button type="button" class="w-full text-left px-3 py-2 hover:bg-surface-container-low text-sm" (click)="selectFolio(f.id)">
+            <span class="font-mono text-xs">{{ f.folioNumber }}</span> — {{ f.customerName }}
+            <span class="block text-xs text-on-surface-variant">{{ f.scheme }} · {{ f.units | number: '1.3-3' }} units available</span>
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  @if (selectedFolio(); as f) {
+    <div class="bg-surface-container-low rounded-md p-3 flex justify-between items-center text-sm">
+      <div>
+        <p class="font-medium text-on-background">{{ f.scheme }}</p>
+        <p class="text-xs text-on-surface-variant">{{ f.amc }} · Folio {{ f.folioNumber }} · {{ f.customerName }} · Available {{ f.units | number: '1.3-3' }} units</p>
+      </div>
+      <button type="button" class="text-secondary text-xs font-medium hover:underline" (click)="clearSelection()">Change</button>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Units to Redeem</label>
+        <div class="flex gap-2">
+          <input type="number" min="0" step="0.001" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="units()" (input)="units.set($any($event.target).valueAsNumber || null)" />
+          <button type="button" class="px-3 py-2 border border-outline-variant rounded-md text-xs font-medium text-secondary whitespace-nowrap" (click)="redeemAll()">All</button>
+        </div>
+        @if (exceedsHolding()) {
+          <p class="text-error text-xs mt-1">Exceeds available balance</p>
+        }
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">NAV (₹)</label>
+        <input type="number" min="0" step="0.01" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="nav()" (input)="nav.set($any($event.target).valueAsNumber || null)" />
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Date</label>
+        <input type="date" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="date()" (input)="date.set($any($event.target).value)" />
+      </div>
+    </div>
+
+    <div class="flex justify-between items-center">
+      <p class="text-sm text-on-surface-variant">Redemption amount payable: <span class="font-mono text-on-background font-semibold">₹{{ computedAmount() | number }}</span></p>
+      <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium disabled:opacity-40" [disabled]="exceedsHolding()" (click)="submit()">Record Redemption</button>
+    </div>
+  }
+
+  @if (error()) {
+    <p class="text-error text-sm">{{ error() }}</p>
+  }
+  @if (success()) {
+    <p class="text-on-tertiary-container text-sm flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">check_circle</span>{{ success() }}</p>
+  }
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="p-4 border-b border-outline-variant"><h3 class="text-title-lg text-on-background">Recent Outward Transactions</h3></div>
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Date</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Folio</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Scheme</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Units</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Amount</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (t of recentOutward(); track t.id) {
+        <tr>
+          <td class="py-2 px-4 text-xs">{{ t.date | date: 'mediumDate' }}</td>
+          <td class="py-2 px-4 font-mono text-xs">{{ t.folioId }}</td>
+          <td class="py-2 px-4 text-xs">{{ t.scheme }}</td>
+          <td class="py-2 px-4 text-right font-mono">{{ t.units | number: '1.3-3' }}</td>
+          <td class="py-2 px-4 text-right font-mono">₹{{ t.amount | number }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

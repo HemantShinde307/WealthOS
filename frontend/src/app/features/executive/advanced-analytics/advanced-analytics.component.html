@@ -1,0 +1,97 @@
+<div>
+  <h1 class="text-headline-lg text-on-background mb-1">Advanced Analytics</h1>
+  <p class="text-body-lg text-on-surface-variant">Condensed cross-portfolio performance view.</p>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Current AUM</span>
+    <span class="font-mono text-headline-lg text-on-surface">{{ currentValue() | inrCompact }}</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Invested</span>
+    <span class="font-mono text-headline-lg text-on-surface">{{ investedValue() | inrCompact }}</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Absolute Return</span>
+    <span class="font-mono text-headline-lg text-success">+{{ absoluteReturnPct() }}%</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">XIRR</span>
+    <span class="font-mono text-headline-lg text-success">{{ xirr }}%</span>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col">
+  <h3 class="text-label-caps text-on-surface uppercase tracking-wider mb-6">Consolidated Growth Trend vs Nifty 50</h3>
+  <div class="relative w-full h-[200px] border-b border-l border-outline-variant/50 pt-4">
+    <svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+      <path [attr.d]="benchmarkPath" fill="none" stroke="var(--color-outline-variant)" stroke-dasharray="4 4" stroke-width="1.5" />
+      <path [attr.d]="chartPath" fill="none" stroke="var(--color-secondary)" stroke-width="2.5" />
+    </svg>
+    <div class="absolute -bottom-6 left-0 w-full flex justify-between text-xs text-on-surface-variant font-mono">
+      @for (p of growthSeries; track p.date) {
+        <span>{{ p.date }}</span>
+      }
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="bg-surface-container-lowest border border-success/30 rounded-lg p-5">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Best Performer</span>
+    <div class="mt-2 flex justify-between items-end">
+      @if (bestPerformer(); as best) {
+        <span class="text-body-md text-on-surface">{{ best.schemeName }}</span>
+        <span class="font-mono text-title-lg text-success">+{{ best.unrealizedPlPct }}%</span>
+      } @else {
+        <span class="text-body-sm text-on-surface-variant">No holdings yet</span>
+      }
+    </div>
+  </div>
+  <div class="bg-surface-container-lowest border border-error/30 rounded-lg p-5">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Needs Attention</span>
+    <div class="mt-2 flex justify-between items-end">
+      @if (worstPerformer(); as worst) {
+        <span class="text-body-md text-on-surface">{{ worst.schemeName }}</span>
+        <span class="font-mono text-title-lg" [class]="worst.unrealizedPlPct >= 0 ? 'text-success' : 'text-error'">
+          {{ worst.unrealizedPlPct >= 0 ? '+' : '' }}{{ worst.unrealizedPlPct }}%
+        </span>
+      } @else {
+        <span class="text-body-sm text-on-surface-variant">No holdings yet</span>
+      }
+    </div>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  <div class="p-6 border-b border-outline-variant">
+    <h3 class="text-title-lg text-on-background">Scheme Performance Ranking</h3>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[700px] text-left border-collapse">
+      <thead class="bg-surface-container-high border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider">Rank</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider">Scheme</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider">Category</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider text-right">Current Value</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider text-right">Return</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (h of rankedHoldings(); track h.schemeId; let i = $index) {
+          <tr class="hover:bg-surface-container-high/50 transition-colors">
+            <td class="py-3 px-4 font-mono text-on-surface-variant">#{{ i + 1 }}</td>
+            <td class="py-3 px-4 font-medium">{{ h.schemeName }}</td>
+            <td class="py-3 px-4"><span class="bg-surface-container-high px-2 py-0.5 rounded text-xs">{{ h.category }}</span></td>
+            <td class="py-3 px-4 text-right font-mono">₹{{ h.currentValue | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-right font-mono font-medium" [class]="h.unrealizedPlPct >= 0 ? 'text-success' : 'text-error'">
+              {{ h.unrealizedPlPct >= 0 ? '+' : '' }}{{ h.unrealizedPlPct }}%
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,85 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Stocks</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">{{ svc.stocks().length }} equity holdings across customers.</p>
+  </div>
+  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openNew()">+ New Holding</button>
+</div>
+
+@if (formVisible()) {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+    @if (error()) {
+      <div class="md:col-span-3 bg-error/10 border border-error/40 rounded-lg p-3 text-error text-sm">{{ error() }}</div>
+    }
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Customer</label>
+      <input class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="customerName()" (input)="customerName.set($any($event.target).value)" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Symbol</label>
+      <input class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono uppercase" [value]="symbol()" (input)="symbol.set($any($event.target).value)" placeholder="e.g. RELIANCE" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Exchange</label>
+      <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="exchange()" (change)="exchange.set($any($event.target).value)">
+        @for (e of exchanges; track e) { <option [value]="e">{{ e }}</option> }
+      </select>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Quantity</label>
+      <input type="number" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="quantity()" (input)="quantity.set($any($event.target).valueAsNumber || null)" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Buy Price (₹)</label>
+      <input type="number" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="buyPrice()" (input)="buyPrice.set($any($event.target).valueAsNumber || null)" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Current Price (₹)</label>
+      <input type="number" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="currentPrice()" (input)="currentPrice.set($any($event.target).valueAsNumber || null)" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Buy Date</label>
+      <input type="date" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="buyDate()" (input)="buyDate.set($any($event.target).value)" />
+    </div>
+    <div class="md:col-span-3 flex justify-end gap-2">
+      <button class="px-4 py-2 border border-outline-variant rounded-md text-sm font-medium hover:bg-surface-container-low" (click)="cancel()">Cancel</button>
+      <button class="bg-primary-container text-on-primary px-5 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="save()">{{ editingId() ? 'Save Changes' : 'Add Holding' }}</button>
+    </div>
+  </div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Customer</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Symbol</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Exchange</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Qty</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Buy Price</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Current Price</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Gain/Loss</th>
+        <th class="py-2.5 px-4"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (s of rows(); track s.id) {
+        <tr>
+          <td class="py-2 px-4">{{ s.customerName }}</td>
+          <td class="py-2 px-4 font-mono text-xs">{{ s.symbol }}</td>
+          <td class="py-2 px-4 text-xs">{{ s.exchange }}</td>
+          <td class="py-2 px-4 text-right font-mono">{{ s.quantity | number }}</td>
+          <td class="py-2 px-4 text-right font-mono">₹{{ s.buyPrice | number }}</td>
+          <td class="py-2 px-4 text-right font-mono">₹{{ s.currentPrice | number }}</td>
+          <td class="py-2 px-4 text-right font-mono" [class.text-on-tertiary-container]="s.gainLoss >= 0" [class.text-error]="s.gainLoss < 0">
+            {{ s.gainLoss >= 0 ? '+' : '' }}₹{{ s.gainLoss | number }}
+          </td>
+          <td class="py-2 px-4 text-right whitespace-nowrap">
+            <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="edit(s)">Edit</button>
+            <button class="text-error text-xs font-medium hover:underline" (click)="remove(s.id)">Delete</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,124 @@
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+  <div>
+    <h1 class="text-headline-lg-mobile md:text-headline-lg text-on-background font-bold">Succession Planning</h1>
+    <p class="text-body-sm text-on-surface-variant mt-1">Multi-generational tax liability and asset distribution mapping.</p>
+  </div>
+  <div class="flex gap-2">
+    <button class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2 rounded-lg text-body-sm hover:bg-surface-container transition-colors flex items-center gap-2">
+      <span class="material-symbols-outlined text-[18px]">add</span>
+      Add Beneficiary
+    </button>
+    <button class="bg-secondary-container text-on-secondary-container px-4 py-2 rounded-lg text-body-sm hover:opacity-90 transition-colors flex items-center gap-2 shadow-sm">
+      <span class="material-symbols-outlined text-[18px]">sync</span>
+      Sync CAS Data
+    </button>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+  <!-- Generational Hierarchy -->
+  <div class="md:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-xl p-6 flex flex-col">
+    <h2 class="text-title-lg text-on-surface flex items-center gap-2 mb-4">
+      <span class="material-symbols-outlined text-primary-container">account_tree</span>
+      Generational Hierarchy
+    </h2>
+    <div class="flex-1 min-h-[320px] bg-surface-bright rounded-lg border border-outline-variant p-6">
+      <div class="flex flex-col items-center gap-6">
+        @if (head(); as h) {
+          <div class="bg-primary-container text-on-primary px-4 py-3 rounded-lg flex items-center gap-3 shadow-md border border-primary w-64">
+            <div class="w-10 h-10 rounded-full bg-on-primary/20 flex items-center justify-center font-bold">{{ h.initials }}</div>
+            <div>
+              <div class="text-body-md font-semibold">{{ h.name }} (Patriarch)</div>
+              <div class="font-mono text-[11px] text-primary-fixed-dim">{{ h.aum | inrCompact }} Total Assets</div>
+            </div>
+          </div>
+          <div class="w-px h-8 bg-outline-variant"></div>
+        }
+        <div class="flex flex-wrap w-full justify-center gap-4">
+          @for (m of beneficiaries(); track m.id) {
+            <div class="flex flex-col items-center w-36">
+              <div class="bg-surface-container-lowest text-on-surface border border-outline-variant px-3 py-2 rounded-lg flex flex-col items-center gap-2 shadow-sm w-full">
+                <div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center font-bold text-on-surface-variant">{{ m.initials }}</div>
+                <div class="text-center">
+                  <div class="text-body-md font-medium">{{ m.name }}</div>
+                  <div class="font-mono text-on-surface-variant text-[11px] mt-1">{{ sharePct(m) }}% Allocation</div>
+                </div>
+                <div class="w-full h-1 bg-surface-container rounded-full overflow-hidden">
+                  <div class="h-full bg-secondary-container" [style.width.%]="sharePct(m)"></div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tax Liability Estimator -->
+  <div class="md:col-span-4 flex flex-col gap-4">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 flex flex-col">
+      <h3 class="text-title-lg text-on-surface mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-error">request_quote</span>
+        Tax Liability Estimator
+      </h3>
+      <div class="flex-1 flex flex-col gap-4">
+        <div class="bg-surface-container-low rounded-lg p-3 border border-surface-container-highest">
+          <div class="text-label-caps text-on-surface-variant mb-1">Estimated Combined Tax Event</div>
+          <div class="font-mono text-3xl text-on-surface font-bold">{{ estimatedTaxEvent() | inrCompact }}</div>
+          <div class="flex items-center gap-1 mt-2 text-error text-[12px] font-medium">
+            <span class="material-symbols-outlined text-[14px]">trending_up</span>
+            Illustrative, current FY rates
+          </div>
+        </div>
+        <div class="flex flex-col gap-2 mt-2">
+          <div class="text-label-caps text-on-surface-variant mb-1">Bracket Exposure</div>
+          <div class="flex justify-between items-center bg-surface-bright p-2 rounded border border-outline-variant">
+            <div class="text-body-sm">Equity LTCG (&gt;₹1.25L, 12.5%)</div>
+            <div class="font-mono text-right text-[12px] text-on-surface-variant">{{ ltcgExposure() | inrCompact }}</div>
+          </div>
+          <div class="flex justify-between items-center bg-surface-bright p-2 rounded border border-outline-variant">
+            <div class="text-body-sm">Equity STCG (20%)</div>
+            <div class="font-mono text-right text-[12px] text-on-surface-variant">{{ stcgExposure() | inrCompact }}</div>
+          </div>
+          <div class="flex justify-between items-center bg-surface-bright p-2 rounded border border-outline-variant">
+            <div class="text-body-sm">Debt Fund Gains (slab, ~30%)</div>
+            <div class="font-mono text-right text-[12px] text-on-surface-variant">{{ debtGainsExposure() | inrCompact }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 flex flex-col">
+      <h3 class="text-title-lg text-on-surface mb-3 flex items-center gap-2">
+        <span class="material-symbols-outlined text-success">verified_user</span>
+        Compliance Status
+      </h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b-2 border-primary">
+              <th class="py-2 text-label-caps text-on-surface-variant font-semibold">Member</th>
+              <th class="py-2 text-label-caps text-on-surface-variant font-semibold">PAN/KYC</th>
+              <th class="py-2 text-label-caps text-on-surface-variant font-semibold">Nomination</th>
+            </tr>
+          </thead>
+          <tbody class="text-body-sm divide-y divide-outline-variant">
+            @for (m of members(); track m.id) {
+              <tr>
+                <td class="py-2 text-on-surface">{{ m.name }}</td>
+                <td class="py-2">
+                  <span class="text-[11px] font-semibold" [class]="kycLabel(m) === 'Verified' ? 'text-success' : 'text-warning'">{{ kycLabel(m) }}</span>
+                </td>
+                <td class="py-2">
+                  <span class="text-[11px] font-semibold" [class]="m.relationship === 'Minor Child' ? 'text-warning' : 'text-success'">
+                    {{ m.relationship === 'Minor Child' ? 'Guardian Assigned' : 'On File' }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

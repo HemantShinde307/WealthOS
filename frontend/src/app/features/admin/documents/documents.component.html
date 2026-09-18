@@ -1,0 +1,100 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Document Vault</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Secure repository for SEBI-mandated documentation.</p>
+  </div>
+  <button class="flex items-center gap-2 px-4 py-2 bg-primary-container text-on-primary rounded font-medium text-sm hover:opacity-90 transition-opacity">
+    <span class="material-symbols-outlined text-[18px]">cloud_upload</span>
+    Upload Batch
+  </button>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- Categories -->
+  <div class="lg:col-span-3 bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm h-fit">
+    <h3 class="text-title-lg text-on-background mb-3 px-2">Categories</h3>
+    <div class="flex flex-col gap-1">
+      @for (cat of categories; track cat.id) {
+        <button
+          (click)="selectCategory(cat.id)"
+          class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left transition-colors"
+          [class]="cat.id === activeCategoryId() ? 'bg-secondary-container/10 text-secondary border border-secondary' : 'text-on-surface-variant hover:bg-surface-container-low border border-transparent'"
+        >
+          <span class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px]">{{ cat.icon }}</span>
+            <span class="text-body-md">{{ cat.label }}</span>
+          </span>
+          <span class="text-xs font-mono bg-surface-container-low px-2 py-0.5 rounded">{{ cat.count }}</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Client Agreements table -->
+  <div class="lg:col-span-6 bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm flex flex-col">
+    <div class="flex justify-between items-center mb-3 px-2 gap-3">
+      <h3 class="text-title-lg text-on-background">Client Agreements</h3>
+      <input
+        type="text"
+        placeholder="Search clients..."
+        class="text-sm border border-outline-variant rounded px-3 py-1.5 bg-surface-container-lowest focus:outline-none focus:ring-1 focus:ring-primary"
+        [value]="searchTerm()"
+        (input)="searchTerm.set($any($event.target).value)"
+      />
+    </div>
+    <div class="overflow-x-auto table-scroll">
+      <table class="w-full text-left border-collapse min-w-[560px]">
+        <thead>
+          <tr class="border-b border-outline-variant">
+            <th class="p-3 text-label-md text-on-surface-variant uppercase tracking-wider">Client ID</th>
+            <th class="p-3 text-label-md text-on-surface-variant uppercase tracking-wider">Name</th>
+            <th class="p-3 text-label-md text-on-surface-variant uppercase tracking-wider">KYC Status</th>
+            <th class="p-3 text-label-md text-on-surface-variant uppercase tracking-wider">Agreement</th>
+            <th class="p-3 text-label-md text-on-surface-variant uppercase tracking-wider">Updated</th>
+          </tr>
+        </thead>
+        <tbody class="text-body-md divide-y divide-outline-variant/50">
+          @for (row of clientAgreements(); track row.clientId) {
+            <tr
+              class="cursor-pointer transition-colors"
+              [class]="selectedRow()?.clientId === row.clientId ? 'bg-secondary-container/10' : 'hover:bg-surface-container-low/50'"
+              (click)="selectRow(row)"
+            >
+              <td class="p-3 font-mono text-xs text-on-surface-variant">{{ row.clientId }}</td>
+              <td class="p-3 font-medium text-on-background">{{ row.clientName }}</td>
+              <td class="p-3">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium" [class]="kycBadgeClass(row.kycStatus)">{{ row.kycStatus }}</span>
+              </td>
+              <td class="p-3"><span [class]="agreementBadgeClass(row.agreementStatus)">{{ row.agreementStatus }}</span></td>
+              <td class="p-3 text-on-surface-variant text-xs font-mono">{{ row.updatedOn }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="p-6 text-center text-on-surface-variant">No matching clients.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Document Preview -->
+  <div class="lg:col-span-3 bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm flex flex-col">
+    <h3 class="text-title-lg text-on-background mb-4 px-2">Document Preview</h3>
+    @if (selectedRow(); as row) {
+      <div class="flex-1 flex flex-col items-center justify-center bg-surface-container-low rounded border border-outline-variant/50 p-6 gap-3 min-h-[200px]">
+        <span class="material-symbols-outlined text-on-surface-variant text-[40px]">description</span>
+        <p class="text-xs text-center text-on-surface-variant break-all">{{ row.fileName }}</p>
+        <p class="text-xs text-on-surface-variant">{{ row.fileSizeLabel }}</p>
+      </div>
+      <div class="mt-4 space-y-2 text-sm">
+        <div class="flex justify-between"><span class="text-on-surface-variant">Status</span><span class="font-mono" [class]="agreementBadgeClass(row.agreementStatus)">{{ row.agreementStatus }}</span></div>
+        <div class="flex justify-between"><span class="text-on-surface-variant">Uploaded By</span><span class="font-mono text-on-background">{{ row.uploadedBy }}</span></div>
+        <div class="flex justify-between"><span class="text-on-surface-variant">Date</span><span class="font-mono text-on-background">{{ row.updatedOn }}</span></div>
+      </div>
+    } @else {
+      <div class="flex-1 flex flex-col items-center justify-center text-center gap-2 text-on-surface-variant min-h-[200px]">
+        <span class="material-symbols-outlined text-[32px]">description</span>
+        <p class="text-sm">Select a client row to preview its document.</p>
+      </div>
+    }
+  </div>
+</div>

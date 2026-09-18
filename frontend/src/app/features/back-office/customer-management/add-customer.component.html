@@ -1,0 +1,103 @@
+<div class="flex items-center gap-2 text-on-surface-variant text-xs">
+  <a routerLink="/back-office/customer-management/master" class="hover:underline">Customers Master</a>
+  <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+  <span class="text-on-background font-semibold">Add Customer</span>
+</div>
+
+<div class="max-w-2xl bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col gap-4">
+  <h3 class="text-title-lg text-on-background pb-2 border-b border-outline-variant">New Customer</h3>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label for="ac-name" class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Name *</label>
+      <input
+        id="ac-name"
+        placeholder="e.g. Rohan Malhotra"
+        class="w-full bg-surface-container-lowest border rounded-md px-3 py-2 text-body-md text-on-background"
+        [class.border-outline-variant]="!nameError()"
+        [class.border-error]="nameError()"
+        [value]="name()"
+        (input)="name.set($any($event.target).value)"
+      />
+      @if (nameError()) {
+        <p class="text-error text-xs mt-1">Name is required.</p>
+      }
+    </div>
+    <div>
+      <label for="ac-pan" class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">PAN</label>
+      <input
+        id="ac-pan"
+        placeholder="ABCDE1234F"
+        class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md font-mono text-on-background"
+        [value]="pan()"
+        (input)="pan.set($any($event.target).value)"
+      />
+    </div>
+    <div>
+      <label for="ac-email" class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Email *</label>
+      <input
+        id="ac-email"
+        placeholder="name@example.com"
+        class="w-full bg-surface-container-lowest border rounded-md px-3 py-2 text-body-md text-on-background"
+        [class.border-outline-variant]="!emailError()"
+        [class.border-error]="emailError()"
+        [value]="email()"
+        (input)="email.set($any($event.target).value)"
+      />
+      @if (emailError()) {
+        <p class="text-error text-xs mt-1">Email is required.</p>
+      }
+    </div>
+    <div>
+      <label for="ac-phone" class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Phone</label>
+      <input
+        id="ac-phone"
+        placeholder="+91 90000 00000"
+        class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-background"
+        [value]="phone()"
+        (input)="phone.set($any($event.target).value)"
+      />
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Risk Profile</label>
+      <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-background" [value]="riskProfile()" (change)="riskProfile.set($any($event.target).value)">
+        <option>Conservative</option>
+        <option>Moderate</option>
+        <option>Aggressive</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Segment</label>
+      <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-background" [value]="segment()" (change)="segment.set($any($event.target).value)">
+        <option>Retail</option>
+        <option>HNI</option>
+        <option>Corporate</option>
+        <option>NRI</option>
+        <option>Family Office</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">KYC Status</label>
+      <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-background" [value]="kycStatus()" (change)="kycStatus.set($any($event.target).value)">
+        <option>Verified</option>
+        <option>Pending</option>
+        <option>Rejected</option>
+        <option>Not Started</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Group (optional)</label>
+      <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-background" [value]="groupId()" (change)="groupId.set($any($event.target).value)">
+        <option value="">— Ungrouped —</option>
+        @for (g of groups(); track g.id) {
+          <option [value]="g.id">{{ g.name }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3 pt-2">
+    <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="save()">Add Customer</button>
+    <a routerLink="/back-office/customer-management/master" class="text-secondary text-sm font-medium hover:underline">Cancel</a>
+  </div>
+</div>

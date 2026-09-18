@@ -1,0 +1,72 @@
+<div class="p-4 space-y-5">
+  <div class="flex items-center justify-between">
+    <h1 class="text-headline-lg-mobile text-on-background">Portfolio</h1>
+    <button class="flex items-center gap-1 bg-primary-container text-on-primary px-3 py-1.5 rounded-md text-sm font-medium" (click)="investInTopHolding()">
+      <span class="material-symbols-outlined text-[16px]">add</span>
+      Invest
+    </button>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+    <div class="flex justify-between items-start">
+      <div>
+        <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Total Current Value</p>
+        <div class="font-mono text-[26px] leading-tight font-bold text-on-background">{{ portfolio.currentValue() | inrCompact }}</div>
+      </div>
+      <span class="bg-tertiary-container/10 text-on-tertiary-container text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1">
+        <span class="material-symbols-outlined text-[14px]">trending_up</span>
+        +{{ portfolio.absoluteReturnPct() }}%
+      </span>
+    </div>
+    <div class="border-t border-outline-variant my-3"></div>
+    <div class="flex justify-between text-sm">
+      <div>
+        <p class="text-on-surface-variant">Total Invested</p>
+        <p class="font-mono text-on-background mt-0.5">{{ portfolio.investedValue() | inrCompact }}</p>
+      </div>
+      <div class="text-right">
+        <p class="text-on-surface-variant">Unrealized P&amp;L</p>
+        <p class="font-mono mt-0.5" [class]="portfolio.unrealizedPl() >= 0 ? 'text-on-tertiary-container' : 'text-error'">
+          {{ portfolio.unrealizedPl() >= 0 ? '+' : '' }}{{ portfolio.unrealizedPl() | inrCompact }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex gap-2 overflow-x-auto pb-1">
+    @for (f of filters; track f) {
+      <button
+        class="px-4 py-1.5 rounded-full text-sm font-medium shrink-0 transition-colors"
+        [class]="f === activeFilter() ? 'bg-on-background text-background' : 'bg-surface-container-low text-on-surface-variant'"
+        (click)="setFilter(f)"
+      >
+        {{ f }}
+      </button>
+    }
+  </div>
+
+  <div>
+    <h2 class="text-title-lg text-on-background mb-3">Individual Holdings</h2>
+    <div class="space-y-3">
+      @for (h of filteredHoldings(); track h.schemeId) {
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center shrink-0 text-on-surface-variant">
+            <span class="material-symbols-outlined text-[20px]">{{ iconFor(h.assetClass) }}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-on-background truncate">{{ h.schemeName }}</p>
+            <p class="text-xs text-on-surface-variant">{{ h.assetClass }} &middot; {{ h.category }}</p>
+          </div>
+          <div class="text-right shrink-0">
+            <p class="font-mono text-sm font-semibold text-on-background">{{ h.currentValue | inrCompact: 1 }}</p>
+            <p class="font-mono text-xs" [class]="h.unrealizedPl >= 0 ? 'text-on-tertiary-container' : 'text-error'">
+              {{ h.unrealizedPl >= 0 ? '+' : '' }}{{ h.unrealizedPl | inrCompact: 1 }}
+            </p>
+          </div>
+        </div>
+      } @empty {
+        <p class="text-sm text-on-surface-variant text-center py-6">No holdings in this category.</p>
+      }
+    </div>
+  </div>
+</div>

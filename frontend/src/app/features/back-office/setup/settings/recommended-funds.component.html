@@ -1,0 +1,60 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Recommended Funds</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">{{ setup.recommendedFunds().length }} curated schemes shown to customers, ranked in display order</p>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-end flex-wrap">
+  <div class="flex-1 min-w-[220px]">
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Scheme Name</label>
+    <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" placeholder="e.g. HDFC Flexi Cap Fund — Growth" [value]="schemeName()" (input)="schemeName.set($any($event.target).value)" />
+  </div>
+  <div class="flex-1 min-w-[180px]">
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">AMC</label>
+    <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="amc()" (input)="amc.set($any($event.target).value)" />
+  </div>
+  <div class="flex-1 min-w-[180px]">
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Category</label>
+    <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" placeholder="e.g. Equity — Flexi Cap" [value]="category()" (input)="category.set($any($event.target).value)" />
+  </div>
+  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium whitespace-nowrap" (click)="add()">+ Add Fund</button>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[800px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold w-16">Rank</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Scheme</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">AMC</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Category</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Added On</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (f of setup.recommendedFunds(); track f.id; let first = $first; let last = $last) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4 font-mono">{{ f.rank }}</td>
+            <td class="py-3 px-4 font-medium text-on-background">{{ f.schemeName }}</td>
+            <td class="py-3 px-4">{{ f.amc }}</td>
+            <td class="py-3 px-4"><span class="bg-surface-container-low text-on-surface px-2 py-0.5 rounded text-xs">{{ f.category }}</span></td>
+            <td class="py-3 px-4 font-mono text-sm">{{ f.addedOn }}</td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              <button class="text-on-surface-variant hover:text-on-background disabled:opacity-30 mr-1" [disabled]="first" (click)="moveUp(f.id)" title="Move up">
+                <span class="material-symbols-outlined text-[18px] align-middle">arrow_upward</span>
+              </button>
+              <button class="text-on-surface-variant hover:text-on-background disabled:opacity-30 mr-3" [disabled]="last" (click)="moveDown(f.id)" title="Move down">
+                <span class="material-symbols-outlined text-[18px] align-middle">arrow_downward</span>
+              </button>
+              <button class="text-error text-xs font-medium hover:underline" (click)="remove(f.id)">Remove</button>
+            </td>
+          </tr>
+        }
+        @if (!setup.recommendedFunds().length) {
+          <tr><td colspan="6" class="py-10 text-center text-on-surface-variant">No recommended funds yet — add one above.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

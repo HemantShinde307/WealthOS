@@ -1,0 +1,188 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">AI Insights</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">A unified view of everything you own, with suggestions based on your risk profile.</p>
+  </div>
+  <a routerLink="/investor/assistant" class="flex items-center gap-2 bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium">
+    <span class="material-symbols-outlined text-[18px]">forum</span>
+    Ask AI Assistant
+  </a>
+</div>
+
+<!-- Net worth summary -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+  <div class="flex items-start gap-3">
+    <span class="material-symbols-outlined text-secondary text-[24px] shrink-0 mt-0.5">auto_awesome</span>
+    <div>
+      <p class="text-xs text-on-surface-variant uppercase tracking-wider mb-1">Your Net Worth</p>
+      <p class="font-mono text-3xl font-bold text-on-background">{{ insight.netWorth() | inrCompact }}</p>
+      <p class="text-sm text-on-surface-variant mt-2 max-w-2xl">{{ insight.summary() }}</p>
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- Allocation donut -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+    <h3 class="text-title-lg text-on-background mb-4">Where Your Money Is</h3>
+    <div class="flex flex-col items-center">
+      <div class="w-40 h-40 rounded-full relative flex items-center justify-center" [style.background]="'conic-gradient(' + donutGradient + ')'">
+        <div class="text-center bg-surface-container-lowest w-[calc(100%-28px)] h-[calc(100%-28px)] rounded-full flex flex-col items-center justify-center z-10">
+          <span class="font-mono text-lg font-bold">{{ insight.netWorth() | inrCompact }}</span>
+        </div>
+      </div>
+      <div class="mt-6 w-full space-y-2">
+        @for (seg of allocationSegments; track seg.key) {
+          @if (insight.allocation()[seg.key] > 0) {
+            <div class="flex justify-between items-center text-sm">
+              <div class="flex items-center gap-2">
+                <div class="w-3 h-3 rounded-full" [style.background]="'var(' + seg.colorVar + ')'"></div>
+                <span class="text-on-surface">{{ seg.label }}</span>
+              </div>
+              <span class="font-mono font-medium">{{ insight.allocation()[seg.key] }}%</span>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Rebalancing suggestions -->
+  <div class="lg:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+    <h3 class="text-title-lg text-on-background mb-1">Rebalancing Suggestions</h3>
+    <p class="text-xs text-on-surface-variant mb-4">Compared against a typical {{ insight.riskProfile() }} risk target mix.</p>
+    <div class="space-y-4">
+      @for (t of insight.rebalanceTargets(); track t.label) {
+        <div>
+          <div class="flex justify-between text-sm mb-1">
+            <span class="text-on-surface">{{ t.label }}</span>
+            <span class="font-mono text-on-surface-variant">{{ t.currentPct }}% <span class="text-xs">(target {{ t.targetPct }}%)</span></span>
+          </div>
+          <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden relative">
+            <div class="h-full bg-primary-container rounded-full" [style.width.%]="t.currentPct"></div>
+            <div class="absolute top-0 h-2 w-0.5 bg-error" [style.left.%]="t.targetPct"></div>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (insight.rebalancingNudges().length === 0) {
+      <div class="mt-5 bg-tertiary-container/10 rounded-lg p-3 text-sm text-on-tertiary-container flex gap-2">
+        <span class="material-symbols-outlined text-[18px] shrink-0">check_circle</span>
+        <span>Your allocation is reasonably close to target — no rebalancing needed right now.</span>
+      </div>
+    } @else {
+      <div class="mt-5 space-y-2">
+        @for (n of insight.rebalancingNudges(); track n.id) {
+          <div
+            class="rounded-lg p-3 text-sm flex gap-2 items-start"
+            [class]="n.tone === 'warning' ? 'bg-warning/10 text-warning' : n.tone === 'success' ? 'bg-tertiary-container/10 text-on-tertiary-container' : 'bg-secondary/10 text-secondary'"
+          >
+            <span class="material-symbols-outlined text-[18px] shrink-0">{{ n.icon }}</span>
+            <div class="flex-1">
+              <span>{{ n.text }}</span>
+              @if (n.actionLabel && n.actionRoute) {
+                <a [routerLink]="n.actionRoute" class="block mt-1 font-medium hover:underline">{{ n.actionLabel }} →</a>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <!-- Best / worst -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+    <h3 class="text-title-lg text-on-background mb-4">Best &amp; Worst Performers</h3>
+    @if (insight.bestHolding(); as best) {
+      <div class="flex justify-between items-center py-2 border-b border-outline-variant">
+        <div class="min-w-0">
+          <p class="text-xs text-on-surface-variant">Best Performer</p>
+          <p class="font-medium text-on-background truncate">{{ best.schemeName }}</p>
+        </div>
+        <span class="font-mono font-semibold text-on-tertiary-container shrink-0">+{{ best.unrealizedPlPct }}%</span>
+      </div>
+    }
+    @if (insight.worstHolding(); as worst) {
+      <div class="flex justify-between items-center py-2">
+        <div class="min-w-0">
+          <p class="text-xs text-on-surface-variant">Needs Attention</p>
+          <p class="font-medium text-on-background truncate">{{ worst.schemeName }}</p>
+        </div>
+        <span class="font-mono font-semibold shrink-0" [class]="worst.unrealizedPlPct >= 0 ? 'text-on-tertiary-container' : 'text-error'">
+          {{ worst.unrealizedPlPct >= 0 ? '+' : '' }}{{ worst.unrealizedPlPct }}%
+        </span>
+      </div>
+    }
+  </div>
+
+  <!-- Goal health -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-title-lg text-on-background">Goal Health</h3>
+      <a routerLink="/investor/goals" class="text-xs text-secondary hover:underline">View all</a>
+    </div>
+    <div class="space-y-3">
+      @for (gh of insight.goalHealth(); track gh.goal.id) {
+        <div class="flex justify-between items-center text-sm">
+          <span class="text-on-surface truncate">{{ gh.goal.name }}</span>
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full" [class]="gh.onTrack ? 'bg-tertiary-container/10 text-on-tertiary-container' : 'bg-error-container text-on-error-container'">
+            {{ gh.onTrack ? 'On Track' : 'Falling Behind' }}
+          </span>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- FD maturity & idle cash -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="p-6 border-b border-outline-variant flex justify-between items-center">
+    <div>
+      <h3 class="text-title-lg text-on-background">Your Fixed Deposits</h3>
+      <p class="text-xs text-on-surface-variant mt-1">Total value at maturity: {{ fdService.totalMaturityValue() | inrCompact }}</p>
+    </div>
+  </div>
+  <table class="w-full text-left">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase font-semibold">Issuer</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase font-semibold text-right">Principal</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase font-semibold text-right">Rate</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase font-semibold text-right">Maturity Date</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase font-semibold text-right">Maturity Value</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant">
+      @for (d of fdService.deposits(); track d.id) {
+        <tr>
+          <td class="py-3 px-4 font-medium text-on-background">{{ d.issuer }}</td>
+          <td class="py-3 px-4 text-right font-mono">₹{{ d.principal | number }}</td>
+          <td class="py-3 px-4 text-right font-mono">{{ d.interestRate }}%</td>
+          <td class="py-3 px-4 text-right" [class]="fdService.daysToMaturity(d) <= 30 ? 'text-error font-medium' : 'text-on-surface-variant'">
+            {{ d.maturityDate | date: 'mediumDate' }}
+          </td>
+          <td class="py-3 px-4 text-right font-mono font-medium">₹{{ d.maturityValue | number }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  @if (insight.fdNudges().length > 0) {
+    <div class="p-4 border-t border-outline-variant space-y-2 bg-surface-container-low">
+      @for (n of insight.fdNudges(); track n.id) {
+        <div class="rounded-lg p-3 text-sm flex gap-2 items-start bg-surface-container-lowest border border-outline-variant">
+          <span class="material-symbols-outlined text-[18px] shrink-0 text-secondary">{{ n.icon }}</span>
+          <div class="flex-1">
+            <span class="text-on-surface">{{ n.text }}</span>
+            @if (n.actionLabel && n.actionRoute) {
+              <a [routerLink]="n.actionRoute" class="block mt-1 font-medium text-secondary hover:underline">{{ n.actionLabel }} →</a>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

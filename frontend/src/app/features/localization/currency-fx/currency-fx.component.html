@@ -1,0 +1,154 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Currency &amp; FX Management</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Monitor live exchange rates and manage multi-currency settlement rules.</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- Left column -->
+  <div class="lg:col-span-8 flex flex-col gap-6">
+    <!-- Live rates -->
+    <section class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-title-lg text-on-background">Live Exchange Rates</h3>
+        <span class="text-label-caps text-on-surface-variant flex items-center gap-1 uppercase">
+          <span class="material-symbols-outlined text-[14px] text-success animate-pulse">circle</span>Live
+        </span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        @for (fx of fxRates; track fx.pair) {
+          <div class="p-4 bg-surface-container-low rounded-lg border border-outline-variant/30 flex flex-col gap-1 hover:bg-surface-container transition-colors cursor-pointer">
+            <div class="flex justify-between items-center">
+              <span class="text-label-caps text-on-surface-variant uppercase">{{ fx.pair }}</span>
+              <span class="material-symbols-outlined text-[16px]" [class]="fx.trend === 'up' ? 'text-on-tertiary-container' : 'text-error'">
+                {{ fx.trend === 'up' ? 'trending_up' : 'trending_down' }}
+              </span>
+            </div>
+            <div class="font-mono text-title-lg text-on-background font-bold">{{ fx.rate | number: '1.4-4' }}</div>
+            <div class="font-mono text-body-sm flex items-center gap-0.5" [class]="fx.trend === 'up' ? 'text-on-tertiary-container' : 'text-error'">
+              <span class="material-symbols-outlined text-[14px]">{{ fx.trend === 'up' ? 'arrow_drop_up' : 'arrow_drop_down' }}</span>
+              {{ fx.changePct >= 0 ? '+' : '' }}{{ fx.changePct }}%
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- Trend chart -->
+    <section class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm flex-1 min-h-[320px] flex flex-col">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-title-lg text-on-background">{{ selectedRange() }} Trend: USD/INR</h3>
+        <div class="flex gap-2 bg-surface-container-low p-1 rounded-md">
+          @for (r of ranges; track r) {
+            <button
+              class="px-3 py-1 rounded text-xs font-medium transition-colors"
+              [class]="r === selectedRange() ? 'bg-surface-container-lowest shadow-sm text-on-background' : 'text-on-surface-variant hover:bg-surface-container-lowest'"
+              (click)="setRange(r)"
+            >
+              {{ r }}
+            </button>
+          }
+        </div>
+      </div>
+      <div class="flex-1 w-full bg-surface-container-low rounded-lg border border-outline-variant/20 relative overflow-hidden">
+        <svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+          <path [attr.d]="trendFillPath()" fill="var(--color-tertiary-container)" opacity="0.08" />
+          <path [attr.d]="trendPath()" fill="none" stroke="var(--color-tertiary-container)" stroke-width="1.5" />
+        </svg>
+      </div>
+    </section>
+  </div>
+
+  <!-- Right column -->
+  <div class="lg:col-span-4 flex flex-col gap-6">
+    <!-- Entity settings -->
+    <section class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+      <h3 class="text-title-lg text-on-background mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-[20px] text-on-surface-variant">settings_suggest</span>
+        Entity Settings
+      </h3>
+      <div class="mb-4">
+        <label class="block text-label-caps text-on-surface-variant mb-1 uppercase">Base Reporting Currency</label>
+        <select
+          class="w-full bg-surface border border-outline-variant rounded-md px-3 py-2 text-body-md focus:outline-none focus:border-secondary transition-colors"
+          [value]="baseCurrency()"
+          (change)="baseCurrency.set($any($event.target).value)"
+        >
+          @for (c of currencies; track c.code) {
+            <option [value]="c.code">{{ c.code }} - {{ c.name }}</option>
+          }
+        </select>
+      </div>
+      <div class="flex items-center justify-between p-3 bg-surface-container-low rounded-md border border-outline-variant/30">
+        <div>
+          <div class="text-body-md text-on-background font-semibold">Auto-Conversion</div>
+          <div class="text-body-sm text-on-surface-variant">Settle minor balances to base</div>
+        </div>
+        <button
+          class="relative inline-flex items-center w-9 h-5 rounded-full transition-colors"
+          [class]="autoConversion() ? 'bg-on-tertiary-container' : 'bg-outline-variant'"
+          (click)="autoConversion.set(!autoConversion())"
+        >
+          <span class="inline-block w-4 h-4 bg-white rounded-full transition-transform" [class]="autoConversion() ? 'translate-x-4' : 'translate-x-0.5'"></span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Settlement rules -->
+    <section class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm flex-1">
+      <h3 class="text-title-lg text-on-background mb-4">Settlement Rules</h3>
+      <ul class="flex flex-col gap-2">
+        @for (rule of rules(); track rule.id) {
+          <li
+            class="flex items-start gap-2 p-2 hover:bg-surface-container-low rounded-md transition-colors border-l-2 cursor-pointer"
+            [class]="rule.active ? 'border-secondary' : 'border-outline-variant'"
+            (click)="toggleRule(rule)"
+          >
+            <span class="material-symbols-outlined text-[16px] mt-0.5" [class]="rule.active ? 'text-secondary' : 'text-on-surface-variant'">rule</span>
+            <div>
+              <div class="text-body-sm font-semibold text-on-background">{{ rule.title }}</div>
+              <div class="text-body-sm text-on-surface-variant text-[11px]">{{ rule.description }}</div>
+            </div>
+          </li>
+        }
+      </ul>
+    </section>
+  </div>
+</div>
+
+<!-- Balances table -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="px-6 py-4 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+    <h3 class="text-title-lg text-on-background">Portfolio Balances</h3>
+    <span class="px-2 py-1 bg-surface rounded-md border border-outline-variant text-label-caps text-on-surface-variant uppercase">
+      Total ({{ baseCurrency() }} Eq): {{ currencySymbols[baseCurrency()] }}{{ totalBaseEquivalent() | number: '1.0-0' }}
+    </span>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead class="bg-surface-container-low/50 border-b border-outline-variant">
+        <tr class="text-label-md text-on-surface-variant uppercase tracking-wider">
+          <th class="px-6 py-3 font-semibold">Account ID</th>
+          <th class="px-6 py-3 font-semibold">Client Name</th>
+          <th class="px-6 py-3 font-semibold text-right">Currency</th>
+          <th class="px-6 py-3 font-semibold text-right">Balance</th>
+          <th class="px-6 py-3 font-semibold text-right">Base Eqv ({{ baseCurrency() }})</th>
+        </tr>
+      </thead>
+      <tbody class="font-mono text-body-sm divide-y divide-outline-variant">
+        @for (bal of balances; track bal.accountId) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="px-6 py-3 text-on-background">{{ bal.accountId }}</td>
+            <td class="px-6 py-3 text-on-surface-variant font-sans">{{ bal.entityName }}</td>
+            <td class="px-6 py-3 text-right">
+              <span class="px-1.5 py-0.5 rounded bg-surface-container border border-outline-variant/30 text-[10px]">{{ bal.currency }}</span>
+            </td>
+            <td class="px-6 py-3 text-right font-bold text-on-background">{{ currencySymbols[bal.currency] }} {{ bal.balance | number: '1.2-2' }}</td>
+            <td class="px-6 py-3 text-right text-on-surface-variant">{{ currencySymbols[baseCurrency()] }} {{ bal.baseEquivalent | number: '1.0-0' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

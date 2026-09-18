@@ -1,0 +1,71 @@
+<div class="flex items-center gap-3">
+  <a routerLink="/investor/insurance" class="p-2 -ml-2 rounded-full text-on-surface-variant hover:bg-surface-container-low">
+    <span class="material-symbols-outlined">arrow_back</span>
+  </a>
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Insurance Needs Analysis</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Estimate your ideal life cover based on income and liabilities.</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 space-y-5">
+    <h3 class="text-title-lg text-on-background">Your Details</h3>
+    <div>
+      <label class="text-sm font-medium text-on-background block mb-2">Annual Income</label>
+      <input type="number" class="w-full px-4 py-2.5 border border-outline-variant rounded-md text-sm font-mono bg-surface-container-lowest focus:outline-none focus:border-secondary" [value]="annualIncome()" (input)="onNumberInput(annualIncome.set, $event)" />
+    </div>
+    <div>
+      <label class="text-sm font-medium text-on-background block mb-2">Age</label>
+      <input type="number" class="w-full px-4 py-2.5 border border-outline-variant rounded-md text-sm font-mono bg-surface-container-lowest focus:outline-none focus:border-secondary" [value]="age()" (input)="onNumberInput(age.set, $event)" />
+    </div>
+    <div>
+      <label class="text-sm font-medium text-on-background block mb-2">Number of Dependents</label>
+      <input type="number" class="w-full px-4 py-2.5 border border-outline-variant rounded-md text-sm font-mono bg-surface-container-lowest focus:outline-none focus:border-secondary" [value]="dependents()" (input)="onNumberInput(dependents.set, $event)" />
+    </div>
+    <div>
+      <label class="text-sm font-medium text-on-background block mb-2">Outstanding Loans (Home/Car/etc.)</label>
+      <input type="number" class="w-full px-4 py-2.5 border border-outline-variant rounded-md text-sm font-mono bg-surface-container-lowest focus:outline-none focus:border-secondary" [value]="outstandingLoans()" (input)="onNumberInput(outstandingLoans.set, $event)" />
+    </div>
+    <div>
+      <label class="text-sm font-medium text-on-background block mb-2">Existing Life Cover</label>
+      <input type="number" class="w-full px-4 py-2.5 border border-outline-variant rounded-md text-sm font-mono bg-surface-container-lowest focus:outline-none focus:border-secondary" [value]="existingCover()" (input)="onNumberInput(existingCover.set, $event)" />
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col">
+    <h3 class="text-title-lg text-on-background mb-4">Your Coverage Gap</h3>
+
+    <div class="text-center py-4">
+      <p class="text-xs text-on-surface-variant uppercase tracking-wider mb-1">Recommended Cover</p>
+      <p class="font-mono text-3xl font-bold text-on-background">₹{{ recommendedCover() | number }}</p>
+    </div>
+
+    <div class="w-full h-3 bg-surface-container-high rounded-full overflow-hidden my-4">
+      <div class="h-full rounded-full transition-all" [class]="coveragePct() >= 100 ? 'bg-tertiary-container' : 'bg-error'" [style.width.%]="coveragePct()"></div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 text-sm">
+      <div>
+        <p class="text-on-surface-variant">Existing Cover</p>
+        <p class="font-mono font-semibold text-on-background">₹{{ existingCover() | number }}</p>
+      </div>
+      <div class="text-right">
+        <p class="text-on-surface-variant">Coverage Gap</p>
+        <p class="font-mono font-semibold" [class]="gap() > 0 ? 'text-error' : 'text-on-tertiary-container'">₹{{ gap() | number }}</p>
+      </div>
+    </div>
+
+    @if (gap() > 0) {
+      <div class="bg-error-container/50 rounded-lg p-4 mt-6 text-sm text-on-error-container flex gap-2">
+        <span class="material-symbols-outlined text-[18px] shrink-0">warning</span>
+        <span>You're underinsured by ₹{{ gap() | number }}. Consider a term plan to close this gap.</span>
+      </div>
+    } @else {
+      <div class="bg-tertiary-container/10 rounded-lg p-4 mt-6 text-sm text-on-tertiary-container flex gap-2">
+        <span class="material-symbols-outlined text-[18px] shrink-0">check_circle</span>
+        <span>You're adequately covered based on your current profile.</span>
+      </div>
+    }
+  </div>
+</div>

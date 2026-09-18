@@ -1,0 +1,102 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Systematic Investments (SIP)</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">{{ mfService.sipMandates().length }} SIP mandates on file.</p>
+  </div>
+  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="toggleForm()">
+    {{ showForm() ? 'Cancel' : '+ Register New SIP' }}
+  </button>
+</div>
+
+@if (showForm()) {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+    <div class="sm:col-span-2">
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Folio</label>
+      <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="folioId()" (change)="folioId.set($any($event.target).value)">
+        <option value="" disabled selected>Select a folio…</option>
+        @for (f of activeFolios(); track f.id) {
+          <option [value]="f.id">{{ f.folioNumber }} — {{ f.customerName }} ({{ f.scheme }})</option>
+        }
+      </select>
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Installment (₹)</label>
+      <input type="number" min="0" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="amount()" (input)="amount.set($any($event.target).valueAsNumber || null)" />
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Frequency</label>
+      <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="frequency()" (change)="frequency.set($any($event.target).value)">
+        <option>Weekly</option>
+        <option>Monthly</option>
+        <option>Quarterly</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Start Date</label>
+      <input type="date" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="startDate()" (input)="startDate.set($any($event.target).value)" />
+    </div>
+    <div class="sm:col-span-4 flex justify-end">
+      <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="register()">Register SIP</button>
+    </div>
+    @if (error()) { <p class="text-error text-sm sm:col-span-4">{{ error() }}</p> }
+    @if (success()) { <p class="text-on-tertiary-container text-sm sm:col-span-4">{{ success() }}</p> }
+  </div>
+}
+
+<div>
+  <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)">
+    <option>All</option>
+    <option>Active</option>
+    <option>Paused</option>
+    <option>Stopped</option>
+    <option>Completed</option>
+  </select>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Folio</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Scheme</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Amount</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Frequency</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Next Due</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (m of filtered(); track m.id) {
+        <tr>
+          <td class="py-2.5 px-4 font-mono text-xs">{{ folioLabel(m.folioId) }}</td>
+          <td class="py-2.5 px-4 text-xs">{{ m.scheme }}</td>
+          <td class="py-2.5 px-4 text-right font-mono">₹{{ m.amount | number }}</td>
+          <td class="py-2.5 px-4 text-xs">{{ m.frequency }}</td>
+          <td class="py-2.5 px-4 text-xs">{{ m.nextDueDate | date: 'mediumDate' }}</td>
+          <td class="py-2.5 px-4">
+            @switch (m.status) {
+              @case ('Active') { <span class="text-on-tertiary-container text-xs bg-on-tertiary-container/10 px-2 py-0.5 rounded">Active</span> }
+              @case ('Paused') { <span class="text-tertiary text-xs bg-tertiary-container px-2 py-0.5 rounded">Paused</span> }
+              @default { <span class="text-error text-xs bg-error/10 px-2 py-0.5 rounded">{{ m.status }}</span> }
+            }
+          </td>
+          <td class="py-2.5 px-4 whitespace-nowrap">
+            @if (m.status === 'Active') {
+              <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="pause(m.id)">Pause</button>
+              <button class="text-error text-xs font-medium hover:underline" (click)="stop(m.id)">Stop</button>
+            } @else if (m.status === 'Paused') {
+              <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="resume(m.id)">Resume</button>
+              <button class="text-error text-xs font-medium hover:underline" (click)="stop(m.id)">Stop</button>
+            } @else {
+              <span class="text-xs text-on-surface-variant">—</span>
+            }
+          </td>
+        </tr>
+      }
+      @if (!filtered().length) {
+        <tr><td colspan="7" class="py-10 text-center text-on-surface-variant">No SIP mandates match this filter.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,39 @@
+<app-report-header title="PPF Challan" subtitle="Deposit challans raised against this customer's Public Provident Fund account(s).">
+  <button reportActions (click)="exportCsv()" class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium shadow-sm">
+    <span class="material-symbols-outlined text-[18px]">download</span>
+    Export CSV
+  </button>
+</app-report-header>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[700px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Challan No.</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">PPF Account</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Date</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Amount</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Mode</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (r of rows(); track r.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4 font-mono">{{ r.challanNo }}</td>
+            <td class="py-3 px-4 font-mono">{{ r.account?.accountNo }}</td>
+            <td class="py-3 px-4 font-mono">{{ r.date | date: 'dd-MMM-yyyy' }}</td>
+            <td class="py-3 px-4 text-right font-mono font-medium">₹{{ r.amount | number: '1.0-0' }}</td>
+            <td class="py-3 px-4">{{ r.mode }}</td>
+            <td class="py-3 px-4">
+              <span class="px-2 py-0.5 rounded text-xs font-medium" [class]="r.status === 'Cleared' ? 'bg-tertiary-container text-on-tertiary-container' : 'bg-secondary-container/30 text-on-surface'">{{ r.status }}</span>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="6" class="py-6 px-4 text-center text-on-surface-variant">No PPF challans for this customer.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

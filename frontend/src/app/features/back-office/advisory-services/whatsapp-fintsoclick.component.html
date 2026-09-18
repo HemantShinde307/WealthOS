@@ -1,0 +1,85 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">WhatsApp (FintsoClick)</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">WhatsApp Business messaging integration — approved templates and outbound delivery log.</p>
+</div>
+
+<div>
+  <h3 class="text-title-lg text-on-background font-semibold text-sm mb-2">Message Templates</h3>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+    @for (t of svc.whatsAppTemplates; track t.id) {
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-3 flex flex-col gap-2">
+        <div class="flex items-start justify-between gap-2">
+          <p class="text-sm font-medium text-on-background">{{ t.name }}</p>
+          <span
+            class="text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0"
+            [class]="t.status === 'Approved' ? 'bg-on-tertiary-container/10 text-on-tertiary-container' : 'bg-secondary-container text-on-secondary-container'"
+          >{{ t.status }}</span>
+        </div>
+        <p class="text-xs text-on-surface-variant">{{ t.category }} · {{ t.language }}</p>
+      </div>
+    }
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+  <h3 class="text-title-lg text-on-background font-semibold text-sm mb-3">Send Test Message</h3>
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Template</label>
+      <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="testTemplate()" (change)="testTemplate.set($any($event.target).value)">
+        @for (t of svc.whatsAppTemplates; track t.id) {
+          <option [value]="t.name">{{ t.name }}</option>
+        }
+      </select>
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Test Phone Number</label>
+      <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="testPhone()" (input)="testPhone.set($any($event.target).value)" />
+    </div>
+    <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium h-fit" (click)="sendTest()">Send Test Message</button>
+  </div>
+  @if (sentMessage()) {
+    <p class="text-on-tertiary-container text-sm flex items-center gap-2 mt-3">
+      <span class="material-symbols-outlined text-[18px]">check_circle</span> {{ sentMessage() }}
+    </p>
+  }
+</div>
+
+<div>
+  <h3 class="text-title-lg text-on-background font-semibold text-sm mb-2">Send Log</h3>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Log ID</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Customer</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Phone</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Template Used</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Timestamp</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (w of svc.whatsAppSendLog(); track w.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4 font-mono text-xs">{{ w.id }}</td>
+            <td class="py-3 px-4 font-medium text-on-background">{{ w.customerName }}</td>
+            <td class="py-3 px-4 font-mono text-xs">{{ w.phone }}</td>
+            <td class="py-3 px-4 text-xs">{{ w.templateUsed }}</td>
+            <td class="py-3 px-4 text-xs">{{ w.timestamp }}</td>
+            <td class="py-3 px-4">
+              <span
+                class="text-xs px-2 py-0.5 rounded font-medium"
+                [class]="{
+                  'bg-on-tertiary-container/10 text-on-tertiary-container': w.sentStatus === 'Read' || w.sentStatus === 'Delivered',
+                  'bg-secondary-container text-on-secondary-container': w.sentStatus === 'Sent',
+                  'bg-error/10 text-error': w.sentStatus === 'Failed'
+                }"
+              >{{ w.sentStatus }}</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

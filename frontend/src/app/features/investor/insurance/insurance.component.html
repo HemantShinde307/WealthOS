@@ -1,0 +1,47 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Insurance & Protection</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Your active policies and coverage gaps.</p>
+  </div>
+  <div class="flex gap-2">
+    <a routerLink="renewals" class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium">
+      <span class="material-symbols-outlined text-[18px]">event_repeat</span>
+      Renewals
+    </a>
+    <a routerLink="needs-analysis" class="flex items-center gap-2 bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium">
+      <span class="material-symbols-outlined text-[18px]">calculate</span>
+      Run Needs Analysis
+    </a>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+  @for (p of campaignService.policies(); track p.id) {
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-sm flex flex-col gap-3">
+      <div class="flex justify-between items-start">
+        <div>
+          <span class="text-xs font-medium px-2 py-0.5 rounded bg-surface-container-low text-on-surface-variant">{{ p.type }}</span>
+          <h3 class="font-semibold text-on-background mt-2">{{ p.insurer }}</h3>
+          <p class="text-xs text-on-surface-variant">Policy {{ p.policyNumber }}</p>
+        </div>
+        <span
+          class="text-xs font-medium px-2 py-1 rounded-full shrink-0"
+          [class]="p.status === 'Active' ? 'bg-tertiary-container/10 text-on-tertiary-container' : p.status === 'Due for Renewal' ? 'bg-warning/10 text-warning' : 'bg-error-container text-on-error-container'"
+        >
+          {{ p.status }}
+        </span>
+      </div>
+      <div class="flex justify-between pt-3 border-t border-outline-variant text-sm">
+        <div>
+          <p class="text-xs text-on-surface-variant">Sum Assured</p>
+          <p class="font-mono font-semibold text-on-background">{{ p.sumAssured | inrCompact }}</p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs text-on-surface-variant">Premium ({{ p.premiumFrequency }})</p>
+          <p class="font-mono font-semibold text-on-background">₹{{ p.premium | number }}</p>
+        </div>
+      </div>
+      <p class="text-xs text-on-surface-variant">Renews on {{ p.renewalDate | date: 'mediumDate' }}</p>
+    </div>
+  }
+</div>

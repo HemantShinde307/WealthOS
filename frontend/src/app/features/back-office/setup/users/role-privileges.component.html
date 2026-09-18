@@ -1,0 +1,43 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <div class="flex items-center gap-2 text-on-surface-variant text-xs mb-2">
+      <a routerLink="/back-office/setup/users/roles-master" class="hover:underline">Roles Master</a>
+      <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+      <span class="text-on-background font-semibold">Role Privileges</span>
+    </div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Role Privileges</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Toggle which permissions each role holds. Changes save instantly.</p>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full text-left border-collapse min-w-[900px]">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold sticky left-0 bg-surface-container-low">Permission</th>
+          @for (r of setup.roles(); track r.id) {
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-center whitespace-nowrap">{{ r.name }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (group of setup.permissionsByCategory(); track group.category) {
+          <tr class="bg-surface-container-low/60">
+            <td class="py-2 px-4 font-semibold text-on-background text-xs uppercase tracking-wider sticky left-0 bg-surface-container-low/60" [attr.colspan]="setup.roles().length + 1">{{ group.category }}</td>
+          </tr>
+          @for (perm of group.perms; track perm.id) {
+            <tr class="hover:bg-surface-container-low/50 transition-colors">
+              <td class="py-2.5 px-4 sticky left-0 bg-surface-container-lowest">{{ perm.label }}</td>
+              @for (r of setup.roles(); track r.id) {
+                <td class="py-2.5 px-4 text-center">
+                  <input type="checkbox" [checked]="setup.hasPrivilege(r.id, perm.id)" (change)="toggle(r.id, perm.id)" />
+                </td>
+              }
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

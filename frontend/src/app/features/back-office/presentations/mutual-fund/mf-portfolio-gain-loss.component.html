@@ -1,0 +1,42 @@
+<app-report-header title="Portfolio Gain - Loss" subtitle="Unrealised gain/loss per folio, ranked best to worst performer." />
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <app-stat-card label="Total Gain / Loss" [value]="(presentations.mfGainLoss() >= 0 ? '+' : '') + (presentations.mfGainLoss() | inrCompact)" [valueClass]="presentations.mfGainLoss() >= 0 ? 'text-on-tertiary-container' : 'text-error'" />
+  <app-stat-card label="Gainers" [value]="gainers().length + ''" valueClass="text-on-tertiary-container" />
+  <app-stat-card label="Losers" [value]="losers().length + ''" [valueClass]="losers().length > 0 ? 'text-error' : 'text-on-background'" />
+  <app-stat-card label="Overall Return" [value]="(presentations.mfGainLossPct() >= 0 ? '+' : '') + presentations.mfGainLossPct() + '%'" [valueClass]="presentations.mfGainLossPct() >= 0 ? 'text-on-tertiary-container' : 'text-error'" />
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[800px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Scheme</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Invested Value</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Current Value</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Gain / Loss</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">%</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (r of rows(); track r.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4">
+              <div class="font-medium text-on-background">{{ r.schemeName }}</div>
+              <div class="text-xs text-on-surface-variant font-mono">{{ r.folioNo }}</div>
+            </td>
+            <td class="py-3 px-4 text-right font-mono">₹{{ r.invested | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-right font-mono font-medium">₹{{ r.current | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-right font-mono font-medium" [class]="r.gain >= 0 ? 'text-on-tertiary-container' : 'text-error'">{{ r.gain >= 0 ? '+' : '' }}₹{{ r.gain | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-right">
+              <span class="font-mono font-medium" [class]="r.gain >= 0 ? 'text-on-tertiary-container' : 'text-error'">{{ r.gain >= 0 ? '+' : '' }}{{ r.gainPct }}%</span>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5" class="py-6 px-4 text-center text-on-surface-variant">No mutual fund folios for this customer.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

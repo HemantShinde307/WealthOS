@@ -1,0 +1,58 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Split Groups</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Move a subset of a group's members into a brand-new group.</p>
+</div>
+
+@if (done()) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">check_circle</span> New group created. Redirecting...
+  </div>
+} @else {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col gap-4">
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Source Group</label>
+      <select class="w-full max-w-md bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="sourceGroupId()" (change)="selectGroup($any($event.target).value)">
+        <option value="">Select a group...</option>
+        @for (s of boService.groupSummaries(); track s.group.id) {
+          <option [value]="s.group.id">{{ s.group.name }} ({{ s.memberCount }} members)</option>
+        }
+      </select>
+    </div>
+
+    @if (sourceGroupId()) {
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Select members to move</label>
+        <div class="border border-outline-variant rounded-lg divide-y divide-outline-variant">
+          @for (m of sourceMembers(); track m.id) {
+            <label class="flex items-center gap-3 p-3 cursor-pointer hover:bg-surface-container-low/50">
+              <input type="checkbox" [checked]="selectedMemberIds().has(m.id)" (change)="toggleMember(m.id)" />
+              <span class="text-sm text-on-background">{{ m.name }}</span>
+              <span class="text-xs text-on-surface-variant font-mono ml-auto">{{ m.id }}</span>
+            </label>
+          }
+          @if (!sourceMembers().length) {
+            <p class="p-4 text-sm text-on-surface-variant">This group has no members.</p>
+          }
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">New Group Name</label>
+        <input
+          class="w-full max-w-md bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background"
+          placeholder="e.g. Malhotra Family (Junior Branch)"
+          [value]="newGroupName()"
+          (input)="newGroupName.set($any($event.target).value)"
+        />
+      </div>
+
+      <button
+        class="bg-primary-container text-on-primary px-5 py-2.5 rounded-md hover:opacity-90 transition-opacity text-sm font-medium disabled:opacity-40 w-fit"
+        [disabled]="!canSplit()"
+        (click)="split()"
+      >
+        Split into New Group
+      </button>
+    }
+  </div>
+}

@@ -1,0 +1,217 @@
+@if (selectedView(); as view) {
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-2">
+        <span class="bg-secondary-container text-on-secondary-container text-label-caps px-2 py-1 rounded uppercase">NRI Onboarding</span>
+        @if (view.profile.femaComplianceScore < 100) {
+          <span class="bg-surface-container text-on-surface-variant text-label-caps px-2 py-1 rounded uppercase">Pending Compliance</span>
+        }
+      </div>
+      <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background mb-1">{{ view.client.name }}</h2>
+      <p class="text-body-md text-on-surface-variant flex items-center gap-1">
+        <span class="material-symbols-outlined text-[16px]">location_on</span>
+        {{ view.profile.countryFlag }} {{ view.profile.countryOfResidence }} (Tax Resident) &middot; Client ID: {{ view.client.id }}
+      </p>
+    </div>
+    <div class="flex gap-3">
+      <button class="px-4 py-2 border border-outline-variant rounded-md bg-surface-container-lowest text-on-surface text-sm hover:bg-surface-container-low transition-colors">Save Draft</button>
+      <button class="px-4 py-2 bg-success text-on-success rounded-md text-sm font-medium shadow-sm hover:opacity-90 transition-opacity flex items-center gap-2">
+        <span class="material-symbols-outlined text-[18px]">check_circle</span>
+        Submit Compliance
+      </button>
+    </div>
+  </div>
+
+  <!-- Client switcher -->
+  <div class="flex flex-wrap gap-2">
+    @for (v of nri.views(); track v.client.id) {
+      <button
+        class="px-3 py-1.5 rounded-full text-sm font-medium border transition-colors"
+        [class]="v.client.id === view.client.id ? 'bg-primary-container text-on-primary border-primary-container' : 'bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:bg-surface-container-low'"
+        (click)="selectClient(v.client.id)"
+      >
+        {{ v.profile.countryFlag }} {{ v.client.name }}
+      </button>
+    }
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+    <!-- Left column -->
+    <div class="md:col-span-8 flex flex-col gap-4">
+      <!-- FEMA compliance score -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
+        <div class="flex justify-between items-start">
+          <div>
+            <h3 class="text-title-lg text-on-background mb-2">FEMA Compliance Status</h3>
+            <p class="text-body-sm text-on-surface-variant max-w-md">Overall alignment with Foreign Exchange Management Act regulations for this NRI profile.</p>
+          </div>
+          <div class="text-right">
+            <div class="text-4xl font-bold" [class]="view.profile.femaComplianceScore >= 90 ? 'text-on-tertiary-container' : view.profile.femaComplianceScore >= 70 ? 'text-warning' : 'text-error'">
+              {{ view.profile.femaComplianceScore }}%
+            </div>
+            <span
+              class="text-label-caps px-2 py-1 rounded mt-1 inline-block uppercase"
+              [class]="view.profile.femaComplianceScore >= 90 ? 'bg-tertiary-container text-on-tertiary-container' : 'bg-warning/10 text-warning'"
+            >
+              {{ view.profile.femaComplianceScore >= 90 ? 'Compliant' : 'Action Required' }}
+            </span>
+          </div>
+        </div>
+        <div class="mt-6">
+          <div class="h-2 w-full bg-surface-variant rounded-full overflow-hidden">
+            <div class="h-full rounded-full" [class]="view.profile.femaComplianceScore >= 90 ? 'bg-success' : 'bg-warning'" [style.width.%]="view.profile.femaComplianceScore"></div>
+          </div>
+          <div class="flex justify-between mt-2 text-body-sm text-on-surface-variant">
+            <span>Risk: {{ view.profile.femaRisk }}</span>
+            <span>FATCA/CRS: {{ view.profile.fatcaCrsStatus }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Document checklist -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+        <div class="p-4 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+          <h3 class="text-title-lg text-on-background flex items-center gap-2">
+            <span class="material-symbols-outlined text-secondary">description</span>
+            Document Checklist
+          </h3>
+          <span class="text-body-sm text-on-surface-variant">{{ verifiedDocs().length }} of {{ view.profile.documents.length }} verified</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-outline-variant">
+          <div class="p-4 space-y-3">
+            <h4 class="text-label-caps text-on-surface-variant mb-2 uppercase">Verified</h4>
+            @for (d of verifiedDocs(); track d.name) {
+              <div class="flex items-start p-3 bg-success/5 border border-success/20 rounded">
+                <span class="material-symbols-outlined text-success mr-3 mt-0.5">verified</span>
+                <div>
+                  <p class="text-body-md font-medium text-on-surface">{{ d.name }}</p>
+                  <p class="text-body-sm text-on-surface-variant">{{ d.detail }}</p>
+                </div>
+              </div>
+            }
+            @if (verifiedDocs().length === 0) {
+              <p class="text-body-sm text-on-surface-variant">No documents verified yet.</p>
+            }
+          </div>
+          <div class="p-4 space-y-3 bg-surface-bright">
+            <h4 class="text-label-caps text-warning mb-2 uppercase">Pending Action</h4>
+            @for (d of pendingDocs(); track d.name) {
+              <div class="flex items-start p-3 bg-surface-container-lowest border rounded shadow-sm" [class]="d.status === 'Missing' ? 'border-error/30' : 'border-warning/30'">
+                <span class="material-symbols-outlined mr-3 mt-0.5" [class]="d.status === 'Missing' ? 'text-error' : 'text-warning'">{{ d.status === 'Missing' ? 'warning' : 'pending_actions' }}</span>
+                <div class="flex-1">
+                  <p class="text-body-md font-medium text-on-surface">{{ d.name }}</p>
+                  <p class="text-body-sm text-on-surface-variant mb-2">{{ d.detail }}</p>
+                  @if (d.actionLabel) {
+                    <button class="text-secondary text-body-sm font-medium hover:underline">{{ d.actionLabel }}</button>
+                  }
+                </div>
+              </div>
+            }
+            @if (pendingDocs().length === 0) {
+              <p class="text-body-sm text-on-surface-variant">All documents verified.</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Linked bank accounts -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+        <div class="p-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+          <h3 class="text-title-lg text-on-background flex items-center gap-2">
+            <span class="material-symbols-outlined text-secondary">account_balance</span>
+            Linked Bank Accounts
+          </h3>
+          <button class="text-secondary text-body-sm font-medium flex items-center hover:bg-secondary/10 px-2 py-1 rounded transition-colors">
+            <span class="material-symbols-outlined text-[18px] mr-1">add</span> Add Account
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-surface-container border-b border-outline-variant text-label-caps text-on-surface-variant uppercase">
+                <th class="p-3 font-medium">Account Type</th>
+                <th class="p-3 font-medium">Bank Name</th>
+                <th class="p-3 font-medium">Account No.</th>
+                <th class="p-3 font-medium text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody class="font-mono text-sm text-on-surface divide-y divide-outline-variant">
+              @for (acc of view.profile.accounts; track acc.accountNoMasked) {
+                <tr class="hover:bg-surface-container-low transition-colors">
+                  <td class="p-3">
+                    <span class="px-2 py-0.5 rounded text-[11px] font-bold" [class]="acc.type === 'NRE' ? 'bg-secondary-container text-on-secondary-container' : 'bg-surface-variant text-on-surface-variant'">{{ acc.type }}</span>
+                    {{ acc.repatriable ? '(Repatriable)' : '(Non-Repatriable)' }}
+                  </td>
+                  <td class="p-3">{{ acc.bankName }}</td>
+                  <td class="p-3">{{ acc.accountNoMasked }}</td>
+                  <td class="p-3 text-right">
+                    @if (acc.status === 'Verified') {
+                      <span class="text-on-tertiary-container flex items-center justify-end gap-1"><span class="material-symbols-outlined text-[14px]">check_circle</span> Verified</span>
+                    } @else if (acc.status === 'Pending Penny Drop') {
+                      <span class="text-warning flex items-center justify-end gap-1"><span class="material-symbols-outlined text-[14px]">hourglass_empty</span> Pending Penny Drop</span>
+                    } @else {
+                      <span class="text-error flex items-center justify-end gap-1"><span class="material-symbols-outlined text-[14px]">link_off</span> Not Linked</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div class="md:col-span-4 flex flex-col gap-4">
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+        <h3 class="text-title-lg text-on-background mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">gavel</span>
+          Regulatory Status
+        </h3>
+        <div class="space-y-4">
+          <div>
+            <label class="text-label-caps text-on-surface-variant block mb-1 uppercase">PIS (Portfolio Investment Scheme)</label>
+            <div class="flex items-center justify-between p-2 bg-surface border border-outline-variant rounded">
+              <span class="text-body-md font-medium text-on-surface">{{ view.profile.pisRequired ? 'Required' : 'Not Required' }}</span>
+              <span class="text-xs text-on-surface-variant bg-surface-variant px-2 rounded">Direct Equity Only</span>
+            </div>
+          </div>
+          <div>
+            <label class="text-label-caps text-on-surface-variant block mb-1 uppercase">Tax Residency</label>
+            <div class="p-2 border border-outline-variant rounded bg-surface">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-body-md font-medium text-on-surface">{{ view.profile.countryOfResidence }}</span>
+                <span class="text-lg">{{ view.profile.countryFlag }}</span>
+              </div>
+              <p class="text-body-sm text-on-surface-variant">TIN: {{ view.profile.taxResidencyNumber }} ({{ view.profile.trcProvided ? 'Verified' : 'Unverified' }})</p>
+            </div>
+          </div>
+          <div>
+            <label class="text-label-caps text-on-surface-variant block mb-1 uppercase">POA (Power of Attorney)</label>
+            <div class="flex items-center gap-2 p-2 rounded border border-transparent bg-surface-container-low/50">
+              <span class="material-symbols-outlined text-[18px]" [class]="view.profile.poaInIndia ? 'text-on-tertiary-container' : 'text-on-surface-variant'">
+                {{ view.profile.poaInIndia ? 'check_box' : 'check_box_outline_blank' }}
+              </span>
+              <span class="text-body-md text-on-surface">Client has designated POA in India</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-primary-container text-on-primary-container rounded-lg p-5">
+        <h3 class="text-title-lg text-on-primary-fixed mb-3">Advisor Tools</h3>
+        <div class="space-y-2">
+          <button class="w-full text-left px-3 py-2 bg-white/10 hover:bg-white/20 rounded text-body-md text-on-primary-fixed transition-colors flex items-center">
+            <span class="material-symbols-outlined mr-2 text-[18px]">mail</span> Send Reminder to Client
+          </button>
+          <button class="w-full text-left px-3 py-2 bg-white/10 hover:bg-white/20 rounded text-body-md text-on-primary-fixed transition-colors flex items-center">
+            <span class="material-symbols-outlined mr-2 text-[18px]">video_call</span> Schedule IPV (Video KYC)
+          </button>
+          <button class="w-full text-left px-3 py-2 bg-white/10 hover:bg-white/20 rounded text-body-md text-on-primary-fixed transition-colors flex items-center">
+            <span class="material-symbols-outlined mr-2 text-[18px]">policy</span> View NRI Tax Guidelines
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,128 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h3 class="text-title-lg text-on-background">Review Queue</h3>
+    <p class="text-sm text-on-surface-variant mt-1">Pending institutional applications requiring compliance oversight.</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+  <div class="lg:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden flex flex-col">
+    <div class="p-4 border-b border-outline-variant flex flex-wrap justify-between items-center gap-3">
+      <div class="flex items-center gap-2">
+        <h4 class="text-title-lg text-on-background">Pending Reviews</h4>
+        <span class="px-2 py-0.5 rounded-full text-xs bg-surface-container-low text-on-surface-variant">{{ queue.length }} Total</span>
+      </div>
+      <div class="flex gap-2">
+        <button
+          class="px-3 py-1.5 rounded-md text-xs font-medium border transition-colors"
+          [class]="filter() === 'High' ? 'bg-on-background text-inverse-on-surface border-on-background' : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-low'"
+          (click)="setFilter(filter() === 'High' ? 'All' : 'High')"
+        >
+          High Risk
+        </button>
+        <button
+          class="px-3 py-1.5 rounded-md text-xs font-medium border transition-colors"
+          [class]="filter() === 'Medium' ? 'bg-on-background text-inverse-on-surface border-on-background' : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-low'"
+          (click)="setFilter(filter() === 'Medium' ? 'All' : 'Medium')"
+        >
+          Medium Risk
+        </button>
+      </div>
+    </div>
+    <div class="overflow-x-auto table-scroll">
+      <table class="w-full text-left border-collapse min-w-[600px]">
+        <thead class="bg-surface-container-low border-b border-outline-variant">
+          <tr>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Entity Name</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Risk Rating</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Missing Docs</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Time in Queue</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+          @for (item of filtered; track item.id) {
+            <tr class="cursor-pointer transition-colors" [class.bg-surface-container-low]="item.id === selected().id" (click)="select(item)">
+              <td class="py-3 px-4 font-mono font-medium text-on-background">{{ item.entityName }}</td>
+              <td class="py-3 px-4">
+                <span class="flex items-center gap-1 font-medium" [class]="riskClass(item.riskRating)">
+                  <span class="material-symbols-outlined text-[16px]">{{ riskIcon(item.riskRating) }}</span>
+                  {{ item.riskRating }}
+                </span>
+              </td>
+              <td class="py-3 px-4 text-right font-mono">{{ item.missingDocs }}</td>
+              <td class="py-3 px-4 text-right font-mono" [class.text-error]="item.timeInQueueHrs > 24">{{ formatTimeInQueue(item.timeInQueueHrs) }}</td>
+              <td class="py-3 px-4 text-right">
+                <button class="text-secondary text-xs font-semibold hover:underline" (click)="select(item); $event.stopPropagation()">Review</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Detail panel -->
+  <div class="bg-surface-container-lowest border-2 rounded-lg shadow-sm flex flex-col" [class]="selected().riskRating === 'High' ? 'border-error' : 'border-outline-variant'">
+    <div class="p-6 border-b border-outline-variant flex justify-between items-start gap-3">
+      <div>
+        <h4 class="text-title-lg text-on-background">{{ selected().entityName }}</h4>
+        <p class="text-xs font-mono text-on-surface-variant mt-1">ID: {{ selected().id | uppercase }}</p>
+      </div>
+      @if (selected().riskRating === 'High') {
+        <span class="flex items-center gap-1 px-2 py-1 bg-error-container text-on-error-container rounded text-xs font-semibold shrink-0">
+          <span class="material-symbols-outlined text-[14px]">warning</span> High Risk
+        </span>
+      }
+    </div>
+
+    <div class="p-6 space-y-4 flex-1">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="p-3 bg-surface-container-low rounded-lg">
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Jurisdiction</p>
+          <p class="text-sm font-medium text-on-background">{{ selected().jurisdiction }}</p>
+        </div>
+        <div class="p-3 bg-surface-container-low rounded-lg">
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Entity Type</p>
+          <p class="text-sm font-medium text-on-background">{{ selected().entityType }}</p>
+        </div>
+      </div>
+      <div class="p-3 bg-surface-container-low rounded-lg">
+        <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">AUM / Estimated Volume</p>
+        <p class="text-sm font-medium text-on-background">{{ selected().aumLabel }}</p>
+      </div>
+
+      @if (selected().missingDocuments.length) {
+        <div class="p-3 bg-error-container rounded-lg">
+          <p class="text-sm font-semibold text-on-error-container flex items-center gap-2 mb-2">
+            <span class="material-symbols-outlined text-[18px]">error</span>
+            Missing Documentation ({{ selected().missingDocuments.length }})
+          </p>
+          <ul class="text-xs text-on-error-container/90 list-disc list-inside space-y-1">
+            @for (doc of selected().missingDocuments; track doc) {
+              <li>{{ doc }}</li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (decisionMessage()) {
+        <div class="p-3 bg-tertiary-container text-on-tertiary-container rounded-lg text-sm font-medium">
+          {{ decisionMessage() }}
+        </div>
+      }
+    </div>
+
+    <div class="p-6 pt-0 space-y-2">
+      <button (click)="decide('approve')" class="w-full flex items-center justify-center gap-2 bg-tertiary-container text-on-tertiary-container py-2.5 rounded-md text-sm font-semibold hover:opacity-90 transition-opacity">
+        <span class="material-symbols-outlined text-[18px]">check_circle</span>
+        Approve with Conditions
+      </button>
+      <button (click)="decide('clarify')" class="w-full flex items-center justify-center gap-2 bg-surface-container-low text-on-surface border border-outline-variant py-2.5 rounded-md text-sm font-medium hover:bg-surface-container transition-colors">
+        <span class="material-symbols-outlined text-[18px]">mail</span>
+        Request Clarification
+      </button>
+      <button (click)="decide('reject')" class="w-full text-error text-sm font-medium hover:underline py-1">Reject Application</button>
+    </div>
+  </div>
+</div>

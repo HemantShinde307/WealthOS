@@ -1,0 +1,66 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">LT Redemption Available</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Holdings past the long-term capital gains threshold — equity-oriented schemes held over 1 year, debt schemes held over 3 years.</p>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+  <div>
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Category</label>
+    <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="categoryFilter()" (change)="categoryFilter.set($any($event.target).value)">
+      <option value="All">All</option>
+      <option value="Equity">Equity</option>
+      <option value="ELSS">ELSS</option>
+      <option value="Hybrid">Hybrid</option>
+      <option value="Debt">Debt</option>
+    </select>
+  </div>
+  <div>
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Search Customer / Scheme / Folio</label>
+    <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" placeholder="e.g. Kapoor, Bond Fund, 5541410" [value]="search()" (input)="search.set($any($event.target).value)" />
+  </div>
+  <label class="flex items-center gap-2 text-sm text-on-surface pb-2">
+    <input type="checkbox" [checked]="hideActioned()" (change)="hideActioned.set($any($event.target).checked)" />
+    Hide already actioned
+  </label>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Customer</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Scheme</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Category</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Holding Period</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Units</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Gain %</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Action</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (h of filtered(); track h.id) {
+        <tr class="hover:bg-surface-container-low/50 transition-colors">
+          <td class="py-3 px-4 font-medium text-on-background">{{ h.customerName }}</td>
+          <td class="py-3 px-4">
+            <p>{{ h.schemeName }}</p>
+            <p class="text-xs text-on-surface-variant">{{ h.amc }}</p>
+          </td>
+          <td class="py-3 px-4"><span class="bg-surface-container-low text-on-surface px-2 py-0.5 rounded text-xs">{{ h.category }}</span></td>
+          <td class="py-3 px-4 text-xs">{{ h.holdingYears | number: '1.1-1' }} yrs</td>
+          <td class="py-3 px-4 font-mono text-right">{{ h.units | number: '1.2-2' }}</td>
+          <td class="py-3 px-4 font-mono text-right" [class]="h.gainPct >= 0 ? 'text-on-tertiary-container' : 'text-error'">{{ h.gainPct >= 0 ? '+' : '' }}{{ h.gainPct | number: '1.1-1' }}%</td>
+          <td class="py-3 px-4">
+            @if (h.actioned) {
+              <span class="text-xs text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">check_circle</span>Actioned</span>
+            } @else {
+              <button class="px-3 py-1.5 border border-outline-variant bg-surface-container-lowest text-on-surface rounded-md hover:bg-surface-container-low transition-colors text-xs font-medium" (click)="markActioned(h.id)">Mark Action Taken</button>
+            }
+          </td>
+        </tr>
+      }
+      @if (!filtered().length) {
+        <tr><td colspan="7" class="py-10 text-center text-on-surface-variant">No holdings match these filters.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,22 @@
+<div class="flex flex-col items-center text-center py-8 gap-4">
+  <div class="w-20 h-20 rounded-full bg-tertiary-container/10 flex items-center justify-center">
+    <span class="material-symbols-outlined text-on-tertiary-container text-[48px] fill-icon">check_circle</span>
+  </div>
+  <h2 class="text-headline-lg text-on-background">Import Complete</h2>
+  <p class="text-on-surface-variant max-w-sm">
+    {{ imported().length }} schemes worth ₹{{ totalValue() | number }} have been added to your portfolio.
+  </p>
+
+  <div class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg divide-y divide-outline-variant mt-4 text-left">
+    @for (f of imported(); track f.id) {
+      <div class="p-3 flex justify-between items-center text-sm">
+        <span class="text-on-background truncate">{{ f.schemeName }}</span>
+        <span class="font-mono text-on-surface-variant shrink-0">₹{{ f.currentValue | number }}</span>
+      </div>
+    }
+  </div>
+
+  <button class="mt-4 bg-primary-container text-on-primary px-6 py-3 rounded-md font-medium hover:opacity-90 transition-opacity" (click)="goToPortfolio()">
+    View Portfolio
+  </button>
+</div>

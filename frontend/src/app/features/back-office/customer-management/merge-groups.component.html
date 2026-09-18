@@ -1,0 +1,53 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Merge Groups (Family)</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Pick two family groups to merge into one. All members and AUM roll up into the survivor.</p>
+</div>
+
+@if (done()) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">check_circle</span> Groups merged. Redirecting...
+  </div>
+} @else {
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Group A</label>
+      <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background mb-4" [value]="groupAId()" (change)="groupAId.set($any($event.target).value)">
+        <option value="">Select a group...</option>
+        @for (s of boService.groupSummaries(); track s.group.id) {
+          <option [value]="s.group.id">{{ s.group.name }} ({{ s.memberCount }} members)</option>
+        }
+      </select>
+      @if (groupA(); as a) {
+        <p class="text-xs text-on-surface-variant">Total AUM: <span class="font-mono font-semibold text-on-background">{{ a.totalAum | inrCompact }}</span></p>
+        <label class="flex items-center gap-2 mt-3 text-sm">
+          <input type="radio" name="survivor" [checked]="survivor() === 'A'" (change)="survivor.set('A')" />
+          Keep as survivor group
+        </label>
+      }
+    </div>
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Group B</label>
+      <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background mb-4" [value]="groupBId()" (change)="groupBId.set($any($event.target).value)">
+        <option value="">Select a group...</option>
+        @for (s of boService.groupSummaries(); track s.group.id) {
+          <option [value]="s.group.id">{{ s.group.name }} ({{ s.memberCount }} members)</option>
+        }
+      </select>
+      @if (groupB(); as b) {
+        <p class="text-xs text-on-surface-variant">Total AUM: <span class="font-mono font-semibold text-on-background">{{ b.totalAum | inrCompact }}</span></p>
+        <label class="flex items-center gap-2 mt-3 text-sm">
+          <input type="radio" name="survivor" [checked]="survivor() === 'B'" (change)="survivor.set('B')" />
+          Keep as survivor group
+        </label>
+      }
+    </div>
+  </div>
+
+  <button
+    class="bg-primary-container text-on-primary px-5 py-2.5 rounded-md hover:opacity-90 transition-opacity text-sm font-medium disabled:opacity-40"
+    [disabled]="!canMerge()"
+    (click)="merge()"
+  >
+    Merge Groups
+  </button>
+}

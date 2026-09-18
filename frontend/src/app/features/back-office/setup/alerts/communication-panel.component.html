@@ -1,0 +1,71 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Communication Panel</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Compose and send a broadcast message to a filtered customer segment.</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col gap-4">
+    <h3 class="text-title-lg text-on-background pb-2 border-b border-outline-variant">Compose Broadcast</h3>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Target Segment</label>
+        <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="segment()" (change)="segment.set($any($event.target).value)">
+          @for (s of segments; track s) {
+            <option [value]="s">{{ s }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Channel</label>
+        <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="channel()" (change)="channel.set($any($event.target).value)">
+          <option>Email</option>
+          <option>SMS</option>
+          <option>Push</option>
+        </select>
+      </div>
+    </div>
+
+    @if (channel() !== 'SMS') {
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Subject</label>
+        <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="subject()" (input)="subject.set($any($event.target).value)" />
+      </div>
+    }
+
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Message</label>
+      <textarea class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" rows="5" [value]="message()" (input)="message.set($any($event.target).value)"></textarea>
+    </div>
+
+    <p class="text-xs text-on-surface-variant">Estimated reach: <span class="font-mono font-semibold text-on-background">{{ estimatedRecipients() }}</span> customers in "{{ segment() }}"</p>
+
+    <div class="flex items-center gap-3 pt-2">
+      <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="send()">Send Broadcast</button>
+      @if (justSent()) {
+        <span class="text-on-tertiary-container text-sm flex items-center gap-1">
+          <span class="material-symbols-outlined text-[16px]">check_circle</span> Sent
+        </span>
+      }
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col gap-3 h-fit">
+    <h3 class="text-title-lg text-on-background pb-2 border-b border-outline-variant">Recent Sends</h3>
+    @for (b of setup.broadcastLog(); track b.id) {
+      <div class="border-b border-outline-variant/60 pb-3 last:border-0 last:pb-0">
+        <div class="flex justify-between items-start gap-2">
+          <p class="text-sm font-medium text-on-background">{{ b.segment }}</p>
+          <span
+            class="text-xs px-2 py-0.5 rounded whitespace-nowrap"
+            [class]="b.status === 'Sent' ? 'bg-on-tertiary-container/10 text-on-tertiary-container' : b.status === 'Failed' ? 'bg-error/10 text-error' : 'bg-surface-container-low text-on-surface-variant'"
+          >{{ b.status }}</span>
+        </div>
+        <p class="text-xs text-on-surface-variant mt-0.5">{{ b.channel }} · {{ b.recipientCount }} recipients · {{ b.sentOn }}</p>
+      </div>
+    }
+    @if (!setup.broadcastLog().length) {
+      <p class="text-on-surface-variant text-sm text-center py-4">No broadcasts sent yet.</p>
+    }
+  </div>
+</div>

@@ -1,0 +1,70 @@
+<div>
+  <h1 class="text-headline-lg text-on-background mb-1">Institutional Portfolio</h1>
+  <p class="text-body-lg text-on-surface-variant">Corporate &amp; Family Office wealth under management.</p>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Institutional AUM</span>
+    <span class="font-mono text-headline-lg text-on-surface">{{ institutionalAum() | inrCompact }}</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Institutional Clients</span>
+    <span class="font-mono text-headline-lg text-on-surface">{{ institutionalClients().length }}</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Avg. AUM / Client</span>
+    <span class="font-mono text-headline-lg text-on-surface">{{ avgAumPerClient() | inrCompact }}</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg flex flex-col justify-between h-24">
+    <span class="text-label-caps text-on-surface-variant uppercase tracking-wider">Share of Platform AUM</span>
+    <span class="font-mono text-headline-lg text-on-surface">{{ platformSharePct() | number: '1.1-1' }}%</span>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
+  <h3 class="text-label-caps text-on-surface uppercase tracking-wider mb-6">AUM by Segment</h3>
+  <div class="space-y-5">
+    @for (s of bySegment(); track s.label) {
+      <div>
+        <div class="flex justify-between items-baseline mb-1">
+          <span class="text-body-md text-on-surface">{{ s.label }} · {{ s.count }} client(s)</span>
+          <span class="font-mono text-body-md text-on-surface">{{ s.aum | inrCompact }}</span>
+        </div>
+        <div class="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
+          <div class="bg-primary h-full" [style.width.%]="(s.aum / maxSegmentAum()) * 100"></div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  <div class="p-6 border-b border-outline-variant">
+    <h3 class="text-title-lg text-on-background">Institutional Clients</h3>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[700px] text-left border-collapse">
+      <thead class="bg-surface-container-high border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider">Client</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider">Segment</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider">Risk Profile</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider">Onboarded</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider text-right">AUM</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (c of institutionalClients(); track c.id) {
+          <tr class="hover:bg-surface-container-high/50 transition-colors">
+            <td class="py-3 px-4 font-medium">{{ c.name }}</td>
+            <td class="py-3 px-4"><span class="bg-surface-container-high px-2 py-0.5 rounded text-xs">{{ c.segment }}</span></td>
+            <td class="py-3 px-4 text-on-surface-variant">{{ c.riskProfile }}</td>
+            <td class="py-3 px-4 text-on-surface-variant font-mono">{{ c.joinedOn }}</td>
+            <td class="py-3 px-4 text-right font-mono font-medium">{{ c.aum | inrCompact }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

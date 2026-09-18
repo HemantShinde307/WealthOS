@@ -1,0 +1,116 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div class="flex items-center gap-3">
+    <a routerLink="/advisor/brokerage" class="text-on-surface-variant hover:text-on-background transition-colors">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </a>
+    <div>
+      <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Commission Forecasting</h2>
+      <p class="text-body-md text-on-surface-variant mt-1">Projected trail and upfront earnings analysis.</p>
+    </div>
+  </div>
+  <button class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium shadow-sm">
+    <span class="material-symbols-outlined text-[18px]">download</span>
+    Export
+  </button>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+  <!-- Forecast Summary -->
+  <div class="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-lg p-5 flex flex-col shadow-sm">
+    <h3 class="text-title-lg text-on-background mb-4">Expected Payouts (Next 4 Quarters)</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      @for (q of quarters; track q.label) {
+        <div class="bg-surface-container-low p-4 rounded border border-outline-variant/50 border-t-2" [class]="q.confirmed ? 'border-t-on-tertiary-container' : 'border-t-outline-variant'">
+          <div class="text-label-md text-on-surface-variant mb-1">{{ q.label }}</div>
+          <div class="font-mono text-lg font-bold text-on-background" [class.opacity-70]="!q.confirmed">₹{{ q.amount | number: '1.0-0' }}</div>
+          <div class="flex items-center gap-1 mt-1 text-[11px]" [class]="q.confirmed ? 'text-on-tertiary-container' : 'text-on-surface-variant'">
+            @if (q.confirmed) {
+              <span class="material-symbols-outlined text-[14px]">trending_up</span>
+            }
+            {{ q.changeLabel }}
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Slab Analysis -->
+  <div class="lg:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-lg p-5 flex flex-col shadow-sm">
+    <h3 class="text-title-lg text-on-background mb-4">Slab Analysis</h3>
+    <div class="space-y-3 flex-1">
+      @for (a of amcProgress; track a.amc) {
+        <div class="border border-outline-variant rounded p-3">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-sm font-semibold text-on-background">{{ a.amc }}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded uppercase font-bold" [class]="a.hit ? 'bg-tertiary-container text-on-tertiary-container' : 'bg-surface-container-high text-on-surface-variant'">{{ a.label }}</span>
+          </div>
+          <div class="w-full bg-surface-variant rounded-full h-1.5 mb-2 overflow-hidden">
+            <div class="h-1.5 rounded-full" [class]="a.hit ? 'bg-on-tertiary-container' : 'bg-primary-container'" [style.width.%]="(a.aum / a.target) * 100"></div>
+          </div>
+          <div class="flex justify-between font-mono text-[11px] text-on-surface-variant">
+            <span>AUM: ₹{{ a.aum }}Cr</span>
+            <span>Target: ₹{{ a.target }}Cr</span>
+          </div>
+          <div class="mt-2 pt-2 border-t border-outline-variant/50 flex justify-between">
+            <span class="text-[11px] text-on-surface-variant">Rate:</span>
+            <span class="font-mono text-xs font-bold" [class]="a.hit ? 'text-on-tertiary-container' : 'text-on-background'">{{ a.bps }} bps</span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Detailed Breakdown -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden flex flex-col">
+  <div class="p-5 border-b border-outline-variant flex justify-between items-center">
+    <h3 class="text-title-lg text-on-background">Detailed Breakdown</h3>
+    <div class="flex gap-4 text-xs">
+      <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-on-tertiary-container"></span> Confirmed</div>
+      <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-outline-variant"></span> Projected</div>
+    </div>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[800px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b-2 border-primary-container">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">AMC Name</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Scheme Category</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Est. Trail (Gross)</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">GST (18%)</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Net Payout</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-center">Status</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Expected Date</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface font-mono" [class.opacity-70]="!breakdown.length">
+        @for (r of breakdown; track r.amc + r.category) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors" [class.opacity-70]="!r.confirmed">
+            <td class="py-3 px-4 font-sans font-medium text-on-background">{{ r.amc }}</td>
+            <td class="py-3 px-4 font-sans text-on-surface-variant">{{ r.category }}</td>
+            <td class="py-3 px-4 text-right">₹{{ r.grossTrail | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-right text-on-surface-variant">₹{{ r.gst | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-right font-bold text-on-tertiary-container">₹{{ r.netPayout | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-center font-sans">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold"
+                [class]="r.confirmed ? 'bg-tertiary-container text-on-tertiary-container' : 'bg-surface-container-high text-on-surface-variant border border-outline-variant/50'">
+                <span class="material-symbols-outlined text-[12px]">{{ r.confirmed ? 'check_circle' : 'schedule' }}</span>
+                {{ r.confirmed ? 'Confirmed' : 'Projected' }}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-right">{{ r.expectedDate }}</td>
+          </tr>
+        }
+      </tbody>
+      <tfoot class="bg-surface-container border-t-2 border-primary-container font-mono font-bold">
+        <tr>
+          <td class="py-3 px-4 font-sans" colspan="2">Total (Shown):</td>
+          <td class="py-3 px-4 text-right">₹{{ totalGross | number: '1.0-0' }}</td>
+          <td class="py-3 px-4 text-right text-on-surface-variant">₹{{ totalGst | number: '1.0-0' }}</td>
+          <td class="py-3 px-4 text-right">₹{{ totalNet | number: '1.0-0' }}</td>
+          <td colspan="2"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>

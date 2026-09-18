@@ -1,0 +1,58 @@
+<div class="p-4 space-y-5">
+  <div>
+    <h1 class="text-headline-lg-mobile text-on-background">My Goals</h1>
+    <p class="text-body-md text-on-surface-variant mt-1">Track and accelerate your financial milestones.</p>
+  </div>
+
+  @if (!myGoals().length) {
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-8 flex flex-col items-center text-center gap-2">
+      <span class="material-symbols-outlined text-on-surface-variant text-[32px]">flag</span>
+      <p class="text-on-background font-medium">No goals yet</p>
+      <p class="text-on-surface-variant text-sm">Create one from the desktop app or ask your advisor to set one up.</p>
+    </div>
+  }
+
+  <div class="space-y-4">
+    @for (goal of myGoals(); track goal.id) {
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-secondary-container/10 text-secondary flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined">{{ categoryIcons[goal.category] ?? 'flag' }}</span>
+          </div>
+          <div class="min-w-0">
+            <h3 class="font-semibold text-on-background truncate">{{ goal.name }}</h3>
+            <p class="text-xs text-on-surface-variant flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px]">schedule</span>
+              {{ yearsRemaining(goal.targetDate) }}
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-baseline mb-1 text-sm">
+            <span class="text-on-surface-variant">Current Value</span>
+            <span class="text-on-surface-variant">Target</span>
+          </div>
+          <div class="flex justify-between items-baseline mb-2">
+            <span class="font-mono text-lg font-bold text-on-background">{{ goal.currentAmount | inrCompact }}</span>
+            <span class="font-mono text-sm text-on-surface-variant">{{ goal.targetAmount | inrCompact }}</span>
+          </div>
+          <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+            <div class="h-full bg-primary-container rounded-full transition-all" [style.width.%]="goal.progressPct"></div>
+          </div>
+          <p class="text-xs mt-1.5 font-medium" [class]="statusLabel(goal.progressPct) === 'On Track' ? 'text-on-tertiary-container' : 'text-error'">
+            {{ statusLabel(goal.progressPct) }} &middot; {{ goal.progressPct }}% complete
+          </p>
+        </div>
+
+        <button
+          class="w-full bg-on-background text-background py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+          (click)="topUp(goal.name, goal.monthlyInvestment)"
+        >
+          Top up Goal
+          <span class="material-symbols-outlined text-[18px]">add_circle</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,106 @@
+<app-report-header title="CRM Centre" subtitle="360° relationship view — holdings, upcoming actions and recent activity across every product." />
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <app-stat-card label="Total Wealth" [value]="presentations.totalWealth() | inrCompact" />
+  <app-stat-card label="Mutual Funds" [value]="presentations.mfCurrentValue() | inrCompact" />
+  <app-stat-card label="Direct Equity" [value]="presentations.stockCurrentValue() | inrCompact" />
+  <app-stat-card label="GI Sum Insured" [value]="presentations.giSumInsuredTotal() | inrCompact" />
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm lg:col-span-2 flex flex-col">
+    <div class="p-6 border-b border-outline-variant flex justify-between items-center">
+      <h3 class="text-title-lg text-on-background">Upcoming Actions</h3>
+      <span class="text-xs text-on-surface-variant">SIPs / STPs / SWPs due, policy renewals, pending PPF challans</span>
+    </div>
+    <div class="divide-y divide-outline-variant">
+      @for (a of upcomingActions(); track a.date + a.detail) {
+        <div class="flex items-center gap-4 px-6 py-3">
+          <div class="w-9 h-9 rounded-full bg-surface-container-low flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-[18px] text-on-surface-variant">{{ a.icon }}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-body-md text-on-background truncate">{{ a.detail }}</p>
+            <p class="text-xs text-on-surface-variant">{{ a.kind }}</p>
+          </div>
+          <span class="font-mono text-sm text-on-surface-variant">{{ a.date | date: 'dd-MMM-yyyy' }}</span>
+        </div>
+      } @empty {
+        <p class="px-6 py-6 text-sm text-on-surface-variant">No upcoming actions for this customer.</p>
+      }
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm flex flex-col">
+    <div class="p-6 border-b border-outline-variant">
+      <h3 class="text-title-lg text-on-background">Recent Activity</h3>
+    </div>
+    <div class="divide-y divide-outline-variant">
+      @for (r of recentActivity(); track r.date + r.label) {
+        <div class="px-6 py-3">
+          <p class="text-body-md text-on-background">{{ r.label }}</p>
+          <div class="flex justify-between items-center mt-1">
+            <span class="text-xs text-on-surface-variant">{{ r.date | date: 'dd-MMM-yyyy' }}</span>
+            <span class="font-mono text-sm font-medium" [class]="r.amount >= 0 ? 'text-on-tertiary-container' : 'text-error'">
+              {{ r.amount >= 0 ? '+' : '' }}₹{{ r.amount | number: '1.0-0' }}
+            </span>
+          </div>
+        </div>
+      } @empty {
+        <p class="px-6 py-6 text-sm text-on-surface-variant">No recent activity.</p>
+      }
+    </div>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="p-6 border-b border-outline-variant flex justify-between items-center">
+    <h3 class="text-title-lg text-on-background">Product Holding Summary</h3>
+    <a routerLink="../consolidated-wealth-portfolio" class="text-secondary font-medium text-sm hover:underline flex items-center gap-1">
+      View Consolidated Wealth Portfolio <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+    </a>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-6 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Product</th>
+          <th class="py-3 px-6 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Holdings</th>
+          <th class="py-3 px-6 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Current Value</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        <tr>
+          <td class="py-3 px-6 font-medium">Mutual Funds</td>
+          <td class="py-3 px-6 text-right font-mono">{{ presentations.mfHoldings().length }} folios</td>
+          <td class="py-3 px-6 text-right font-mono font-medium">₹{{ presentations.mfCurrentValue() | number: '1.0-0' }}</td>
+        </tr>
+        <tr>
+          <td class="py-3 px-6 font-medium">Direct Equity</td>
+          <td class="py-3 px-6 text-right font-mono">{{ presentations.stockHoldings().length }} scrips</td>
+          <td class="py-3 px-6 text-right font-mono font-medium">₹{{ presentations.stockCurrentValue() | number: '1.0-0' }}</td>
+        </tr>
+        <tr>
+          <td class="py-3 px-6 font-medium">FDs / RDs / Bonds</td>
+          <td class="py-3 px-6 text-right font-mono">{{ presentations.fdRdInvestments().length }} instruments</td>
+          <td class="py-3 px-6 text-right font-mono font-medium">₹{{ presentations.fdRdCurrentValue() | number: '1.0-0' }}</td>
+        </tr>
+        <tr>
+          <td class="py-3 px-6 font-medium">PPF</td>
+          <td class="py-3 px-6 text-right font-mono">{{ presentations.ppfAccounts().length }} accounts</td>
+          <td class="py-3 px-6 text-right font-mono font-medium">₹{{ presentations.ppfBalance() | number: '1.0-0' }}</td>
+        </tr>
+        <tr>
+          <td class="py-3 px-6 font-medium">Bullion</td>
+          <td class="py-3 px-6 text-right font-mono">{{ presentations.bullionHoldings().length }} holdings</td>
+          <td class="py-3 px-6 text-right font-mono font-medium">₹{{ presentations.bullionCurrentValue() | number: '1.0-0' }}</td>
+        </tr>
+        <tr>
+          <td class="py-3 px-6 font-medium">General Insurance</td>
+          <td class="py-3 px-6 text-right font-mono">{{ presentations.giPolicies().length }} policies</td>
+          <td class="py-3 px-6 text-right font-mono font-medium">₹{{ presentations.giSumInsuredTotal() | number: '1.0-0' }} sum insured</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

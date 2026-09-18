@@ -1,0 +1,116 @@
+<div class="flex items-center gap-3">
+  <a routerLink="/advisor/portfolio" class="text-on-surface-variant hover:text-on-background transition-colors">
+    <span class="material-symbols-outlined">arrow_back</span>
+  </a>
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Revenue Analytics</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Brokerage performance across your book of business.</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+    <div class="flex justify-between items-start mb-2">
+      <span class="text-on-surface-variant text-sm">Total AUM</span>
+      <span class="material-symbols-outlined text-outline text-sm">account_balance</span>
+    </div>
+    <div class="font-mono text-xl font-bold text-on-background">{{ clientService.totalAum() | inrCompact }}</div>
+    <div class="flex items-center gap-1 mt-1 text-on-tertiary-container text-xs">
+      <span class="material-symbols-outlined text-sm">trending_up</span> +4.2% MoM
+    </div>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+    <div class="flex justify-between items-start mb-2">
+      <span class="text-on-surface-variant text-sm">Commission Paid</span>
+      <span class="material-symbols-outlined text-outline text-sm">payments</span>
+    </div>
+    <div class="font-mono text-xl font-bold text-on-tertiary-container">{{ commissionService.totalPaid() | inrCompact }}</div>
+    <div class="flex items-center gap-1 mt-1 text-on-tertiary-container text-xs">
+      <span class="material-symbols-outlined text-sm">trending_up</span> +8.1% vs last month
+    </div>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+    <div class="flex justify-between items-start mb-2">
+      <span class="text-on-surface-variant text-sm">Commission Pending</span>
+      <span class="material-symbols-outlined text-outline text-sm">schedule</span>
+    </div>
+    <div class="font-mono text-xl font-bold text-on-background">{{ commissionService.totalPending() | inrCompact }}</div>
+    <div class="flex items-center gap-1 mt-1 text-on-surface-variant text-xs">
+      <span class="material-symbols-outlined text-sm">info</span> Based on current run-rate
+    </div>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+    <div class="flex justify-between items-start mb-2">
+      <span class="text-on-surface-variant text-sm">Active Clients</span>
+      <span class="material-symbols-outlined text-outline text-sm">group</span>
+    </div>
+    <div class="font-mono text-xl font-bold text-on-background">{{ clientService.clients().length }}</div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col shadow-sm">
+    <h3 class="text-title-lg text-on-background mb-4">AUM vs Revenue Trend (12M)</h3>
+    <div class="flex-1 relative min-h-[280px]">
+      <svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+        <path [attr.d]="incentivePath" fill="none" stroke="var(--color-secondary)" stroke-dasharray="4 4" stroke-width="1.5" />
+        <path [attr.d]="aumRevenuePath" fill="none" stroke="var(--color-primary-container)" stroke-width="2.5" />
+      </svg>
+      <div class="absolute -bottom-2 left-0 w-full flex justify-between text-xs text-on-surface-variant font-mono">
+        @for (p of trend; track p.month) {
+          <span>{{ p.month }}</span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col shadow-sm">
+    <h3 class="text-title-lg text-on-background mb-4">Revenue Mix</h3>
+    <div class="relative flex-1 flex justify-center items-center min-h-[180px]">
+      <div class="w-40 h-40 rounded-full relative" [style.background]="'conic-gradient(' + donutGradient + ')'">
+        <div class="absolute inset-4 bg-surface-container-lowest rounded-full flex flex-col items-center justify-center">
+          <span class="text-label-md text-on-surface-variant">Mix</span>
+        </div>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-x-2 gap-y-1 mt-4 font-mono text-xs text-on-surface-variant">
+      @for (m of revenueMix; track m.label) {
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full" [style.background]="'var(' + m.colorVar + ')'"></span>{{ m.label }}</div>
+          <span class="text-on-background text-right">{{ m.pct }}%</span>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg flex flex-col shadow-sm overflow-hidden">
+  <div class="p-4 border-b border-outline-variant flex justify-between items-center">
+    <h3 class="text-title-lg text-on-background">Top Revenue Clients</h3>
+    <span class="text-secondary text-xs font-medium flex items-center gap-1 cursor-pointer hover:underline">Export CSV <span class="material-symbols-outlined text-sm">download</span></span>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead class="bg-surface-container-low border-b-2 border-primary-container">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Client</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">AUM</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Est. Monthly Revenue</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface font-mono">
+        @for (row of topRevenueClients(); track row.client.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4 font-sans font-medium text-on-background">{{ row.client.name }}</td>
+            <td class="py-3 px-4 text-right">{{ row.client.aum | inrCompact }}</td>
+            <td class="py-3 px-4 text-right text-on-tertiary-container font-bold">₹{{ row.estMonthlyRevenue | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-right">
+              <a [routerLink]="['/advisor/clients', row.client.id]" class="text-secondary text-xs hover:underline font-sans">View</a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

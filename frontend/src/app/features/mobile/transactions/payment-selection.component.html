@@ -1,0 +1,92 @@
+<div class="p-4 space-y-5 pb-8">
+  <div class="flex items-center gap-3">
+    <button class="p-1 -ml-1 text-on-surface" (click)="goBack()">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <h1 class="text-title-lg text-on-background font-bold">Wealth Management</h1>
+  </div>
+
+  @if (state.purposeLabel(); as purpose) {
+    <div class="bg-secondary-container/10 text-secondary text-sm rounded-lg px-3 py-2 flex items-center gap-2">
+      <span class="material-symbols-outlined text-[18px]">flag</span>
+      {{ purpose }}
+    </div>
+  }
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-sm flex flex-col items-center text-center gap-3">
+    <p class="text-sm text-on-surface-variant">Total Amount Payable</p>
+    <div class="flex items-center gap-1">
+      <span class="text-2xl font-bold text-on-background">₹</span>
+      <input
+        type="number"
+        class="text-3xl font-bold text-on-background bg-transparent text-center w-40 focus:outline-none border-b border-outline-variant"
+        [value]="amountInput()"
+        (input)="onAmountChange($any($event.target).value)"
+      />
+    </div>
+    <select
+      class="w-full mt-2 bg-surface-container-low border border-outline-variant rounded-md text-sm text-on-surface px-3 py-2"
+      [value]="state.selectedSchemeId()"
+      (change)="onSchemeChange($any($event.target).value)"
+    >
+      @for (s of schemes; track s.id) {
+        <option [value]="s.id">{{ s.name }}</option>
+      }
+    </select>
+    <span class="bg-tertiary-container/10 text-on-tertiary-container text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+      <span class="material-symbols-outlined text-[14px]">lock</span>
+      Secure Transaction
+    </span>
+  </div>
+
+  <div>
+    <h2 class="text-title-lg text-on-background mb-3">Select Payment Method</h2>
+
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-sm">
+      <div class="bg-surface-container-low px-4 py-2 text-xs font-semibold uppercase tracking-wider text-on-surface-variant flex items-center justify-between">
+        UPI / QR
+        <span class="material-symbols-outlined text-[18px]">qr_code_2</span>
+      </div>
+      <div class="divide-y divide-outline-variant">
+        @for (opt of upiOptions; track opt.id) {
+          <button class="w-full flex items-center gap-3 px-4 py-3 text-left" (click)="choosePayment(opt.id)">
+            <div class="w-9 h-9 rounded-lg bg-surface-container-low flex items-center justify-center shrink-0 text-on-surface-variant">
+              <span class="material-symbols-outlined text-[18px]">{{ opt.icon }}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-on-background">{{ opt.label }}</p>
+              <p class="text-xs text-on-surface-variant">{{ opt.subtitle }}</p>
+            </div>
+            <span class="material-symbols-outlined text-on-surface-variant text-[18px]">chevron_right</span>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-sm">
+    <div class="bg-surface-container-low px-4 py-2 text-xs font-semibold uppercase tracking-wider text-on-surface-variant flex items-center justify-between">
+      Net Banking
+      <span class="material-symbols-outlined text-[18px]">account_balance</span>
+    </div>
+    <div class="grid grid-cols-3 gap-2 p-3">
+      @for (opt of bankOptions; track opt.id) {
+        <button class="border border-outline-variant rounded-lg py-3 flex flex-col items-center gap-1" (click)="choosePayment(opt.id)">
+          <span class="text-sm font-bold text-on-background">{{ opt.label }}</span>
+          <span class="text-[10px] text-on-surface-variant">Net Banking</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <button class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex items-center gap-3 shadow-sm text-left" (click)="choosePayment('NEFT/RTGS')">
+    <div class="w-9 h-9 rounded-lg bg-surface-container-low flex items-center justify-center shrink-0 text-on-surface-variant">
+      <span class="material-symbols-outlined text-[18px]">swap_horiz</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-sm font-semibold text-on-background">NEFT / RTGS Transfer</p>
+      <p class="text-xs text-on-surface-variant">Generate mandate for large amounts</p>
+    </div>
+    <span class="material-symbols-outlined text-on-surface-variant text-[18px]">chevron_right</span>
+  </button>
+</div>

@@ -1,0 +1,79 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div class="flex items-center gap-3">
+    <a routerLink="/advisor/brokerage" class="text-on-surface-variant hover:text-on-background transition-colors">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </a>
+    <div>
+      <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Commission Reports</h2>
+      <p class="text-body-md text-on-surface-variant mt-1">Transaction-level commission and incentive detail.</p>
+    </div>
+  </div>
+  <button class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium shadow-sm">
+    <span class="material-symbols-outlined text-[18px]">download</span>
+    Export
+  </button>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+  <div class="relative max-w-sm">
+    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+    <input
+      class="pl-10 pr-4 py-2 border border-outline-variant rounded-md bg-surface-container-lowest text-sm focus:outline-none focus:border-primary w-full"
+      placeholder="Search client or scheme..."
+      type="text"
+      [value]="search()"
+      (input)="search.set($any($event.target).value)"
+    />
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden flex flex-col">
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[900px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Date</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Client</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Scheme</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Type</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Transaction Amount</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Rate</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Commission</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface font-mono">
+        @for (e of filtered(); track e.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4 font-sans text-on-surface-variant">{{ e.date }}</td>
+            <td class="py-3 px-4 font-sans font-medium text-on-background">{{ e.clientName }}</td>
+            <td class="py-3 px-4 font-sans text-on-surface-variant">{{ e.schemeName }}</td>
+            <td class="py-3 px-4 font-sans"><span class="bg-surface-container-low px-2 py-0.5 rounded text-xs">{{ e.transactionType }}</span></td>
+            <td class="py-3 px-4 text-right">₹{{ e.transactionAmount | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-right">{{ e.commissionRate }}%</td>
+            <td class="py-3 px-4 text-right font-bold text-on-tertiary-container">₹{{ e.commissionAmount | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 font-sans">
+              <span class="text-xs px-2 py-0.5 rounded font-medium"
+                [class]="e.status === 'Paid' ? 'bg-tertiary-container text-on-tertiary-container' : 'bg-surface-container text-payout-gold'">
+                {{ e.status }}
+              </span>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="py-10 text-center text-on-surface-variant font-sans">No commission entries match your search.</td>
+          </tr>
+        }
+      </tbody>
+      <tfoot class="bg-surface-container border-t-2 border-primary font-mono font-bold">
+        <tr>
+          <td class="py-3 px-4 font-sans" colspan="4">Totals:</td>
+          <td class="py-3 px-4 text-right">₹{{ totals().transactionAmount | number: '1.0-0' }}</td>
+          <td class="py-3 px-4"></td>
+          <td class="py-3 px-4 text-right text-on-tertiary-container">₹{{ totals().commissionAmount | number: '1.0-0' }}</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,105 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Regulatory Reporting Center</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Generate and manage mandatory SEBI and exchange compliance reports.</p>
+</div>
+
+<!-- Report Configuration Engine -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+  <div class="flex justify-between items-center mb-5">
+    <h3 class="text-title-lg text-on-background flex items-center gap-2">
+      <span class="material-symbols-outlined">tune</span>
+      Report Configuration Engine
+    </h3>
+    <span class="text-xs px-2 py-1 bg-surface-container-low rounded text-on-surface-variant">Active Session</span>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+    <div>
+      <label class="text-label-md text-on-surface-variant block mb-1">Date From</label>
+      <input type="date" class="w-full text-sm border border-outline-variant rounded px-3 py-2 bg-surface-container-lowest" [value]="dateFrom()" (input)="dateFrom.set($any($event.target).value)" />
+    </div>
+    <div>
+      <label class="text-label-md text-on-surface-variant block mb-1">Date To</label>
+      <input type="date" class="w-full text-sm border border-outline-variant rounded px-3 py-2 bg-surface-container-lowest" [value]="dateTo()" (input)="dateTo.set($any($event.target).value)" />
+    </div>
+    <div>
+      <label class="text-label-md text-on-surface-variant block mb-1">Branch Hierarchy</label>
+      <select class="w-full text-sm border border-outline-variant rounded px-3 py-2 bg-surface-container-lowest" [value]="branchHierarchy()" (change)="branchHierarchy.set($any($event.target).value)">
+        <option>All Branches (Consolidated)</option>
+        <option>Mumbai HQ</option>
+        <option>Delhi NCR</option>
+        <option>Bengaluru</option>
+      </select>
+    </div>
+    <div>
+      <label class="text-label-md text-on-surface-variant block mb-1">Distributor Code (Optional)</label>
+      <input type="text" placeholder="e.g. ARN-12345" class="w-full text-sm border border-outline-variant rounded px-3 py-2 bg-surface-container-lowest" [value]="distributorCode()" (input)="distributorCode.set($any($event.target).value)" />
+    </div>
+  </div>
+</div>
+
+<!-- Standard Templates -->
+<div>
+  <h3 class="text-title-lg text-on-background mb-4">Standard Templates</h3>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    @for (t of templates; track t.id) {
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm flex flex-col gap-4">
+        <div class="w-12 h-12 rounded-lg bg-secondary-container/10 text-secondary flex items-center justify-center">
+          <span class="material-symbols-outlined">{{ t.icon }}</span>
+        </div>
+        <div>
+          <h4 class="text-body-lg font-semibold text-on-background">{{ t.name }}</h4>
+          <p class="text-sm text-on-surface-variant mt-1">{{ t.description }}</p>
+        </div>
+        <p class="text-xs text-on-surface-variant font-mono">{{ templateRecordCounts[t.id] | number }} records available</p>
+        <div class="flex justify-between items-center pt-3 border-t border-outline-variant">
+          <div class="flex gap-1">
+            @for (fmt of t.formats; track fmt) {
+              <span class="text-xs px-2 py-1 bg-surface-container-low rounded font-mono">{{ fmt }}</span>
+            }
+          </div>
+          <button (click)="initializeReport(t)" class="flex items-center gap-1 px-3 py-1.5 bg-primary-container text-on-primary rounded text-sm font-medium hover:opacity-90 transition-opacity">
+            <span class="material-symbols-outlined text-[16px]">bolt</span>
+            Initialize
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Recent Filings Tracker -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col shadow-sm">
+  <div class="p-6 border-b border-outline-variant flex justify-between items-center">
+    <h3 class="text-title-lg text-on-background flex items-center gap-2">
+      <span class="material-symbols-outlined">history</span>
+      Recent Filings Tracker
+    </h3>
+    <a routerLink="/admin/audit-trail" class="text-secondary text-label-md hover:underline">View All Logs</a>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full text-left border-collapse min-w-[800px]">
+      <thead>
+        <tr class="bg-surface-container-low border-b border-outline-variant">
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">Report ID</th>
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">Template Name</th>
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">Period</th>
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">Generated</th>
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">Status</th>
+        </tr>
+      </thead>
+      <tbody class="text-body-md divide-y divide-outline-variant/50">
+        @for (f of sortedFilings(); track f.reportId) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="p-4 font-mono text-xs text-on-surface-variant">{{ f.reportId }}</td>
+            <td class="p-4 font-medium text-on-background">{{ f.templateName }}</td>
+            <td class="p-4 font-mono text-xs text-on-surface-variant">{{ f.period }}</td>
+            <td class="p-4 text-on-surface-variant text-xs">{{ f.generatedOn }}</td>
+            <td class="p-4">
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium" [class]="statusBadgeClass(f.status)">{{ f.status }}</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,34 @@
+<div class="space-y-6">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex items-center gap-3">
+    <span class="material-symbols-outlined text-on-tertiary-container">description</span>
+    <div class="min-w-0 flex-1">
+      <p class="font-medium text-on-background truncate">{{ state.fileName() }}</p>
+      <p class="text-xs text-on-surface-variant">Parsed successfully &middot; {{ state.folios().length }} folios found</p>
+    </div>
+  </div>
+
+  <div>
+    <h3 class="text-title-lg text-on-background mb-3">Verify Holdings to Import</h3>
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg divide-y divide-outline-variant overflow-hidden">
+      @for (f of state.folios(); track f.id) {
+        <label class="flex items-center gap-3 p-4 cursor-pointer hover:bg-surface-container-low/50 transition-colors">
+          <input type="checkbox" class="w-4 h-4 rounded border-outline-variant text-secondary shrink-0" [checked]="f.selected" (change)="state.toggleFolio(f.id)" />
+          <div class="min-w-0 flex-1">
+            <p class="font-medium text-on-background truncate">{{ f.schemeName }}</p>
+            <p class="text-xs text-on-surface-variant">{{ f.amc }} &middot; Folio {{ f.folio }} &middot; {{ f.units | number: '1.2-2' }} units</p>
+          </div>
+          <p class="font-mono font-semibold text-on-background shrink-0">₹{{ f.currentValue | number }}</p>
+        </label>
+      }
+    </div>
+  </div>
+
+  <div class="bg-surface-container-low rounded-lg p-4 flex justify-between items-center">
+    <span class="text-sm text-on-surface-variant">{{ selectedCount() }} of {{ state.folios().length }} folios selected</span>
+    <span class="font-mono font-semibold text-on-background">₹{{ selectedValue() | number }}</span>
+  </div>
+
+  <button class="w-full bg-primary-container text-on-primary py-3 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50" [disabled]="selectedCount() === 0" (click)="confirm()">
+    Import {{ selectedCount() }} Folios
+  </button>
+</div>

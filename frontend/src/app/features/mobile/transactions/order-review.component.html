@@ -1,0 +1,87 @@
+<div class="p-4 space-y-5 pb-8">
+  <div class="flex items-center gap-3">
+    <button class="p-1 -ml-1 text-on-surface" (click)="goBack()">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <h1 class="text-title-lg text-on-background font-bold">Order Review</h1>
+  </div>
+
+  @if (scheme(); as s) {
+    <div class="bg-secondary-container/10 rounded-lg p-4 flex gap-3">
+      <span class="material-symbols-outlined text-secondary shrink-0">info</span>
+      <div>
+        <h2 class="text-sm font-semibold text-secondary">Review your purchase</h2>
+        <p class="text-xs text-secondary/80 mt-0.5">Please confirm the details below before completing your payment.</p>
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+      <div class="p-4 flex items-center gap-3 border-b border-outline-variant">
+        <div class="w-10 h-10 rounded-lg bg-primary-container/10 text-primary flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[20px]">trending_up</span>
+        </div>
+        <div class="min-w-0">
+          <h3 class="text-sm font-semibold text-on-background truncate">{{ s.name }}</h3>
+          <p class="text-xs text-on-surface-variant">{{ s.category }} &middot; Direct Plan &middot; Growth</p>
+        </div>
+      </div>
+      <div class="divide-y divide-outline-variant text-sm">
+        <div class="p-4 flex justify-between">
+          <span class="text-on-surface-variant">Investment Type</span>
+          <span class="font-medium text-on-background">Lumpsum</span>
+        </div>
+        @if (state.purposeLabel(); as purpose) {
+          <div class="p-4 flex justify-between">
+            <span class="text-on-surface-variant">For</span>
+            <span class="font-medium text-on-background text-right">{{ purpose }}</span>
+          </div>
+        }
+        <div class="p-4 flex justify-between">
+          <span class="text-on-surface-variant">Folio Number</span>
+          <span class="font-medium text-on-background">NEW</span>
+        </div>
+        <div class="p-4 flex justify-between items-center">
+          <span class="text-on-surface-variant">Tax Category</span>
+          <span class="bg-surface-container-low text-on-surface px-2 py-0.5 rounded text-xs">{{ s.assetClass }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+      <div class="divide-y divide-outline-variant text-sm font-mono">
+        <div class="p-4 flex justify-between font-sans">
+          <span class="text-on-surface-variant">Investment Amount</span>
+          <span class="text-on-background">₹{{ state.amount() | number: '1.2-2' }}</span>
+        </div>
+        <div class="p-4 flex justify-between font-sans">
+          <span class="text-on-surface-variant">Platform Fee</span>
+          <span class="text-on-background">₹0.00</span>
+        </div>
+        <div class="p-4 flex justify-between font-sans">
+          <span class="text-on-surface-variant">Stamp Duty (0.005%)</span>
+          <span class="text-on-background">₹{{ stampDuty() | number: '1.2-2' }}</span>
+        </div>
+      </div>
+      <div class="p-4 flex justify-between bg-surface-container-low">
+        <span class="font-semibold text-on-background">Total Payable</span>
+        <span class="font-mono font-bold text-on-background">₹{{ totalPayable() | number: '1.2-2' }}</span>
+      </div>
+    </div>
+
+    <label class="flex items-start gap-3 text-xs text-on-surface-variant">
+      <input type="checkbox" class="mt-0.5" [checked]="agreed()" (change)="agreed.set($any($event.target).checked)" />
+      <span>I agree to the <span class="text-secondary underline">Terms &amp; Conditions</span> and declare that I have read the Scheme Information Document.</span>
+    </label>
+
+    <button
+      class="w-full bg-tertiary-container text-on-tertiary py-3.5 rounded-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+      [disabled]="!agreed() || submitting()"
+      (click)="confirmAndPay()"
+    >
+      <span class="material-symbols-outlined text-[18px]">lock</span>
+      {{ submitting() ? 'Processing…' : 'Confirm & Pay' }}
+    </button>
+  } @else {
+    <p class="text-sm text-on-surface-variant text-center py-8">No scheme selected. Go back and choose an investment.</p>
+  }
+</div>

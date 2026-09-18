@@ -1,0 +1,118 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h3 class="text-title-lg text-on-background">Document Vault</h3>
+    <p class="text-sm text-on-surface-variant mt-1">Institutional Entity: {{ state.selectedEntity().name }}</p>
+  </div>
+  <button class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium shadow-sm">
+    <span class="material-symbols-outlined text-[18px]">upload_file</span>
+    Bulk Upload
+  </button>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Total Documents</p>
+    <div class="flex items-baseline gap-2">
+      <span class="font-mono text-2xl font-bold text-on-background">{{ totalDocs() }}</span>
+      <span class="text-sm text-on-surface-variant">/ {{ requiredDocs }} Required</span>
+    </div>
+    <div class="w-full bg-surface-variant h-1.5 rounded-full overflow-hidden mt-3">
+      <div class="bg-on-background h-full rounded-full" [style.width.%]="(totalDocs() / requiredDocs) * 100"></div>
+    </div>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Verification Status</p>
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-secondary">pending</span>
+      <span class="text-lg font-semibold text-on-background">Pending Review</span>
+    </div>
+    <p class="text-xs text-on-surface-variant mt-2">{{ pendingDocs() }} document(s) await verification</p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Next Expiry</p>
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-error">warning</span>
+      <span class="text-lg font-semibold text-error">9 Days</span>
+    </div>
+    <p class="text-xs text-on-surface-variant mt-2">National ID (M. Krishnan)</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+  @for (cat of categories; track cat.label) {
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+      <div class="p-4 border-b border-outline-variant flex justify-between items-center">
+        <h4 class="text-title-lg text-on-background flex items-center gap-2">
+          <span class="material-symbols-outlined text-on-surface-variant">{{ cat.icon }}</span>
+          {{ cat.label }}
+        </h4>
+        <span
+          class="px-2 py-0.5 rounded text-xs font-semibold"
+          [class]="cat.statusTone === 'complete' ? 'bg-tertiary-container text-on-tertiary-container' : 'bg-error-container text-on-error-container'"
+        >
+          {{ cat.statusLabel }}
+        </span>
+      </div>
+      <div class="divide-y divide-outline-variant">
+        @for (doc of cat.documents; track doc.name) {
+          <div class="p-4 flex items-center justify-between gap-3" [class.bg-error-container]="doc.status === 'Upload Required'">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="material-symbols-outlined text-on-surface-variant">description</span>
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-on-background truncate">{{ doc.name }}</p>
+                <p class="text-xs" [class]="doc.status === 'Upload Required' ? 'text-on-error-container' : 'text-on-surface-variant'">{{ doc.meta }}</p>
+              </div>
+            </div>
+            @if (doc.status === 'Upload Required') {
+              <button class="px-3 py-1 bg-on-background text-inverse-on-surface rounded text-xs font-semibold shrink-0">Upload</button>
+            } @else {
+              <span class="material-symbols-outlined shrink-0" [class]="docStatusClass(doc.status)">{{ docStatusIcon(doc.status) }}</span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden mt-6">
+  <div class="p-4 border-b border-outline-variant flex justify-between items-center">
+    <h4 class="text-title-lg text-on-background flex items-center gap-2">
+      <span class="material-symbols-outlined text-on-surface-variant">badge</span>
+      Identity Proofs &amp; Signatories
+    </h4>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full text-left border-collapse min-w-[600px]">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Signatory Name</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Role</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Document Type</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Expiry Date</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (s of signatories; track s.name) {
+          <tr>
+            <td class="py-3 px-4 font-medium text-on-background">{{ s.name }}</td>
+            <td class="py-3 px-4">{{ s.role }}</td>
+            <td class="py-3 px-4">{{ s.documentType }}</td>
+            <td class="py-3 px-4 font-mono" [class.text-error]="s.status === 'Expiring'">{{ s.expiryDate }}</td>
+            <td class="py-3 px-4">
+              <span class="px-2 py-0.5 rounded text-xs font-semibold" [class]="signatoryStatusClass(s.status)">{{ s.status | uppercase }}</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="flex justify-end mt-6">
+  <button (click)="continue()" class="flex items-center gap-2 bg-primary-container text-on-primary px-6 py-2.5 rounded-md text-sm font-medium hover:opacity-90 transition-opacity">
+    Submit for Review
+    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+  </button>
+</div>

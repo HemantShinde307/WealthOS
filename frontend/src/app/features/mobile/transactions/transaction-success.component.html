@@ -1,0 +1,47 @@
+<div class="p-4 space-y-6 pb-8">
+  <div class="flex items-center gap-3">
+    <button class="p-1 -ml-1 text-on-surface" (click)="goBack()">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <h1 class="text-title-lg text-on-background font-bold">Wealth Management</h1>
+  </div>
+
+  <div class="flex flex-col items-center text-center gap-4 pt-6">
+    <div class="w-20 h-20 rounded-2xl bg-tertiary-container/10 border border-on-tertiary-container/30 flex items-center justify-center">
+      <span class="material-symbols-outlined text-on-tertiary-container text-[44px]">check_circle</span>
+    </div>
+    <h2 class="text-headline-lg-mobile text-on-background font-bold">Order Placed Successfully</h2>
+  </div>
+
+  @if (order(); as o) {
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+      <div class="bg-surface-container-low px-4 py-3 flex items-center justify-between">
+        <h3 class="text-sm font-semibold text-on-background">Transaction Summary</h3>
+        <span class="material-symbols-outlined text-on-surface-variant text-[18px]">receipt_long</span>
+      </div>
+      <div class="divide-y divide-outline-variant text-sm">
+        <div class="p-4 flex justify-between">
+          <span class="text-on-surface-variant">Order ID</span>
+          <span class="font-mono font-semibold text-on-background">{{ o.id }}</span>
+        </div>
+        <div class="p-4 flex justify-between">
+          <span class="text-on-surface-variant">Scheme</span>
+          <span class="font-medium text-on-background text-right">{{ o.schemeName }}</span>
+        </div>
+        <div class="p-4 flex justify-between">
+          <span class="text-on-surface-variant">Amount</span>
+          <span class="font-mono font-semibold text-on-tertiary-container">₹{{ o.amount | number }}</span>
+        </div>
+        <div class="p-4 flex justify-between">
+          <span class="text-on-surface-variant">Estimated Fee</span>
+          <span class="font-mono text-on-background">₹{{ estimatedFee() | number: '1.2-2' }}</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="space-y-3">
+    <button class="w-full bg-secondary text-on-secondary py-3 rounded-lg font-semibold" (click)="viewPortfolio()">View Order Status</button>
+    <button class="w-full bg-surface-container-lowest border border-outline-variant text-on-surface py-3 rounded-lg font-semibold" (click)="backToDashboard()">Back to Dashboard</button>
+  </div>
+</div>

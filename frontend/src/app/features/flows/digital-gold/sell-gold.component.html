@@ -1,0 +1,55 @@
+@if (!submitted()) {
+  <div class="space-y-6">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Current Sell Price</p>
+          <p class="text-headline-lg text-on-background font-mono mt-1">₹{{ state.currentRate() | number }} <span class="text-sm font-normal text-on-surface-variant">/gram</span></p>
+        </div>
+        <span class="bg-gold/10 text-gold text-xs font-bold px-3 py-1.5 rounded-full border border-gold/30">24K 99.9%</span>
+      </div>
+      <div class="h-px bg-outline-variant my-4"></div>
+      <div class="flex justify-between text-sm">
+        <span class="text-on-surface-variant">Available Balance</span>
+        <span class="font-mono font-semibold text-on-background">{{ state.holdingsGrams() }} g</span>
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5">
+      <h3 class="text-title-lg text-on-background mb-4">Grams to Sell</h3>
+      <div class="relative">
+        <input type="number" class="w-full pr-16 pl-4 py-3 border border-outline-variant rounded-md text-2xl font-mono font-bold bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30" [value]="grams()" (input)="onGramsInput($event)" />
+        <div class="absolute inset-y-0 right-3 flex items-center gap-2">
+          <span class="text-on-surface-variant font-mono text-sm">g</span>
+          <button class="text-secondary text-xs font-bold uppercase hover:opacity-80" (click)="setMax()">Max</button>
+        </div>
+      </div>
+      @if (exceedsBalance()) {
+        <p class="text-xs text-error mt-2">You only have {{ state.holdingsGrams() }}g available to sell.</p>
+      }
+
+      <div class="bg-surface-container-low rounded-lg p-4 mt-4 flex flex-col gap-2 text-sm">
+        <div class="flex justify-between"><span class="text-on-surface-variant">Credit To</span><span class="font-mono text-on-background">HDFC ****4920</span></div>
+        <div class="flex justify-between"><span class="text-on-surface-variant">Settlement Time</span><span class="text-on-background">Instant (under 5 mins)</span></div>
+      </div>
+
+      <div class="flex justify-between items-center mt-4 pt-4 border-t border-outline-variant">
+        <span class="text-title-lg font-semibold text-on-background">Total Credit</span>
+        <span class="font-mono text-xl font-bold text-on-tertiary-container">₹{{ payout() | number }}</span>
+      </div>
+    </div>
+
+    <button class="w-full bg-primary-container text-on-primary py-3 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50" [disabled]="grams() <= 0 || exceedsBalance()" (click)="confirm()">
+      Confirm &amp; Sell
+    </button>
+  </div>
+} @else {
+  <div class="flex flex-col items-center text-center py-8 gap-4">
+    <div class="w-20 h-20 rounded-full bg-tertiary-container/10 flex items-center justify-center">
+      <span class="material-symbols-outlined text-on-tertiary-container text-[48px] fill-icon">check_circle</span>
+    </div>
+    <h2 class="text-headline-lg text-on-background">Gold Sold Successfully</h2>
+    <p class="text-on-surface-variant max-w-sm">{{ lastGrams() }}g sold for ₹{{ lastPayout() | number }}. Funds will be credited to your linked bank account shortly.</p>
+    <button class="mt-4 bg-primary-container text-on-primary px-6 py-3 rounded-md font-medium hover:opacity-90 transition-opacity" (click)="goToGoldPortfolio()">Back to Gold Portfolio</button>
+  </div>
+}

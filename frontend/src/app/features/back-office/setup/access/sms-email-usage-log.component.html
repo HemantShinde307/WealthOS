@@ -1,0 +1,73 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">SMS / Email Usage Log</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">{{ setup.smsEmailLog().length }} messages · {{ deliveredCount() }} delivered · {{ failedCount() }} failed</p>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="p-4 border-b border-outline-variant flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+    <div class="relative w-full sm:w-72">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+      <input
+        class="w-full pl-9 pr-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-md text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary"
+        placeholder="Search by customer or message type..."
+        [value]="searchTerm()"
+        (input)="searchTerm.set($any($event.target).value)"
+      />
+    </div>
+    <div class="flex gap-2 flex-wrap">
+      @for (c of ['All', 'SMS', 'Email']; track c) {
+        <button
+          class="px-3 py-1.5 rounded-md text-xs font-medium border transition-colors"
+          [class]="c === channelFilter() ? 'bg-primary-container text-on-primary border-transparent' : 'bg-surface-container-lowest border-outline-variant text-on-surface hover:bg-surface-container-low'"
+          (click)="channelFilter.set($any(c))"
+        >
+          {{ c }}
+        </button>
+      }
+      @for (s of ['All', 'Delivered', 'Pending', 'Failed']; track s) {
+        <button
+          class="px-3 py-1.5 rounded-md text-xs font-medium border transition-colors"
+          [class]="s === statusFilter() ? 'bg-primary-container text-on-primary border-transparent' : 'bg-surface-container-lowest border-outline-variant text-on-surface hover:bg-surface-container-low'"
+          (click)="statusFilter.set($any(s))"
+        >
+          {{ s }}
+        </button>
+      }
+    </div>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[800px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Customer</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Channel</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Message Type</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Sent On</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (e of filtered(); track e.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4 font-medium text-on-background">{{ e.customerName }}</td>
+            <td class="py-3 px-4 flex items-center gap-1.5 mt-3">
+              <span class="material-symbols-outlined text-[16px] text-on-surface-variant">{{ e.channel === 'SMS' ? 'sms' : 'mail' }}</span>
+              {{ e.channel }}
+            </td>
+            <td class="py-3 px-4">{{ e.messageType }}</td>
+            <td class="py-3 px-4 font-mono text-sm">{{ e.sentOn }}</td>
+            <td class="py-3 px-4">
+              <span
+                class="text-xs px-2 py-0.5 rounded"
+                [class]="e.status === 'Delivered' ? 'bg-on-tertiary-container/10 text-on-tertiary-container' : e.status === 'Failed' ? 'bg-error/10 text-error' : 'bg-surface-container-low text-on-surface-variant'"
+              >{{ e.status }}</span>
+            </td>
+          </tr>
+        }
+        @if (!filtered().length) {
+          <tr><td colspan="5" class="py-10 text-center text-on-surface-variant">No log entries match your filters.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

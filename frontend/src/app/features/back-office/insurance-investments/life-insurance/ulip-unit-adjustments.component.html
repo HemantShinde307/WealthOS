@@ -1,0 +1,83 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">ULIP Unit Adjustments</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Record fund-switch and unit adjustments for ULIP policies.</p>
+</div>
+
+@if (saved()) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">check_circle</span> Unit adjustment recorded.
+  </div>
+}
+@if (error()) {
+  <div class="bg-error/10 border border-error/40 rounded-lg p-4 text-error text-sm">{{ error() }}</div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">ULIP Policy</label>
+    <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" (change)="policyId.set($any($event.target).value)">
+      <option value="">— Choose a policy —</option>
+      @for (p of svc.ulipPolicies(); track p.id) {
+        <option [value]="p.id">{{ p.policyNumber }} — {{ p.policyholderName }}</option>
+      }
+    </select>
+    @if (!svc.ulipPolicies().length) {
+      <p class="text-xs text-on-surface-variant mt-1">No ULIP policies on file — add one via Policy Entry first.</p>
+    }
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Fund Name</label>
+    <input class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="fundName()" (input)="fundName.set($any($event.target).value)" placeholder="e.g. HDFC Life Equity Advantage Fund" />
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Adjustment Type</label>
+    <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="adjustmentType()" (change)="adjustmentType.set($any($event.target).value)">
+      @for (t of adjustmentTypes; track t) { <option [value]="t">{{ t }}</option> }
+    </select>
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Units</label>
+    <input type="number" step="0.01" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="units()" (input)="units.set($any($event.target).valueAsNumber || null)" />
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">NAV (₹)</label>
+    <input type="number" step="0.01" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="nav()" (input)="nav.set($any($event.target).valueAsNumber || null)" />
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Date</label>
+    <input type="date" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="date()" (input)="date.set($any($event.target).value)" />
+  </div>
+  <div class="md:col-span-3 flex justify-end">
+    <button class="bg-primary-container text-on-primary px-5 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="record()">Record Adjustment</button>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="p-4 border-b border-outline-variant"><h3 class="text-title-lg text-on-background">Adjustment Log</h3></div>
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Policy No.</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Fund</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Type</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Units</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">NAV</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Amount</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Date</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (a of svc.ulipAdjustments(); track a.id) {
+        <tr>
+          <td class="py-2 px-4 font-mono text-xs">{{ a.policyNumber }}</td>
+          <td class="py-2 px-4 text-xs">{{ a.fundName }}</td>
+          <td class="py-2 px-4 text-xs">{{ a.adjustmentType }}</td>
+          <td class="py-2 px-4 text-right font-mono">{{ a.units | number: '1.2-2' }}</td>
+          <td class="py-2 px-4 text-right font-mono">₹{{ a.nav }}</td>
+          <td class="py-2 px-4 text-right font-mono">₹{{ a.amount | number }}</td>
+          <td class="py-2 px-4 text-xs">{{ a.date | date: 'mediumDate' }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,27 @@
+<div class="flex flex-col items-center text-center gap-4 py-4">
+  <div class="w-20 h-20 rounded-full bg-primary-container/10 flex items-center justify-center">
+    <span class="material-symbols-outlined text-primary-container text-[44px]">waving_hand</span>
+  </div>
+  <h2 class="text-headline-lg text-on-background">Welcome to WealthOS</h2>
+  <p class="text-on-surface-variant max-w-md">
+    Let's get your account set up. This takes about 5 minutes and covers your risk profile, personal details, and KYC documents.
+  </p>
+</div>
+
+<div class="mt-6 space-y-3">
+  @for (s of steps; track s.title) {
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex items-center gap-4">
+      <div class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-secondary">{{ s.icon }}</span>
+      </div>
+      <div>
+        <p class="font-semibold text-on-background">{{ s.title }}</p>
+        <p class="text-xs text-on-surface-variant mt-0.5">{{ s.description }}</p>
+      </div>
+    </div>
+  }
+</div>
+
+<button class="w-full mt-6 bg-primary-container text-on-primary py-3 rounded-md font-medium hover:opacity-90 transition-opacity" (click)="start()">
+  Start Onboarding
+</button>

@@ -1,0 +1,85 @@
+<div class="min-h-screen bg-background flex items-center justify-center p-6">
+  <div class="w-full max-w-md">
+    <div class="flex flex-col items-center mb-8">
+      <img src="/branding/logo-icon.png" alt="" class="w-14 h-14 rounded-2xl object-cover mb-3" />
+      <h1 class="text-headline-lg-mobile text-on-background font-bold">WealthOS</h1>
+      <p class="text-sm text-on-surface-variant mt-1">Sign in to your account</p>
+    </div>
+
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 sm:p-8 shadow-sm space-y-5">
+      <div>
+        <label class="text-sm font-medium text-on-background block mb-2">Sign in as</label>
+        <div class="grid grid-cols-3 gap-2">
+          @for (r of roles; track r) {
+            <button
+              type="button"
+              class="py-2 rounded-md text-xs font-medium border transition-colors truncate px-1"
+              [class]="selectedRole() === r ? 'bg-primary-container text-on-primary border-primary-container' : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-low'"
+              (click)="selectedRole.set(r)"
+            >
+              {{ roleLabels[r] }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div>
+        <label class="text-sm font-medium text-on-background block mb-2">Email</label>
+        <input
+          type="email"
+          autocomplete="email"
+          class="w-full px-4 py-2.5 border border-outline-variant rounded-md text-sm bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+          placeholder="you@example.com"
+          [value]="email()"
+          (input)="email.set($any($event.target).value)"
+          (keydown.enter)="submit()"
+        />
+      </div>
+
+      <div>
+        <div class="flex justify-between items-center mb-2">
+          <label class="text-sm font-medium text-on-background">Password</label>
+          <button type="button" class="text-xs text-secondary hover:underline">Forgot password?</button>
+        </div>
+        <div class="relative">
+          <input
+            [type]="showPassword() ? 'text' : 'password'"
+            autocomplete="current-password"
+            class="w-full px-4 py-2.5 pr-10 border border-outline-variant rounded-md text-sm bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+            placeholder="Enter your password"
+            [value]="password()"
+            (input)="password.set($any($event.target).value)"
+            (keydown.enter)="submit()"
+          />
+          <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant" (click)="showPassword.set(!showPassword())">
+            <span class="material-symbols-outlined text-[18px]">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+      </div>
+
+      @if (error()) {
+        <div class="bg-error-container/50 rounded-lg p-3 text-sm text-on-error-container flex gap-2">
+          <span class="material-symbols-outlined text-[18px] shrink-0">error</span>
+          <span>{{ error() }}</span>
+        </div>
+      }
+
+      <button
+        class="w-full bg-primary-container text-on-primary py-3 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+        [disabled]="submitting()"
+        (click)="submit()"
+      >
+        {{ submitting() ? 'Signing in…' : 'Sign In' }}
+      </button>
+
+      <button type="button" class="w-full text-center text-secondary text-sm font-medium hover:underline" (click)="fillDemo()">
+        Use demo credentials
+      </button>
+    </div>
+
+    <p class="text-center text-sm text-on-surface-variant mt-6">
+      Don't have an account?
+      <a routerLink="/signup" class="text-secondary font-medium hover:underline">Sign up</a>
+    </p>
+  </div>
+</div>

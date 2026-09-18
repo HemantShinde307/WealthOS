@@ -1,0 +1,83 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">PMS Transaction Detail</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Log Portfolio Management Service transactions. {{ svc.pmsTransactions().length }} transactions recorded.</p>
+</div>
+
+@if (saved()) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">check_circle</span> Transaction recorded.
+  </div>
+}
+@if (error()) {
+  <div class="bg-error/10 border border-error/40 rounded-lg p-4 text-error text-sm">{{ error() }}</div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Client</label>
+    <input class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="clientName()" (input)="clientName.set($any($event.target).value)" />
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Strategy</label>
+    <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="strategy()" (change)="strategy.set($any($event.target).value)">
+      @for (s of strategies; track s) { <option [value]="s">{{ s }}</option> }
+    </select>
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Transaction Type</label>
+    <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="transactionType()" (change)="transactionType.set($any($event.target).value)">
+      @for (t of transactionTypes; track t) { <option [value]="t">{{ t }}</option> }
+    </select>
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Security</label>
+    <input class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="securityName()" (input)="securityName.set($any($event.target).value)" placeholder="e.g. Larsen & Toubro Ltd" />
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Quantity</label>
+    <input type="number" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="quantity()" (input)="quantity.set($any($event.target).valueAsNumber || null)" />
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Amount (₹)</label>
+    <input type="number" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="amount()" (input)="amount.set($any($event.target).valueAsNumber || null)" />
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Date</label>
+    <input type="date" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="date()" (input)="date.set($any($event.target).value)" />
+  </div>
+  <div class="md:col-span-3 flex justify-end">
+    <button class="bg-primary-container text-on-primary px-5 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="record()">Record Transaction</button>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="p-4 border-b border-outline-variant"><h3 class="text-title-lg text-on-background">Transaction Log</h3></div>
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Client</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Strategy</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Type</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Security</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Qty</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Amount</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Date</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (t of svc.pmsTransactions(); track t.id) {
+        <tr>
+          <td class="py-2 px-4">{{ t.clientName }}</td>
+          <td class="py-2 px-4 text-xs">{{ t.strategy }}</td>
+          <td class="py-2 px-4 text-xs">
+            <span [class.text-on-tertiary-container]="t.transactionType === 'Buy' || t.transactionType === 'Dividend'" [class.text-error]="t.transactionType === 'Sell' || t.transactionType === 'Fee Debit'">{{ t.transactionType }}</span>
+          </td>
+          <td class="py-2 px-4 text-xs">{{ t.securityName }}</td>
+          <td class="py-2 px-4 text-right font-mono">{{ t.quantity ? (t.quantity | number) : '—' }}</td>
+          <td class="py-2 px-4 text-right font-mono">₹{{ t.amount | number }}</td>
+          <td class="py-2 px-4 text-xs">{{ t.date | date: 'mediumDate' }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

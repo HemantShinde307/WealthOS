@@ -1,0 +1,54 @@
+<div class="min-h-screen bg-background text-on-surface flex flex-col">
+  <header class="sticky top-0 z-20 bg-surface-container-lowest border-b border-outline-variant">
+    <div class="max-w-3xl mx-auto w-full px-4 sm:px-6 h-16 flex items-center gap-3">
+      @if (!childData().hideBack) {
+        <button class="p-2 -ml-2 rounded-full text-on-surface-variant hover:bg-surface-container-low transition-colors" (click)="goBack()">
+          <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+      }
+      <div class="min-w-0">
+        <h1 class="text-title-lg font-semibold text-on-background truncate">{{ childData().title }}</h1>
+        @if (childData().subtitle) {
+          <p class="text-xs text-on-surface-variant truncate">{{ childData().subtitle }}</p>
+        }
+      </div>
+    </div>
+
+    @if (steps.length) {
+      <div class="max-w-3xl mx-auto w-full px-4 sm:px-6 pb-4">
+        <div class="flex items-center gap-2">
+          @for (step of steps; track step; let i = $index) {
+            <div class="flex-1 flex items-center gap-2">
+              <div
+                class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-colors"
+                [class]="i < (childData().stepIndex ?? 0)
+                  ? 'bg-tertiary-container text-on-tertiary-container'
+                  : i === (childData().stepIndex ?? 0)
+                    ? 'bg-primary-container text-on-primary'
+                    : 'bg-surface-container-high text-on-surface-variant'"
+              >
+                @if (i < (childData().stepIndex ?? 0)) {
+                  <span class="material-symbols-outlined text-[16px]">check</span>
+                } @else {
+                  {{ i + 1 }}
+                }
+              </div>
+              <span class="hidden sm:inline text-xs font-medium truncate" [class.text-on-background]="i === (childData().stepIndex ?? 0)" [class.text-on-surface-variant]="i !== (childData().stepIndex ?? 0)">
+                {{ step }}
+              </span>
+              @if (i < steps.length - 1) {
+                <div class="flex-1 h-px bg-outline-variant"></div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </header>
+
+  <main class="flex-1">
+    <div class="max-w-3xl mx-auto w-full px-4 sm:px-6 py-6">
+      <router-outlet />
+    </div>
+  </main>
+</div>

@@ -1,0 +1,105 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Performance Attribution</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Brinson-Fachler model analysis of active return drivers.</p>
+  </div>
+  <div class="flex gap-2 bg-surface-container-low p-1 rounded-md">
+    @for (p of periods; track p) {
+      <button
+        class="px-3 py-1 rounded text-xs font-medium transition-colors"
+        [class]="p === selectedPeriod ? 'bg-surface-container-lowest shadow-sm text-on-background' : 'text-on-surface-variant hover:bg-surface-container-lowest'"
+        (click)="selectedPeriod = p"
+      >
+        {{ p }}
+      </button>
+    }
+  </div>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Total Portfolio Return</p>
+    <span class="font-mono text-2xl font-bold text-on-background">+{{ portfolioReturn }}%</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Benchmark Return</p>
+    <span class="font-mono text-2xl font-bold text-on-background">+{{ benchmarkReturn }}%</span>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm border-b-4 border-b-on-tertiary-container">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Total Active Return (Alpha)</p>
+    <span class="font-mono text-2xl font-bold text-on-tertiary-container">+{{ activeReturn }}%</span>
+  </div>
+</div>
+
+<!-- Waterfall Chart -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+  <div class="flex justify-between items-center mb-8">
+    <h3 class="text-title-lg text-on-background">Return Breakdown (Waterfall)</h3>
+    <div class="flex gap-4 text-xs">
+      <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-sm bg-on-background"></div><span class="text-on-surface-variant">Base</span></div>
+      <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-sm bg-on-tertiary-container"></div><span class="text-on-surface-variant">Positive</span></div>
+      <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded-sm bg-error"></div><span class="text-on-surface-variant">Negative</span></div>
+    </div>
+  </div>
+  <div class="relative h-[260px] flex items-end justify-around gap-4 border-b border-outline-variant/60 px-4">
+    @for (bar of waterfall; track bar.label) {
+      <div class="relative flex-1 h-full flex flex-col items-center justify-end">
+        <div
+          class="w-full max-w-[72px] rounded-sm"
+          [class]="bar.kind === 'base' ? 'bg-on-background' : bar.kind === 'positive' ? 'bg-on-tertiary-container' : 'bg-error'"
+          [style.height.%]="barHeightPct(bar)"
+          [style.marginBottom.%]="barBottomPct(bar)"
+        ></div>
+        <span class="absolute -bottom-6 text-xs font-medium text-on-surface-variant whitespace-nowrap">{{ bar.label }}</span>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Sector & Manager Breakdown -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden flex flex-col">
+  <div class="p-6 border-b border-outline-variant flex justify-between items-center">
+    <h3 class="text-title-lg text-on-background">Sector &amp; Manager Breakdown</h3>
+    <button class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface px-3 py-1.5 rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium shadow-sm">
+      <span class="material-symbols-outlined text-[16px]">download</span>
+      Export
+    </button>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[800px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Sector / Manager</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Weight (Port)</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Weight (BM)</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Allocation</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Selection</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Interaction</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Total Effect</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (r of rows; track r.label) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors" [class.bg-surface-container-low]="!r.isSubRow">
+            <td class="py-2.5 px-4" [class]="r.isSubRow ? 'pl-8 text-on-surface-variant' : 'font-semibold text-on-background'">{{ r.label }}</td>
+            <td class="py-2.5 px-4 text-right font-mono">{{ r.weightPort | number: '1.2-2' }}%</td>
+            <td class="py-2.5 px-4 text-right font-mono">{{ r.weightBm !== null ? (r.weightBm | number: '1.2-2') + '%' : '—' }}</td>
+            <td class="py-2.5 px-4 text-right font-mono" [class]="r.allocation >= 0 ? 'text-on-tertiary-container' : 'text-error'">{{ r.allocation >= 0 ? '+' : '' }}{{ r.allocation | number: '1.2-2' }}%</td>
+            <td class="py-2.5 px-4 text-right font-mono" [class]="r.selection >= 0 ? 'text-on-tertiary-container' : 'text-error'">{{ r.selection >= 0 ? '+' : '' }}{{ r.selection | number: '1.2-2' }}%</td>
+            <td class="py-2.5 px-4 text-right font-mono" [class]="r.interaction >= 0 ? 'text-on-tertiary-container' : 'text-error'">{{ r.interaction >= 0 ? '+' : '' }}{{ r.interaction | number: '1.2-2' }}%</td>
+            <td class="py-2.5 px-4 text-right font-mono font-semibold" [class]="r.totalEffect >= 0 ? 'text-on-tertiary-container' : 'text-error'">{{ r.totalEffect >= 0 ? '+' : '' }}{{ r.totalEffect | number: '1.2-2' }}%</td>
+          </tr>
+        }
+        <tr class="border-t-2 border-on-background/80 font-bold text-on-background">
+          <td class="py-3 px-4">Total</td>
+          <td class="py-3 px-4 text-right font-mono">{{ totalPortWeight | number: '1.2-2' }}%</td>
+          <td class="py-3 px-4 text-right font-mono">{{ totalBmWeight | number: '1.2-2' }}%</td>
+          <td class="py-3 px-4 text-right font-mono">+{{ allocationEffect | number: '1.2-2' }}%</td>
+          <td class="py-3 px-4 text-right font-mono">+{{ selectionEffect | number: '1.2-2' }}%</td>
+          <td class="py-3 px-4 text-right font-mono">{{ interactionEffect | number: '1.2-2' }}%</td>
+          <td class="py-3 px-4 text-right font-mono text-on-tertiary-container">+{{ totalEffect | number: '1.2-2' }}%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

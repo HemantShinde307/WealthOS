@@ -1,0 +1,88 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Risk Profile Batch Edit</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Filter customers, select the ones to update, and apply a new risk profile to all of them at once.</p>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 items-end">
+  <div>
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Segment</label>
+    <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="segmentFilter()" (change)="segmentFilter.set($any($event.target).value)">
+      <option>All</option>
+      <option>Retail</option>
+      <option>HNI</option>
+      <option>Corporate</option>
+      <option>NRI</option>
+      <option>Family Office</option>
+    </select>
+  </div>
+  <div>
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Current Risk Profile</label>
+    <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="currentRiskFilter()" (change)="currentRiskFilter.set($any($event.target).value)">
+      <option>All</option>
+      <option>Conservative</option>
+      <option>Moderate</option>
+      <option>Aggressive</option>
+    </select>
+  </div>
+  <div>
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">New Risk Profile</label>
+    <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="newRiskProfile()" (change)="newRiskProfile.set($any($event.target).value)">
+      <option>Conservative</option>
+      <option>Moderate</option>
+      <option>Aggressive</option>
+    </select>
+  </div>
+  <div class="sm:col-span-2 md:col-span-4">
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Reason for Bulk Update * <span class="normal-case text-on-surface-variant">(kept in the SEBI-style audit trail)</span></label>
+    <input
+      class="w-full bg-surface-container-lowest border rounded-md px-3 py-2 text-sm text-on-background"
+      [class.border-outline-variant]="!reasonError()"
+      [class.border-error]="reasonError()"
+      placeholder="e.g. Annual review cycle for Q3 2026"
+      [value]="reason()"
+      (input)="reason.set($any($event.target).value)"
+    />
+    @if (reasonError()) {
+      <p class="text-error text-xs mt-1">A reason is required before applying a bulk risk profile change.</p>
+    }
+  </div>
+  <button
+    class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium disabled:opacity-40 h-fit"
+    [disabled]="!selectedIds().size"
+    (click)="apply()"
+  >
+    Apply to {{ selectedIds().size }} Selected
+  </button>
+</div>
+
+@if (applied()) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">check_circle</span> Risk profile updated.
+  </div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-3 px-4 w-10"><input type="checkbox" (change)="toggleAll()" /></th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Customer</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Segment</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Current Risk Profile</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (c of filtered(); track c.id) {
+        <tr class="hover:bg-surface-container-low/50 transition-colors">
+          <td class="py-3 px-4"><input type="checkbox" [checked]="selectedIds().has(c.id)" (change)="toggle(c.id)" /></td>
+          <td class="py-3 px-4 font-medium text-on-background">{{ c.name }}</td>
+          <td class="py-3 px-4"><span class="bg-surface-container-low text-on-surface px-2 py-0.5 rounded text-xs">{{ c.segment }}</span></td>
+          <td class="py-3 px-4 text-xs">{{ c.riskProfile }}</td>
+        </tr>
+      }
+      @if (!filtered().length) {
+        <tr><td colspan="4" class="py-10 text-center text-on-surface-variant">No customers match these filters.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>

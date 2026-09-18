@@ -1,0 +1,76 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Application Configuration</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Platform-wide behaviour, security, and communication defaults.</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col gap-4">
+    <h3 class="text-title-lg text-on-background pb-2 border-b border-outline-variant">Access &amp; Security</h3>
+
+    <label class="flex items-center justify-between gap-4 py-1">
+      <span class="text-sm text-on-background">Allow online transactions</span>
+      <input type="checkbox" [checked]="draft().allowOnlineTransactions" (change)="toggle('allowOnlineTransactions')" />
+    </label>
+    <label class="flex items-center justify-between gap-4 py-1">
+      <span class="text-sm text-on-background">Enable two-factor authentication</span>
+      <input type="checkbox" [checked]="draft().enableTwoFactorAuth" (change)="toggle('enableTwoFactorAuth')" />
+    </label>
+    <label class="flex items-center justify-between gap-4 py-1">
+      <span class="text-sm text-on-background">Allow paperless KYC</span>
+      <input type="checkbox" [checked]="draft().allowPaperlessKyc" (change)="toggle('allowPaperlessKyc')" />
+    </label>
+
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Auto-logout after (minutes)</label>
+      <input type="number" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm font-mono text-on-background" [value]="draft().autoLogoutMinutes" (input)="setField('autoLogoutMinutes', +$any($event.target).value)" />
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Max login attempts before lockout</label>
+      <input type="number" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm font-mono text-on-background" [value]="draft().maxLoginAttempts" (input)="setField('maxLoginAttempts', +$any($event.target).value)" />
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Auto-lock inactive accounts after (days)</label>
+      <input type="number" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm font-mono text-on-background" [value]="draft().autoLockInactiveDays" (input)="setField('autoLockInactiveDays', +$any($event.target).value)" />
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col gap-4">
+    <h3 class="text-title-lg text-on-background pb-2 border-b border-outline-variant">Communication &amp; Defaults</h3>
+
+    <label class="flex items-center justify-between gap-4 py-1">
+      <span class="text-sm text-on-background">Enable SMS alerts</span>
+      <input type="checkbox" [checked]="draft().enableSmsAlerts" (change)="toggle('enableSmsAlerts')" />
+    </label>
+    <label class="flex items-center justify-between gap-4 py-1">
+      <span class="text-sm text-on-background">Enable email alerts</span>
+      <input type="checkbox" [checked]="draft().enableEmailAlerts" (change)="toggle('enableEmailAlerts')" />
+    </label>
+
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Default risk profile for new customers</label>
+      <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="draft().defaultRiskProfile" (change)="setField('defaultRiskProfile', $any($event.target).value)">
+        <option>Conservative</option>
+        <option>Moderate</option>
+        <option>Aggressive</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Support email</label>
+      <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="draft().supportEmail" (input)="setField('supportEmail', $any($event.target).value)" />
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Support phone</label>
+      <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm font-mono text-on-background" [value]="draft().supportPhone" (input)="setField('supportPhone', $any($event.target).value)" />
+    </div>
+  </div>
+</div>
+
+<div class="flex items-center gap-3">
+  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="save()">Save Configuration</button>
+  <button class="px-4 py-2 border border-outline-variant rounded-md text-sm font-medium text-on-surface hover:bg-surface-container-low" (click)="reset()">Reset</button>
+  @if (saved()) {
+    <span class="text-on-tertiary-container text-sm flex items-center gap-1">
+      <span class="material-symbols-outlined text-[16px]">check_circle</span> Saved
+    </span>
+  }
+</div>

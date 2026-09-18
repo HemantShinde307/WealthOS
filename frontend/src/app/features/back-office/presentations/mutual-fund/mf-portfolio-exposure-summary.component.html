@@ -1,0 +1,49 @@
+<app-report-header title="Portfolio Exposure Summary" subtitle="Concentration by AMC and by fund category — a quick check for over-exposure to any single fund house." />
+
+<div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+  <app-stat-card label="AMCs Held" [value]="amcExposure().length + ''" />
+  <app-stat-card label="Fund Categories" [value]="categoryExposure().length + ''" />
+  @if (topConcentration(); as top) {
+    <app-stat-card label="Largest AMC Exposure" [value]="top.amc + ' · ' + top.pct + '%'" />
+  }
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+    <h3 class="text-title-lg text-on-background mb-4">Exposure by AMC</h3>
+    <div class="space-y-3">
+      @for (a of amcExposure(); track a.amc) {
+        <div>
+          <div class="flex justify-between text-sm mb-1">
+            <span class="text-on-surface">{{ a.amc }}</span>
+            <span class="font-mono font-medium">₹{{ a.value | number: '1.0-0' }} ({{ a.pct }}%)</span>
+          </div>
+          <div class="h-2 rounded-full bg-surface-container-low overflow-hidden">
+            <div class="h-full bg-secondary" [style.width.%]="a.pct"></div>
+          </div>
+        </div>
+      } @empty {
+        <p class="text-sm text-on-surface-variant">No mutual fund holdings for this customer.</p>
+      }
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+    <h3 class="text-title-lg text-on-background mb-4">Exposure by Fund Category</h3>
+    <div class="space-y-3">
+      @for (c of categoryExposure(); track c.category) {
+        <div>
+          <div class="flex justify-between text-sm mb-1">
+            <span class="text-on-surface">{{ c.category }}</span>
+            <span class="font-mono font-medium">₹{{ c.value | number: '1.0-0' }} ({{ c.pct }}%)</span>
+          </div>
+          <div class="h-2 rounded-full bg-surface-container-low overflow-hidden">
+            <div class="h-full bg-primary-container" [style.width.%]="c.pct"></div>
+          </div>
+        </div>
+      } @empty {
+        <p class="text-sm text-on-surface-variant">No mutual fund holdings for this customer.</p>
+      }
+    </div>
+  </div>
+</div>

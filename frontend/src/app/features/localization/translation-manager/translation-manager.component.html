@@ -1,0 +1,199 @@
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Content Translation</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Manage UI translation strings across supported locales.</p>
+  </div>
+  <div class="flex flex-wrap items-center gap-3">
+    <div class="flex items-center gap-4 px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg">
+      <label class="flex items-center gap-2 cursor-pointer">
+        <span class="text-body-sm font-medium text-on-background">RTL Layout</span>
+        <button
+          class="relative inline-flex items-center w-9 h-5 rounded-full transition-colors"
+          [class]="rtlLayout() ? 'bg-secondary' : 'bg-outline-variant'"
+          (click)="rtlLayout.set(!rtlLayout())"
+        >
+          <span class="inline-block w-4 h-4 bg-white rounded-full transition-transform" [class]="rtlLayout() ? 'translate-x-4' : 'translate-x-0.5'"></span>
+        </button>
+      </label>
+      <div class="w-px h-4 bg-outline-variant"></div>
+      <label class="flex items-center gap-2 cursor-pointer">
+        <span class="text-body-sm font-medium text-on-background">Live Preview</span>
+        <button
+          class="relative inline-flex items-center w-9 h-5 rounded-full transition-colors"
+          [class]="livePreview() ? 'bg-secondary' : 'bg-outline-variant'"
+          (click)="livePreview.set(!livePreview())"
+        >
+          <span class="inline-block w-4 h-4 bg-white rounded-full transition-transform" [class]="livePreview() ? 'translate-x-4' : 'translate-x-0.5'"></span>
+        </button>
+      </label>
+    </div>
+    <button class="flex items-center gap-2 px-4 py-2 border border-outline-variant rounded-lg bg-surface-container-lowest text-on-background hover:bg-surface-container transition-colors text-body-md font-medium">
+      <span class="material-symbols-outlined text-[18px]">upload</span> Upload JSON
+    </button>
+    <button class="flex items-center gap-2 px-4 py-2 bg-primary-container text-on-primary rounded-lg hover:opacity-90 transition-opacity text-body-md font-semibold shadow-sm">
+      <span class="material-symbols-outlined text-[18px]">download</span> Export Data
+    </button>
+  </div>
+</div>
+
+<!-- Locale cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+  @for (locale of locales; track locale.code) {
+    @if (locale.isSource) {
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col justify-between opacity-70">
+        <div class="flex items-start justify-between mb-4">
+          <div>
+            <h3 class="text-title-lg text-on-background">{{ locale.name }}</h3>
+            <p class="text-label-caps text-on-surface-variant mt-1 uppercase">Source / {{ locale.code }}</p>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant">check_circle</span>
+        </div>
+        <div>
+          <div class="flex justify-between items-end mb-1">
+            <span class="text-body-sm font-medium text-on-background">{{ locale.completionPct }}% Complete</span>
+            <span class="font-mono text-body-sm text-on-surface-variant">{{ locale.totalStrings | number }} strings</span>
+          </div>
+          <div class="w-full h-1.5 bg-surface-variant rounded-full overflow-hidden">
+            <div class="bg-primary h-full rounded-full" style="width: 100%"></div>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div
+        class="bg-surface-container-lowest rounded-lg p-4 flex flex-col justify-between relative cursor-pointer transition-colors"
+        [class]="locale.code === targetLocale() ? 'border-2 border-secondary shadow-sm' : 'border border-outline-variant hover:border-outline'"
+        (click)="selectLocale(locale.code)"
+      >
+        @if (locale.code === targetLocale()) {
+          <div class="absolute top-0 right-0 bg-secondary text-on-secondary text-[10px] px-2 py-1 rounded-bl-lg uppercase">Editing</div>
+        }
+        <div class="flex items-start justify-between mb-4">
+          <div>
+            <h3 class="text-title-lg text-on-background">{{ locale.name }}</h3>
+            <p class="text-label-caps text-on-surface-variant mt-1 uppercase">Target / {{ locale.code }}{{ locale.rtl ? ' / RTL' : '' }}</p>
+          </div>
+          @if (locale.code === targetLocale()) {
+            <span class="material-symbols-outlined text-secondary">edit</span>
+          }
+        </div>
+        <div>
+          <div class="flex justify-between items-end mb-1">
+            <span class="text-body-sm font-medium" [class]="locale.completionPct >= 90 ? 'text-on-background' : 'text-gold'">{{ locale.completionPct }}% Complete</span>
+            <span class="font-mono text-body-sm text-on-surface-variant">{{ locale.pendingStrings | number }} pending</span>
+          </div>
+          <div class="w-full h-1.5 bg-surface-variant rounded-full overflow-hidden flex">
+            <div class="bg-on-tertiary-container h-full" [style.width.%]="locale.completionPct"></div>
+            <div class="bg-gold h-full" [style.width.%]="100 - locale.completionPct"></div>
+          </div>
+        </div>
+      </div>
+    }
+  }
+  <button
+    class="bg-surface border border-dashed border-outline-variant hover:border-secondary transition-colors rounded-lg p-4 flex flex-col items-center justify-center gap-2 text-on-surface-variant hover:text-secondary"
+  >
+    <div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center">
+      <span class="material-symbols-outlined">add</span>
+    </div>
+    <span class="text-body-md font-medium">Add Language</span>
+  </button>
+</div>
+
+<!-- Translation string grid -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg flex-1 flex flex-col overflow-hidden">
+  <div class="p-4 border-b border-outline-variant flex flex-wrap items-center justify-between gap-3 bg-surface-bright">
+    <div class="flex items-center gap-2">
+      <button
+        class="px-3 py-1.5 rounded-lg text-label-caps uppercase transition-colors"
+        [class]="filterMode() === 'all' ? 'bg-surface-container-highest text-on-background' : 'border border-outline-variant text-on-background hover:bg-surface-container'"
+        (click)="setFilter('all')"
+      >
+        All Strings
+      </button>
+      <button
+        class="px-3 py-1.5 rounded-lg border text-label-caps uppercase transition-colors flex items-center gap-1"
+        [class]="filterMode() === 'missing' ? 'bg-surface-container-highest border-outline-variant text-on-background' : 'border-outline-variant text-on-background hover:bg-surface-container'"
+        (click)="setFilter('missing')"
+      >
+        <span class="w-2 h-2 rounded-full bg-gold"></span> Missing ({{ missingCount() }})
+      </button>
+      <button
+        class="px-3 py-1.5 rounded-lg border text-label-caps uppercase transition-colors flex items-center gap-1"
+        [class]="filterMode() === 'review' ? 'bg-surface-container-highest border-outline-variant text-on-background' : 'border-outline-variant text-on-background hover:bg-surface-container'"
+        (click)="setFilter('review')"
+      >
+        <span class="w-2 h-2 rounded-full bg-secondary"></span> Needs Review ({{ reviewCount() }})
+      </button>
+    </div>
+    <select
+      class="border-outline-variant border rounded-lg text-body-sm py-1.5 pl-3 pr-8 focus:ring-secondary focus:border-secondary"
+      [value]="moduleFilter()"
+      (change)="setModuleFilter($any($event.target).value)"
+    >
+      <option value="all">Module: All</option>
+      @for (mod of modules; track mod) {
+        <option [value]="mod">Module: {{ mod }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="flex-1 overflow-auto">
+    <table class="w-full text-left border-collapse">
+      <thead class="sticky top-0 bg-surface-container-lowest z-10 border-b-2 border-primary">
+        <tr>
+          <th class="py-3 px-4 text-label-caps text-on-surface-variant w-[20%] uppercase">String Key ID</th>
+          <th class="py-3 px-4 text-label-caps text-on-surface-variant w-[35%] uppercase">Source Text (en-US)</th>
+          <th class="py-3 px-4 text-label-caps text-primary w-[35%] bg-secondary-fixed/30 uppercase" [attr.dir]="isTargetRtl() ? 'rtl' : 'ltr'">
+            Target Translation ({{ targetLocale() }})
+          </th>
+          <th class="py-3 px-4 text-label-caps text-on-surface-variant w-[10%] text-right uppercase">Status</th>
+        </tr>
+      </thead>
+      <tbody class="text-body-sm">
+        @for (entry of filteredEntries(); track entry.key; let odd = $odd) {
+          <tr class="border-b border-outline-variant hover:bg-surface-container-highest transition-colors" [class.bg-surface-container-low]="odd">
+            <td class="py-2 px-4 font-mono text-on-surface-variant align-top pt-3">{{ entry.key }}</td>
+            <td class="py-2 px-4 align-top pt-3 text-on-background">{{ entry.source }}</td>
+            <td class="py-1 px-1 align-top" [class]="statusOf(entry) === 'missing' ? 'bg-error-container/30' : 'bg-secondary-fixed/10'">
+              <textarea
+                class="w-full bg-transparent border border-transparent hover:border-outline-variant focus:border-secondary focus:bg-surface-container-lowest focus:ring-0 rounded p-2 resize-none text-body-md"
+                [attr.dir]="isTargetRtl() ? 'rtl' : 'ltr'"
+                rows="2"
+                [value]="translationOf(entry)"
+                [placeholder]="statusOf(entry) === 'missing' ? 'Enter translation...' : ''"
+                (input)="updateTranslation(entry, $any($event.target).value)"
+              ></textarea>
+            </td>
+            <td class="py-2 px-4 text-right align-top pt-3">
+              @switch (statusOf(entry)) {
+                @case ('approved') {
+                  <span class="inline-flex items-center gap-1 text-on-tertiary-container font-medium">
+                    <span class="material-symbols-outlined text-[14px]">done</span> Approved
+                  </span>
+                }
+                @case ('review') {
+                  <button class="inline-flex items-center gap-1 text-secondary font-medium hover:underline" (click)="approve(entry)">
+                    <span class="material-symbols-outlined text-[14px]">visibility</span> Review
+                  </button>
+                }
+                @default {
+                  <span class="inline-flex items-center gap-1 text-gold font-medium bg-gold/10 px-2 py-0.5 rounded">
+                    <span class="material-symbols-outlined text-[14px]">warning</span> Missing
+                  </span>
+                }
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4" class="py-8 text-center text-on-surface-variant">No strings match this filter.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="p-4 border-t border-outline-variant flex items-center justify-between bg-surface-bright text-on-surface-variant text-body-sm">
+    <span>Showing {{ filteredEntries().length }} of {{ targetLocaleInfo().totalStrings | number }} entries</span>
+  </div>
+</div>

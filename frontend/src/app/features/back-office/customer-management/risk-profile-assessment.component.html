@@ -1,0 +1,170 @@
+@if (customer(); as c) {
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div class="flex items-center gap-2 text-on-surface-variant text-xs">
+      <a routerLink="/back-office/customer-management/master" class="hover:underline">Customers Master</a>
+      <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+      <a [routerLink]="['/back-office/customer-management/master', c.id]" class="hover:underline">{{ c.name }}</a>
+      <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+      <span class="text-on-background font-semibold">Risk Profile Assessment</span>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+      <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Current Profile</p>
+      <p class="font-mono text-xl font-bold text-on-background">{{ c.riskProfile }}</p>
+    </div>
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+      <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Method</p>
+      <p class="text-sm font-medium text-on-background mt-1">{{ c.riskProfileMethod ?? 'Never assessed' }}</p>
+    </div>
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+      <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Last Assessed</p>
+      <p class="text-sm font-medium text-on-background mt-1">{{ c.riskProfileAssessedOn ?? '—' }}</p>
+    </div>
+    <div class="rounded-lg p-4 border" [class]="reviewDue() ? 'bg-error-container border-error' : 'bg-on-tertiary-container/10 border-on-tertiary-container/40'">
+      <p class="text-label-md uppercase tracking-wider mb-1" [class]="reviewDue() ? 'text-on-error-container' : 'text-on-tertiary-container'">SEBI Review Status</p>
+      <p class="text-sm font-semibold mt-1" [class]="reviewDue() ? 'text-on-error-container' : 'text-on-tertiary-container'">
+        {{ reviewDue() ? 'Reassessment Due' : 'Up to date' }}
+      </p>
+    </div>
+  </div>
+
+  <div class="flex gap-2">
+    <button
+      class="px-4 py-2 rounded-md text-sm font-medium transition-colors"
+      [class]="mode() === 'Questionnaire' ? 'bg-primary-container text-on-primary' : 'bg-surface-container-lowest border border-outline-variant text-on-surface'"
+      (click)="setMode('Questionnaire')"
+    >
+      Auto — Risk Questionnaire
+    </button>
+    <button
+      class="px-4 py-2 rounded-md text-sm font-medium transition-colors"
+      [class]="mode() === 'Manual' ? 'bg-primary-container text-on-primary' : 'bg-surface-container-lowest border border-outline-variant text-on-surface'"
+      (click)="setMode('Manual')"
+    >
+      Manual Override
+    </button>
+  </div>
+
+  @if (mode() === 'Questionnaire') {
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col gap-6">
+      <p class="text-body-md text-on-surface-variant">
+        An illustrative SEBI-aligned suitability questionnaire covering age, income, horizon, objective, loss tolerance, experience, liquidity and
+        dependents — answer all {{ questions.length }} questions to compute a risk profile.
+      </p>
+
+      @for (q of questions; track q.id) {
+        <div class="border-b border-outline-variant pb-5 last:border-0 last:pb-0">
+          <p class="text-title-lg text-on-background text-sm font-semibold mb-3">{{ q.text }}</p>
+          <div class="flex flex-col gap-2">
+            @for (opt of q.options; track opt.label) {
+              <label class="flex items-center gap-2 text-sm cursor-pointer p-2 rounded-md hover:bg-surface-container-low" [class.bg-surface-container-low]="answers()[q.id] === opt.score">
+                <input type="radio" [name]="q.id" [checked]="answers()[q.id] === opt.score" (change)="answer(q.id, opt.score)" />
+                {{ opt.label }}
+              </label>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="flex items-center justify-between bg-surface-container-low rounded-lg p-4">
+        <div>
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Progress</p>
+          <p class="text-sm text-on-background">{{ answeredCount() }} of {{ questions.length }} answered · Score {{ runningScore() }}/{{ maxScore }}</p>
+          @if (previewProfile()) {
+            <p class="text-sm mt-1">Computed profile: <span class="font-semibold text-on-background">{{ previewProfile() }}</span></p>
+          }
+        </div>
+        <button
+          class="bg-primary-container text-on-primary px-5 py-2.5 rounded-md hover:opacity-90 transition-opacity text-sm font-medium disabled:opacity-40"
+          [disabled]="!canCompute()"
+          (click)="computeAndSave()"
+        >
+          Compute &amp; Save Risk Profile
+        </button>
+      </div>
+
+      @if (savedQuestionnaire(); as result) {
+        <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+          <span class="material-symbols-outlined text-[18px]">check_circle</span>
+          Saved — score {{ result.score }}/{{ maxScore }} maps to <strong class="ml-1">{{ result.profile }}</strong>.
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 max-w-xl flex flex-col gap-4">
+      <p class="text-body-md text-on-surface-variant">
+        Use this only when the questionnaire result doesn't reflect the customer's actual circumstances. A reason is required for the audit trail.
+      </p>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">New Risk Profile</label>
+        <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="manualProfile()" (change)="manualProfile.set($any($event.target).value)">
+          <option>Conservative</option>
+          <option>Moderate</option>
+          <option>Aggressive</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Reason for Override *</label>
+        <textarea
+          rows="3"
+          class="w-full bg-surface-container-lowest border rounded-md px-3 py-2 text-sm text-on-background"
+          [class.border-outline-variant]="!manualReasonError()"
+          [class.border-error]="manualReasonError()"
+          [value]="manualReason()"
+          (input)="manualReason.set($any($event.target).value)"
+          placeholder="e.g. Customer disclosed additional liquid assets not captured in the questionnaire"
+        ></textarea>
+        @if (manualReasonError()) {
+          <p class="text-error text-xs mt-1">A reason is required to override the risk profile.</p>
+        }
+      </div>
+      <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium w-fit" (click)="applyManual()">
+        Apply Manual Override
+      </button>
+      @if (manualSaved()) {
+        <p class="text-on-tertiary-container text-sm flex items-center gap-1">
+          <span class="material-symbols-outlined text-[16px]">check_circle</span> Risk profile updated.
+        </p>
+      }
+    </div>
+  }
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+    <div class="p-4 border-b border-outline-variant"><h3 class="text-title-lg text-on-background">Assessment History</h3></div>
+    <table class="w-full text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Date</th>
+          <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Method</th>
+          <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Profile</th>
+          <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Score</th>
+          <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Reason</th>
+          <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Assessed By</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (h of history(); track h.id) {
+          <tr>
+            <td class="py-2 px-4 text-xs text-on-surface-variant">{{ h.timestamp | date: 'medium' }}</td>
+            <td class="py-2 px-4 text-xs">{{ h.method }}</td>
+            <td class="py-2 px-4 font-medium">{{ h.profile }}</td>
+            <td class="py-2 px-4 text-xs">{{ h.score ? (h.score + '/' + h.maxScore) : '—' }}</td>
+            <td class="py-2 px-4 text-xs">{{ h.reason ?? '—' }}</td>
+            <td class="py-2 px-4 text-xs">{{ h.assessedBy }}</td>
+          </tr>
+        }
+        @if (!history().length) {
+          <tr><td colspan="6" class="py-8 text-center text-on-surface-variant">No assessments recorded yet.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+} @else {
+  <div class="flex flex-col items-center justify-center text-center py-16 gap-3">
+    <span class="material-symbols-outlined text-on-surface-variant text-[40px]">person_off</span>
+    <h2 class="text-title-lg text-on-background">Customer not found</h2>
+    <button class="text-secondary text-sm font-medium hover:underline" (click)="goToCustomer()">Back to Customers Master</button>
+  </div>
+}

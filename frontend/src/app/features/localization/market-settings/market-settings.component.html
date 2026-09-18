@@ -1,0 +1,111 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Market Settings</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Manage international market profiles, trading hours and regional operations.</p>
+  </div>
+  <span class="px-3 py-1.5 bg-surface-container-lowest border border-outline-variant rounded-full text-label-md text-on-surface-variant">
+    {{ activeCount() }} / {{ profiles().length }} markets active
+  </span>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- Active markets summary -->
+  <div class="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col">
+    <div class="p-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+      <h3 class="text-title-lg text-on-background flex items-center gap-2">
+        <span class="material-symbols-outlined text-secondary text-[20px]">public</span>
+        Active Market Profiles
+      </h3>
+      <span class="px-2 py-1 bg-surface-container-highest rounded text-label-caps text-on-surface-variant uppercase">
+        {{ activeCount() }} regions online
+      </span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+      @for (profile of profiles(); track profile.countryCode) {
+        <div class="bg-surface-container-low border border-outline-variant rounded-lg p-4 hover:shadow-sm transition-shadow">
+          <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded bg-surface-container-highest flex items-center justify-center text-label-caps font-bold">{{ profile.countryCode }}</div>
+              <h4 class="text-body-md font-semibold text-on-background">{{ profile.countryName }}</h4>
+            </div>
+            <span class="w-2 h-2 rounded-full" [class]="profile.status === 'active' ? 'bg-on-tertiary-container' : 'bg-outline-variant'"></span>
+          </div>
+          <div class="space-y-1.5 text-body-sm text-on-surface-variant border-t border-outline-variant pt-3">
+            <div class="flex justify-between"><span>Regulatory:</span><span class="font-mono text-on-background">{{ profile.regulator }}</span></div>
+            <div class="flex justify-between"><span>Primary Curr:</span><span class="font-mono text-on-background">{{ profile.primaryCurrency }}</span></div>
+            <div class="flex justify-between"><span>Format:</span><span class="font-mono text-on-background">{{ profile.dateFormat }}</span></div>
+            <div class="flex justify-between"><span>Language:</span><span class="text-on-background">{{ profile.languages }}</span></div>
+            <div class="flex justify-between"><span>Holidays (upcoming):</span><span class="font-mono text-on-background">{{ holidaysFor(profile.countryCode) }}</span></div>
+          </div>
+          <div class="mt-3 pt-3 border-t border-outline-variant flex justify-between items-center">
+            <span class="text-label-caps text-on-surface-variant uppercase">Trading hrs</span>
+            <button
+              class="relative inline-flex items-center w-9 h-5 rounded-full transition-colors"
+              [class]="profile.tradingHoursEnabled ? 'bg-secondary' : 'bg-outline-variant'"
+              (click)="toggleTradingHours(profile)"
+            >
+              <span class="inline-block w-4 h-4 bg-white rounded-full transition-transform" [class]="profile.tradingHoursEnabled ? 'translate-x-4' : 'translate-x-0.5'"></span>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Market readiness checklist -->
+  <div class="lg:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-title-lg text-on-background">Market Readiness</h3>
+      <button class="text-secondary text-label-caps hover:underline uppercase">New Deployment</button>
+    </div>
+    <div class="space-y-3 flex-1 overflow-y-auto">
+      @for (item of readiness; track item.id) {
+        <div class="flex gap-3 items-start p-3 bg-surface-container-low rounded-lg border border-outline-variant">
+          <span class="material-symbols-outlined text-[20px] mt-0.5" [class]="statusColor[item.status]">{{ statusIcon[item.status] }}</span>
+          <div class="w-full">
+            <div class="flex justify-between items-center">
+              <h4 class="text-body-md font-semibold text-on-background">{{ item.region }}</h4>
+              @if (item.status === 'in-progress') {
+                <span class="text-label-caps text-gold uppercase">In progress</span>
+              }
+            </div>
+            <p class="text-body-sm text-on-surface-variant mt-1">{{ item.note }}</p>
+            <div class="mt-2 w-full bg-surface-container-highest rounded-full h-1.5">
+              <div class="h-1.5 rounded-full" [class]="barColor[item.status]" [style.width.%]="item.progressPct"></div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Market holiday calendar -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="px-6 py-4 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+    <h3 class="text-title-lg text-on-background">Upcoming Market Holidays</h3>
+    <span class="text-label-caps text-on-surface-variant uppercase">{{ holidays.length }} entries</span>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead class="bg-surface-container-low/50 border-b border-outline-variant">
+        <tr class="text-label-md text-on-surface-variant uppercase tracking-wider">
+          <th class="px-6 py-3 font-semibold">Market</th>
+          <th class="px-6 py-3 font-semibold">Date</th>
+          <th class="px-6 py-3 font-semibold">Holiday</th>
+        </tr>
+      </thead>
+      <tbody class="text-body-sm divide-y divide-outline-variant">
+        @for (holiday of holidays; track holiday.countryCode + holiday.date) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="px-6 py-3">
+              <span class="px-1.5 py-0.5 rounded bg-surface-container border border-outline-variant/30 text-[10px] font-mono">{{ holiday.countryCode }}</span>
+            </td>
+            <td class="px-6 py-3 font-mono text-on-background">{{ holiday.date | date: 'MMM d, y' }}</td>
+            <td class="px-6 py-3 text-on-surface-variant">{{ holiday.name }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

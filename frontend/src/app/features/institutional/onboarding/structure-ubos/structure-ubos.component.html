@@ -1,0 +1,141 @@
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+  <h3 class="text-title-lg text-on-background">Business Structure &amp; UBO Mapping</h3>
+  <p class="text-body-md text-on-surface-variant mt-1">
+    Define the corporate hierarchy for <span class="font-medium text-on-background">{{ state.selectedEntity().name }}</span>.
+    Accurately map parent/subsidiary relationships and capture all Ultimate Beneficial Owners (UBOs) holding a stake of 10% or greater to ensure compliance with KYC/AML protocols.
+  </p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+  <div class="lg:col-span-2 flex flex-col gap-6">
+    <!-- Parent entity details -->
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+      <div class="flex justify-between items-center mb-4">
+        <h4 class="text-title-lg text-on-background flex items-center gap-2">
+          <span class="material-symbols-outlined text-on-surface-variant">account_balance</span>
+          Parent Entity Details
+        </h4>
+        <span class="px-2 py-0.5 rounded text-xs font-semibold bg-secondary-fixed text-on-secondary-fixed">PRIMARY</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+        <div>
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Legal Entity Name</p>
+          <p class="text-on-background font-medium">{{ state.selectedEntity().name }}</p>
+        </div>
+        <div>
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Jurisdiction of Incorporation</p>
+          <p class="text-on-background font-medium">{{ state.selectedEntity().jurisdiction }}</p>
+        </div>
+        <div>
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Entity Type</p>
+          <p class="text-on-background font-medium">{{ state.selectedEntity().entityType }}</p>
+        </div>
+        <div>
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Registration Number</p>
+          <p class="font-mono text-on-background">{{ state.selectedEntity().registrationNumber }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- UBO table -->
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden flex flex-col">
+      <div class="p-6 border-b border-outline-variant flex justify-between items-center">
+        <h4 class="text-title-lg text-on-background flex items-center gap-2">
+          <span class="material-symbols-outlined text-on-surface-variant">groups</span>
+          Beneficial Ownership (UBO) &gt; 10%
+        </h4>
+        <button class="flex items-center gap-1 px-3 py-1.5 bg-primary-container text-on-primary rounded-md text-xs font-medium hover:opacity-90 transition-opacity">
+          <span class="material-symbols-outlined text-[16px]">person_add</span> Add UBO
+        </button>
+      </div>
+      <div class="overflow-x-auto table-scroll">
+        <table class="w-full text-left border-collapse min-w-[480px]">
+          <thead class="bg-surface-container-low border-b border-outline-variant">
+            <tr>
+              <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Name / Entity</th>
+              <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Type</th>
+              <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Ownership %</th>
+              <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Verification</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+            @for (u of ubos; track u.name) {
+              <tr>
+                <td class="py-3 px-4 font-medium text-on-background">{{ u.name }}</td>
+                <td class="py-3 px-4">{{ u.type }}</td>
+                <td class="py-3 px-4 text-right font-mono">{{ u.ownershipPct.toFixed(2) }}%</td>
+                <td class="py-3 px-4">
+                  <span class="px-2 py-0.5 rounded text-xs font-semibold" [class]="verificationClass(u.verification)">{{ u.verification }}</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr class="border-t border-outline-variant">
+              <td class="py-3 px-4 font-semibold text-on-background" colspan="2">Total Accounted</td>
+              <td class="py-3 px-4 text-right font-mono font-semibold">{{ totalMappedPct().toFixed(2) }}%</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column -->
+  <div class="flex flex-col gap-6">
+    <div class="bg-on-background text-inverse-on-surface rounded-lg p-6 shadow-sm">
+      <h4 class="text-title-lg flex items-center gap-2 mb-4">
+        <span class="material-symbols-outlined">donut_large</span>
+        Structure Overview
+      </h4>
+      <p class="text-xs uppercase tracking-wider opacity-70 mb-1">Total Mapped Stake</p>
+      <div class="font-mono text-4xl font-bold mb-3">{{ totalMappedPct() }}%</div>
+      <div class="w-full h-2 rounded-full overflow-hidden flex bg-white/10 mb-4">
+        @for (u of ubos; track u.name) {
+          <div class="h-full" [style.width.%]="u.ownershipPct" [class]="$index === 0 ? 'bg-secondary' : $index === 1 ? 'bg-tertiary-fixed' : 'bg-primary-fixed'"></div>
+        }
+      </div>
+      <div class="space-y-1 text-sm mb-4">
+        @for (u of ubos; track u.name) {
+          <div class="flex justify-between opacity-90">
+            <span>{{ u.ownershipPct }}% {{ u.name }}</span>
+          </div>
+        }
+      </div>
+      @if (unaccountedPct() > 0) {
+        <div class="flex items-center gap-2 text-error-container text-xs font-medium pt-3 border-t border-white/10">
+          <span class="material-symbols-outlined text-[16px]">warning</span>
+          {{ unaccountedPct() }}% Unaccounted - Action Required
+        </div>
+      }
+    </div>
+
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+      <h4 class="text-title-lg text-on-background flex items-center gap-2 mb-4">
+        <span class="material-symbols-outlined text-on-surface-variant">badge</span>
+        Authorized Signatories
+      </h4>
+      <div class="space-y-3">
+        @for (s of signatories; track s.name) {
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-primary-container text-on-primary flex items-center justify-center text-xs font-semibold shrink-0">
+              {{ s.name.charAt(0) }}
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-on-background truncate">{{ s.name }}</p>
+              <p class="text-xs text-on-surface-variant truncate">{{ s.role }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="flex justify-end mt-6">
+  <button (click)="continue()" class="flex items-center gap-2 bg-primary-container text-on-primary px-6 py-2.5 rounded-md text-sm font-medium hover:opacity-90 transition-opacity">
+    Continue to Document Vault
+    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+  </button>
+</div>

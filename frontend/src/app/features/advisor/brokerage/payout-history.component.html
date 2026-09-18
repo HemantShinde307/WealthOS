@@ -1,0 +1,72 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div class="flex items-center gap-3">
+    <a routerLink="/advisor/brokerage" class="text-on-surface-variant hover:text-on-background transition-colors">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </a>
+    <div>
+      <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Payout History</h2>
+      <p class="text-body-md text-on-surface-variant mt-1">Historical ledger of all settled commission transfers.</p>
+    </div>
+  </div>
+  <button class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium shadow-sm">
+    <span class="material-symbols-outlined text-[18px]">download</span>
+    Export Ledger
+  </button>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-sm">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Total Paid-to-Date</p>
+    <p class="font-mono text-2xl font-bold text-on-background">{{ totals().totalPaid | inrCompact }}</p>
+    <p class="text-xs text-on-tertiary-container mt-1 flex items-center gap-1">
+      <span class="material-symbols-outlined text-[14px]">arrow_upward</span> +12.4% vs last FY
+    </p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-sm">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Total TDS Deducted</p>
+    <p class="font-mono text-2xl font-bold text-on-background">{{ totals().totalTds | inrCompact }}</p>
+    <p class="text-xs text-on-surface-variant mt-1">Current FY</p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-sm">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Pending Reconciliation</p>
+    <p class="font-mono text-2xl font-bold text-payout-gold">{{ totals().pending | inrCompact }}</p>
+    <p class="text-xs text-payout-gold mt-1">Batches awaiting clearance</p>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden flex flex-col">
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[800px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b-2 border-primary-container">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Payout ID</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Period</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Gross Amount</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">TDS Deduction</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Net Payout</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Bank Ref</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface font-mono">
+        @for (b of batches; track b.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4">{{ b.id }}</td>
+            <td class="py-3 px-4 font-sans text-on-surface-variant">{{ b.period }}</td>
+            <td class="py-3 px-4 text-right">₹{{ b.gross | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-right text-error">-₹{{ b.tds | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 text-right font-bold">₹{{ b.net | number: '1.0-0' }}</td>
+            <td class="py-3 px-4 font-sans">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold"
+                [class]="b.status === 'Settled' ? 'bg-tertiary-container text-on-tertiary-container' : 'bg-surface-container text-payout-gold'">
+                <span class="material-symbols-outlined text-[12px]">{{ b.status === 'Settled' ? 'check_circle' : 'sync' }}</span>
+                {{ b.status }}
+              </span>
+            </td>
+            <td class="py-3 px-4 font-sans text-on-surface-variant">{{ b.bankRef }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

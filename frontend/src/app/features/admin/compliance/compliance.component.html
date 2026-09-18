@@ -1,0 +1,108 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Compliance &amp; Audit Vault — Global Overview</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Real-time compliance telemetry across all jurisdictions.</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+  <app-stat-card label="Pending Filings" [value]="pendingFilingsCount().toString()" subtext="requires action" />
+  <app-stat-card label="KYC Renewals Due" [value]="kycRenewalsDue().toString()" subtext="next 30 days" />
+  <app-stat-card label="Open Audit Flags" [value]="openAuditFlags().toString()" valueClass="text-error" subtext="requires review" />
+  <app-stat-card label="Agreement Expiry" [value]="agreementExpiryCount.toString()" valueClass="text-error" subtext="critical" />
+</div>
+
+@if (anomalies().length > 0) {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="material-symbols-outlined text-warning">auto_awesome</span>
+      <h3 class="text-title-lg text-on-background">AI Anomaly Detection</h3>
+      <span class="text-xs text-on-surface-variant ml-2">{{ anomalies().length }} flagged for review</span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      @for (a of anomalies(); track a.transaction.id) {
+        <div class="border-l-4 border-error bg-error-container/30 rounded p-3 flex justify-between items-start gap-3">
+          <div class="min-w-0">
+            <p class="text-sm font-medium text-on-background truncate">{{ a.transaction.clientName }} — {{ a.transaction.schemeName }}</p>
+            <p class="text-xs text-on-surface-variant mt-0.5">{{ a.reason }}</p>
+          </div>
+          <span class="font-mono text-sm font-semibold text-error shrink-0">₹{{ a.transaction.amount | number }}</span>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- Filing Health & Submission Trends -->
+  <div class="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col shadow-sm">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-title-lg text-on-background">Filing Health &amp; Submission Trends</h3>
+      <span class="text-xs text-on-surface-variant font-mono">Last 6 months</span>
+    </div>
+    <div class="flex-1 relative h-[240px] flex items-end gap-4 border-b border-outline-variant/50 px-2">
+      @for (p of trend; track p.month) {
+        <div class="flex-1 flex flex-col items-center justify-end h-full gap-2">
+          <div class="w-full max-w-[48px] bg-secondary-container rounded-t" [style.height.%]="barHeightPct(p.filings)"></div>
+        </div>
+      }
+    </div>
+    <div class="flex justify-between px-2 mt-2 text-xs text-on-surface-variant font-mono">
+      @for (p of trend; track p.month) {
+        <span class="flex-1 text-center">{{ p.month }}</span>
+      }
+    </div>
+  </div>
+
+  <!-- Regulatory Calendar -->
+  <div class="lg:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm flex flex-col">
+    <h3 class="text-title-lg text-on-background mb-4 flex items-center gap-2">
+      <span class="material-symbols-outlined">event</span>
+      Regulatory Calendar
+    </h3>
+    <div class="space-y-3 flex-1">
+      @for (event of calendar; track event.id) {
+        <div class="p-3 bg-surface-container-low rounded" [class]="severityClass(event.severity)">
+          <div class="flex justify-between items-baseline">
+            <span class="text-label-md font-semibold" [class]="event.severity === 'high' ? 'text-error' : 'text-on-surface'">{{ event.title }}</span>
+            <span class="text-xs font-mono text-on-surface-variant">{{ event.dueLabel }}</span>
+          </div>
+          <p class="text-xs text-on-surface-variant mt-1">{{ event.description }}</p>
+        </div>
+      }
+    </div>
+    <a routerLink="/admin/regulatory-reporting" class="mt-4 text-center block px-4 py-2 border border-outline-variant rounded text-sm font-medium hover:bg-surface-container-low transition-colors">
+      View Full Calendar
+    </a>
+  </div>
+</div>
+
+<!-- Recent Compliance Activity -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col shadow-sm">
+  <div class="p-6 border-b border-outline-variant flex justify-between items-center">
+    <h3 class="text-title-lg text-on-background">Recent Compliance Activity</h3>
+    <a routerLink="/admin/audit-trail" class="text-secondary text-label-md hover:underline">View All</a>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full text-left border-collapse min-w-[700px]">
+      <thead>
+        <tr class="bg-surface-container-low border-b border-outline-variant">
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">Timestamp</th>
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">Action</th>
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">Entity</th>
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">Status</th>
+        </tr>
+      </thead>
+      <tbody class="text-body-md divide-y divide-outline-variant/50">
+        @for (a of recentActivity(); track a.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="p-4 font-mono text-xs text-on-surface-variant">{{ a.timestamp | date: 'MMM d, h:mm a' }}</td>
+            <td class="p-4 text-on-background">{{ a.action }}</td>
+            <td class="p-4 text-on-surface-variant">{{ a.entity }}</td>
+            <td class="p-4">
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium" [class]="statusBadgeClass(a.status)">{{ a.status }}</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,73 @@
+<div class="flex items-center gap-3">
+  <a routerLink="/investor/fixed-income" class="p-2 -ml-2 rounded-full text-on-surface-variant hover:bg-surface-container-low">
+    <span class="material-symbols-outlined">arrow_back</span>
+  </a>
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Fixed Income Portfolio Analytics</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Yield, duration and concentration across your fixed income holdings.</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Total Value</p>
+    <p class="font-mono text-xl font-bold text-on-background">₹{{ totalValue | number }}</p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Weighted Yield</p>
+    <p class="font-mono text-xl font-bold text-on-tertiary-container">{{ weightedYield }}%</p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Annual Income</p>
+    <p class="font-mono text-xl font-bold text-on-background">₹{{ annualIncome | number }}</p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+    <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Avg. Tenure</p>
+    <p class="font-mono text-xl font-bold text-on-background">{{ avgTenureMonths }} mo</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 lg:col-span-1">
+    <h3 class="text-title-lg text-on-background mb-4">Allocation by Type</h3>
+    <div class="space-y-3">
+      @for (b of byType; track b.type) {
+        <div>
+          <div class="flex justify-between text-sm mb-1">
+            <span class="text-on-surface">{{ b.type }}</span>
+            <span class="font-mono font-medium">{{ b.pct }}%</span>
+          </div>
+          <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+            <div class="h-full bg-primary-container rounded-full" [style.width.%]="b.pct"></div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg lg:col-span-2 overflow-hidden">
+    <div class="p-6 border-b border-outline-variant">
+      <h3 class="text-title-lg text-on-background">Holdings</h3>
+    </div>
+    <table class="w-full text-left">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase font-semibold">Instrument</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase font-semibold text-right">Units</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase font-semibold text-right">Value</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase font-semibold text-right">Yield</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant">
+        @for (p of positions; track p.instrument.id) {
+          <tr>
+            <td class="py-3 px-4 font-medium text-on-background">{{ p.instrument.name }}</td>
+            <td class="py-3 px-4 text-right font-mono">{{ p.units }}</td>
+            <td class="py-3 px-4 text-right font-mono">₹{{ p.value | number }}</td>
+            <td class="py-3 px-4 text-right font-mono text-on-tertiary-container">{{ p.instrument.yieldPct }}%</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

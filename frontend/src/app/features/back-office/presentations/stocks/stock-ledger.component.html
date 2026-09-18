@@ -1,0 +1,46 @@
+<app-report-header title="Stock Ledger" subtitle="Buy/sell transaction history for every scrip traded by this customer.">
+  <button reportActions (click)="exportCsv()" class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium shadow-sm">
+    <span class="material-symbols-outlined text-[18px]">download</span>
+    Export CSV
+  </button>
+</app-report-header>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[800px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Date</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Symbol</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Type</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Qty</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Price</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Brokerage</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Net Amount</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (t of presentations.stockTransactions(); track t.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4 font-mono">{{ t.date | date: 'dd-MMM-yyyy' }}</td>
+            <td class="py-3 px-4">
+              <div class="font-medium text-on-background">{{ t.symbol }}</div>
+              <div class="text-xs text-on-surface-variant">{{ t.companyName }}</div>
+            </td>
+            <td class="py-3 px-4">
+              <span class="px-2 py-0.5 rounded text-xs font-medium" [class]="t.type === 'Buy' ? 'bg-tertiary-container text-on-tertiary-container' : 'bg-error-container text-error'">{{ t.type }}</span>
+            </td>
+            <td class="py-3 px-4 text-right font-mono">{{ t.qty | number }}</td>
+            <td class="py-3 px-4 text-right font-mono">₹{{ t.price | number: '1.2-2' }}</td>
+            <td class="py-3 px-4 text-right font-mono">₹{{ t.brokerage | number: '1.2-2' }}</td>
+            <td class="py-3 px-4 text-right font-mono font-medium" [class]="t.type === 'Buy' ? 'text-error' : 'text-on-tertiary-container'">
+              {{ t.type === 'Buy' ? '-' : '+' }}₹{{ t.qty * t.price + t.brokerage | number: '1.0-0' }}
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7" class="py-6 px-4 text-center text-on-surface-variant">No stock transactions for this customer.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

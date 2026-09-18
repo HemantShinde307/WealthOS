@@ -1,0 +1,103 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">eCAS</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Electronic Consolidated Account Statement generation requests — {{ svc.ecasRequests().length }} total.</p>
+  </div>
+  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium whitespace-nowrap" (click)="showForm.set(!showForm())">
+    {{ showForm() ? 'Close' : '+ Generate New eCAS Request' }}
+  </button>
+</div>
+
+@if (showForm()) {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-end">
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Customer</label>
+      <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="formCustomerName()" (change)="onCustomerChange($any($event.target).value)">
+        @for (c of customers; track c.pan) {
+          <option [value]="c.name">{{ c.name }}</option>
+        }
+      </select>
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">PAN</label>
+      <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="formPan()" (input)="formPan.set($any($event.target).value)" />
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Email</label>
+      <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" placeholder="name@example.com" [value]="formEmail()" (input)="formEmail.set($any($event.target).value)" />
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">From Date</label>
+      <input type="date" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="fromDate()" (input)="fromDate.set($any($event.target).value)" />
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">To Date</label>
+      <input type="date" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="toDate()" (input)="toDate.set($any($event.target).value)" />
+    </div>
+    <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium h-fit md:col-span-5" [disabled]="!formEmail().trim()" (click)="submit()">
+      Submit eCAS Request
+    </button>
+  </div>
+}
+
+@if (submitted()) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">check_circle</span> eCAS request queued for generation.
+  </div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+  <div>
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Status</label>
+    <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)">
+      <option value="All">All</option>
+      <option value="Queued">Queued</option>
+      <option value="Processing">Processing</option>
+      <option value="Sent">Sent</option>
+      <option value="Failed">Failed</option>
+    </select>
+  </div>
+  <div>
+    <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Search Customer / PAN / Request No.</label>
+    <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" placeholder="e.g. Mehta, ABCPM1234F, ECAS-5501" [value]="search()" (input)="search.set($any($event.target).value)" />
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Request No.</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Customer</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">PAN</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Period</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Requested On</th>
+        <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (e of filtered(); track e.id) {
+        <tr class="hover:bg-surface-container-low/50 transition-colors">
+          <td class="py-3 px-4 font-mono text-xs">{{ e.id }}</td>
+          <td class="py-3 px-4 font-medium text-on-background">{{ e.customerName }}</td>
+          <td class="py-3 px-4 font-mono text-xs">{{ e.pan }}</td>
+          <td class="py-3 px-4 text-xs">{{ e.fromDate }} to {{ e.toDate }}</td>
+          <td class="py-3 px-4 text-xs">{{ e.requestedOn }} <span class="text-on-surface-variant">({{ e.requestedBy }})</span></td>
+          <td class="py-3 px-4">
+            <span
+              class="text-xs px-2 py-0.5 rounded font-medium"
+              [class]="{
+                'bg-on-tertiary-container/10 text-on-tertiary-container': e.status === 'Sent',
+                'bg-secondary-container text-on-secondary-container': e.status === 'Processing' || e.status === 'Queued',
+                'bg-error/10 text-error': e.status === 'Failed'
+              }"
+            >{{ e.status }}</span>
+          </td>
+        </tr>
+      }
+      @if (!filtered().length) {
+        <tr><td colspan="6" class="py-10 text-center text-on-surface-variant">No eCAS requests match these filters.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,77 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Market Settings — India Operations</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Manage international market profiles, compliance standards, and regional operations.</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden flex flex-col">
+    <div class="p-6 border-b border-outline-variant flex justify-between items-center">
+      <h3 class="text-title-lg text-on-background flex items-center gap-2">
+        <span class="material-symbols-outlined text-on-surface-variant">public</span>
+        Active Markets Map
+      </h3>
+      <span class="px-2 py-0.5 rounded-full text-xs bg-surface-container-low text-on-surface-variant">2 Regions Online</span>
+    </div>
+    <div class="p-6">
+      <div class="h-64 w-full bg-surface-container-low rounded-lg border border-outline-variant/50 flex flex-col items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-on-surface-variant text-[40px]">travel_explore</span>
+        <span class="text-on-surface-variant text-sm">Global Markets — India (NSE/BSE) &amp; Singapore (SGX) active hubs</span>
+      </div>
+    </div>
+
+    <div class="px-6 pb-6">
+      <h4 class="text-title-lg text-on-background mb-4">Active Market Profiles</h4>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        @for (p of profiles; track p.code) {
+          <div class="bg-surface-container-low rounded-lg border border-outline-variant/50 p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded bg-surface-container-lowest border border-outline-variant flex items-center justify-center text-xs font-bold text-on-background">{{ p.code }}</span>
+                <span class="font-medium text-on-background">{{ p.country }}</span>
+              </div>
+              <span class="w-2.5 h-2.5 rounded-full" [class]="p.online ? 'bg-on-tertiary-container' : 'bg-outline-variant'"></span>
+            </div>
+            <dl class="text-sm space-y-1.5 font-mono">
+              <div class="flex justify-between"><dt class="text-on-surface-variant font-sans">Regulatory:</dt><dd class="text-on-background">{{ p.regulator }}</dd></div>
+              <div class="flex justify-between"><dt class="text-on-surface-variant font-sans">Primary Curr:</dt><dd class="text-on-background">{{ p.currency }}</dd></div>
+              <div class="flex justify-between"><dt class="text-on-surface-variant font-sans">Format:</dt><dd class="text-on-background">{{ p.dateFormat }}</dd></div>
+              <div class="flex justify-between"><dt class="text-on-surface-variant font-sans">Language:</dt><dd class="text-on-background">{{ p.language }}</dd></div>
+            </dl>
+            <div class="flex justify-between items-center mt-3 pt-3 border-t border-outline-variant/50">
+              <span class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Trading Hrs</span>
+              <span class="w-9 h-5 rounded-full flex items-center px-0.5" [class]="p.tradingHrsOn ? 'bg-secondary justify-end' : 'bg-outline-variant justify-start'">
+                <span class="w-4 h-4 rounded-full bg-surface-container-lowest"></span>
+              </span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-title-lg text-on-background">Market Readiness</h3>
+      <span class="px-2 py-0.5 rounded text-xs font-semibold bg-secondary-fixed text-on-secondary-fixed">NEW DEPLOYMENT</span>
+    </div>
+    <div class="space-y-4">
+      @for (r of readiness; track r.label) {
+        <div class="p-4 bg-surface-container-low rounded-lg">
+          <div class="flex justify-between items-start gap-2 mb-2">
+            <p class="text-sm font-semibold text-on-background flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px]" [class]="statusIconClass(r.status)">{{ statusIcon(r.status) }}</span>
+              {{ r.label }}
+            </p>
+            <span class="text-xs font-semibold shrink-0" [class]="statusIconClass(r.status)">{{ r.statusLabel }}</span>
+          </div>
+          <p class="text-xs text-on-surface-variant mb-3">{{ r.detail }}</p>
+          <div class="w-full bg-surface-variant h-1.5 rounded-full overflow-hidden">
+            <div class="h-full rounded-full" [class]="barClass(r.status)" [style.width.%]="r.widthPct"></div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

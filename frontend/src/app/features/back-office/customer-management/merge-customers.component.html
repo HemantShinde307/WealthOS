@@ -1,0 +1,69 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Merge Customers</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Pick two duplicate customer records, choose which value wins per field, and merge them into one.</p>
+</div>
+
+@if (done()) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">check_circle</span> Customers merged. Redirecting...
+  </div>
+} @else {
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="customerAId()" (change)="customerAId.set($any($event.target).value)">
+      <option value="">Select Customer A...</option>
+      @for (c of boService.customers(); track c.id) {
+        <option [value]="c.id">{{ c.name }} — {{ c.pan }} ({{ c.id }})</option>
+      }
+    </select>
+    <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="customerBId()" (change)="customerBId.set($any($event.target).value)">
+      <option value="">Select Customer B...</option>
+      @for (c of boService.customers(); track c.id) {
+        <option [value]="c.id">{{ c.name }} — {{ c.pan }} ({{ c.id }})</option>
+      }
+    </select>
+  </div>
+
+  @if (customerA(); as a) {
+    @if (customerB(); as b) {
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+        <table class="w-full text-left border-collapse">
+          <thead class="bg-surface-container-low border-b border-outline-variant">
+            <tr>
+              <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Field</th>
+              <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">A · {{ a.id }}</th>
+              <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">B · {{ b.id }}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+            @for (field of fields; track field) {
+              <tr>
+                <td class="py-3 px-4 font-medium text-on-surface-variant capitalize">{{ field }}</td>
+                <td class="py-3 px-4">
+                  <label class="flex items-center gap-2 cursor-pointer" [class.font-semibold]="winnerFor(field) === 'A'">
+                    <input type="radio" [name]="field" [checked]="winnerFor(field) === 'A'" (change)="pickWinner(field, 'A')" />
+                    {{ a[field] }}
+                  </label>
+                </td>
+                <td class="py-3 px-4">
+                  <label class="flex items-center gap-2 cursor-pointer" [class.font-semibold]="winnerFor(field) === 'B'">
+                    <input type="radio" [name]="field" [checked]="winnerFor(field) === 'B'" (change)="pickWinner(field, 'B')" />
+                    {{ b[field] }}
+                  </label>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-4 text-sm">
+          <span class="text-on-surface-variant">Keep record ID:</span>
+          <label class="flex items-center gap-1.5"><input type="radio" name="survivorId" [checked]="survivorSide() === 'A'" (change)="survivorSide.set('A')" /> A ({{ a.id }})</label>
+          <label class="flex items-center gap-1.5"><input type="radio" name="survivorId" [checked]="survivorSide() === 'B'" (change)="survivorSide.set('B')" /> B ({{ b.id }})</label>
+        </div>
+        <button class="bg-primary-container text-on-primary px-5 py-2.5 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="merge()">Confirm Merge</button>
+      </div>
+    }
+  }
+}

@@ -1,0 +1,134 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <div class="flex items-center gap-2 text-on-surface-variant text-xs mb-2">
+      <a routerLink="/analytics/report-center" class="hover:underline">Report Center</a>
+      <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+      <span class="text-on-background font-semibold">Scheduled Reports</span>
+    </div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Scheduled Reports</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Manage automated report generation and delivery schedules across all client portfolios.</p>
+  </div>
+  <button class="flex items-center gap-2 bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium">
+    <span class="material-symbols-outlined text-[18px]">add</span>
+    Add New Schedule
+  </button>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden flex flex-col">
+  <div class="p-4 border-b border-outline-variant flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+    <div class="relative w-full sm:w-72">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+      <input
+        class="w-full pl-9 pr-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-md text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary"
+        placeholder="Search by client or report type..."
+        [value]="searchTerm()"
+        (input)="setSearchTerm($any($event.target).value)"
+      />
+    </div>
+    <div class="flex gap-2 flex-wrap">
+      @for (s of ['All', 'Active', 'Paused', 'Error']; track s) {
+        <button
+          class="px-3 py-1.5 rounded-md text-xs font-medium border transition-colors"
+          [class]="s === statusFilter() ? 'bg-primary-container text-on-primary border-transparent' : 'bg-surface-container-lowest border-outline-variant text-on-surface hover:bg-surface-container-low'"
+          (click)="setStatusFilter($any(s))"
+        >
+          {{ s }}
+        </button>
+      }
+      <span class="text-xs text-on-surface-variant self-center ml-2">Showing {{ filteredReports().length }} of {{ reports().length }}</span>
+    </div>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full min-w-[900px] text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Client Name</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Report Type</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Frequency</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Next Run Date</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Delivery Method</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (r of filteredReports(); track r.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="py-3 px-4 font-medium text-on-background">{{ r.clientName }}</td>
+            <td class="py-3 px-4">{{ r.reportType }}</td>
+            <td class="py-3 px-4"><span class="bg-surface-container-low text-on-surface px-2 py-0.5 rounded text-xs">{{ r.frequency }}</span></td>
+            <td class="py-3 px-4 font-mono text-sm">{{ r.nextRunDate }}</td>
+            <td class="py-3 px-4 text-sm flex items-center gap-1.5 mt-3">
+              <span class="material-symbols-outlined text-[16px] text-on-surface-variant">{{ r.deliveryMethod === 'Email' ? 'mail' : 'public' }}</span>
+              {{ r.deliveryMethod }}
+            </td>
+            <td class="py-3 px-4">
+              <span class="flex items-center gap-1.5 text-sm font-medium">
+                <span class="w-2 h-2 rounded-full" [class]="statusDotClass(r.status)"></span>
+                {{ r.status }}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-right">
+              <button class="text-secondary text-xs font-medium hover:underline" (click)="togglePause(r.id)">
+                {{ r.status === 'Paused' ? 'Resume' : 'Pause' }}
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+    <h3 class="text-title-lg text-on-background mb-4 flex items-center gap-2">
+      <span class="material-symbols-outlined text-[20px] text-secondary">bolt</span>
+      System Capacity
+    </h3>
+    <div class="space-y-4">
+      <div>
+        <div class="flex justify-between text-body-md mb-1">
+          <span class="text-on-surface-variant">Batch Processing Load</span>
+          <span class="font-mono font-medium">62%</span>
+        </div>
+        <div class="w-full h-2 bg-surface-container-low rounded-full overflow-hidden">
+          <div class="h-full bg-secondary rounded-full" style="width: 62%"></div>
+        </div>
+      </div>
+      <div>
+        <div class="flex justify-between text-body-md mb-1">
+          <span class="text-on-surface-variant">Email Delivery Quota</span>
+          <span class="font-mono font-medium">38%</span>
+        </div>
+        <div class="w-full h-2 bg-surface-container-low rounded-full overflow-hidden">
+          <div class="h-full bg-on-tertiary-container rounded-full" style="width: 38%"></div>
+        </div>
+      </div>
+    </div>
+    <p class="text-xs text-on-surface-variant mt-4">Next major run scheduled for <span class="font-mono font-semibold text-on-background">2026-10-01 02:00 IST</span>. Estimated duration: 40 mins.</p>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+    <h3 class="text-title-lg text-on-background mb-4">Delivery Success Rate</h3>
+    <div class="flex items-baseline gap-2">
+      <span class="font-mono text-3xl font-bold text-on-tertiary-container">{{ deliverySuccessRate }}%</span>
+      <span class="text-xs text-on-tertiary-container flex items-center gap-0.5">
+        <span class="material-symbols-outlined text-[14px]">trending_up</span> +0.2% vs last month
+      </span>
+    </div>
+    <div class="grid grid-cols-3 gap-4 mt-6 pt-4 border-t border-outline-variant/60">
+      <div>
+        <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Total Delivered</p>
+        <span class="font-mono font-semibold text-on-background">{{ totalDelivered | number }}</span>
+      </div>
+      <div>
+        <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Bounces / Errors</p>
+        <span class="font-mono font-semibold text-error">{{ bounceCount }}</span>
+      </div>
+      <div>
+        <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Active Schedules</p>
+        <span class="font-mono font-semibold text-on-background">{{ activeCount() }}</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,93 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Policy Entry</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Enter a new life insurance policy. {{ svc.policies().length }} policies on file.</p>
+  </div>
+</div>
+
+@if (justSaved()) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">check_circle</span> Policy {{ justSaved() }} saved.
+  </div>
+}
+@if (error()) {
+  <div class="bg-error/10 border border-error/40 rounded-lg p-4 text-error text-sm">{{ error() }}</div>
+}
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Policy Number</label>
+    <input class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="policyNumber()" (input)="policyNumber.set($any($event.target).value)" placeholder="e.g. LIC-882910334" />
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Policyholder Name</label>
+    <input class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="policyholderName()" (input)="policyholderName.set($any($event.target).value)" placeholder="e.g. Rajesh Mehta" />
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Insurer</label>
+    <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="insurer()" (change)="insurer.set($any($event.target).value)">
+      @for (i of insurers; track i) { <option [value]="i">{{ i }}</option> }
+    </select>
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Policy Type</label>
+    <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="policyType()" (change)="policyType.set($any($event.target).value)">
+      @for (t of policyTypes; track t) { <option [value]="t">{{ t }}</option> }
+    </select>
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Sum Assured (₹)</label>
+    <input type="number" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="sumAssured()" (input)="sumAssured.set($any($event.target).valueAsNumber || null)" placeholder="2500000" />
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Premium (₹)</label>
+    <input type="number" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="premium()" (input)="premium.set($any($event.target).valueAsNumber || null)" placeholder="48500" />
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Premium Frequency</label>
+    <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="premiumFrequency()" (change)="premiumFrequency.set($any($event.target).value)">
+      @for (f of frequencies; track f) { <option [value]="f">{{ f }}</option> }
+    </select>
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Commencement Date</label>
+    <input type="date" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="commencementDate()" (input)="commencementDate.set($any($event.target).value)" />
+  </div>
+  <div class="flex flex-col gap-1">
+    <label class="text-label-md text-on-surface-variant">Nominee</label>
+    <input class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="nominee()" (input)="nominee.set($any($event.target).value)" placeholder="e.g. Kavita Mehta" />
+  </div>
+  <div class="md:col-span-3 flex justify-end">
+    <button class="bg-primary-container text-on-primary px-5 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="submit()">Save Policy</button>
+  </div>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+  <div class="p-4 border-b border-outline-variant"><h3 class="text-title-lg text-on-background">Recently Entered Policies</h3></div>
+  <table class="w-full text-left border-collapse">
+    <thead class="bg-surface-container-low border-b border-outline-variant">
+      <tr>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Policy No.</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Policyholder</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Insurer</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Type</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Sum Assured</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Premium</th>
+        <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+      @for (p of svc.policies(); track p.id) {
+        <tr>
+          <td class="py-2 px-4 font-mono text-xs">{{ p.policyNumber }}</td>
+          <td class="py-2 px-4">{{ p.policyholderName }}</td>
+          <td class="py-2 px-4 text-xs">{{ p.insurer }}</td>
+          <td class="py-2 px-4 text-xs">{{ p.policyType }}</td>
+          <td class="py-2 px-4 text-right font-mono">₹{{ p.sumAssured | number }}</td>
+          <td class="py-2 px-4 text-right font-mono">₹{{ p.premium | number }}</td>
+          <td class="py-2 px-4 text-xs">{{ p.status }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

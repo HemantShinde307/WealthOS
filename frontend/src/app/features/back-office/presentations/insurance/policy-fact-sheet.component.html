@@ -1,0 +1,67 @@
+<app-report-header title="Policy Fact Sheet" subtitle="Key facts for each general insurance policy held — sum insured, premium, nominee and validity." />
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden lg:col-span-1">
+    <div class="p-4 border-b border-outline-variant">
+      <h3 class="text-title-lg text-on-background">Policies</h3>
+    </div>
+    <div class="divide-y divide-outline-variant">
+      @for (p of policies(); track p.id) {
+        <button
+          type="button"
+          class="w-full text-left px-4 py-3 hover:bg-surface-container-low/50 transition-colors"
+          [class]="selectedPolicy().id === p.id ? 'bg-surface-container-low' : ''"
+          (click)="selectPolicy(p.id)"
+        >
+          <p class="font-medium text-on-background text-sm">{{ p.product }}</p>
+          <p class="text-xs text-on-surface-variant">{{ p.insurer }}</p>
+        </button>
+      } @empty {
+        <p class="px-4 py-6 text-sm text-on-surface-variant">No general insurance policies for this customer.</p>
+      }
+    </div>
+  </div>
+
+  @if (selectedPolicy(); as p) {
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm lg:col-span-2 p-6">
+      <div class="flex justify-between items-start mb-6">
+        <div>
+          <h3 class="text-title-lg text-on-background">{{ p.planName }}</h3>
+          <p class="text-body-md text-on-surface-variant">{{ p.insurer }} · Policy No. {{ p.policyNo }}</p>
+        </div>
+        <span class="px-3 py-1 rounded text-xs font-medium" [class]="p.status === 'Active' ? 'bg-tertiary-container text-on-tertiary-container' : 'bg-error-container text-error'">{{ p.status }}</span>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-6">
+        <div>
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Sum Insured</p>
+          <p class="font-mono font-semibold text-on-background mt-1">₹{{ p.sumInsured | number: '1.0-0' }}</p>
+        </div>
+        <div>
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Premium ({{ p.premiumFrequency }})</p>
+          <p class="font-mono font-semibold text-on-background mt-1">₹{{ p.premium | number: '1.0-0' }}</p>
+        </div>
+        <div>
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Product Type</p>
+          <p class="font-medium text-on-background mt-1">{{ p.product }}</p>
+        </div>
+        <div>
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Start Date</p>
+          <p class="font-mono font-medium text-on-background mt-1">{{ p.startDate | date: 'dd-MMM-yyyy' }}</p>
+        </div>
+        <div>
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Expiry Date</p>
+          <p class="font-mono font-medium text-on-background mt-1">{{ p.expiryDate | date: 'dd-MMM-yyyy' }}</p>
+        </div>
+        <div>
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Days to Expiry</p>
+          <p class="font-mono font-medium mt-1" [class]="daysToExpiry(p.expiryDate) < 60 ? 'text-error' : 'text-on-background'">{{ daysToExpiry(p.expiryDate) }} days</p>
+        </div>
+        <div class="col-span-2 sm:col-span-3">
+          <p class="text-label-md text-on-surface-variant uppercase tracking-wider">Nominee</p>
+          <p class="font-medium text-on-background mt-1">{{ p.nomineeName }}</p>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,42 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Tax Saving (80C) Center</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Track your Section 80C utilization and explore ELSS funds.</p>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+  <div class="flex justify-between items-baseline mb-2">
+    <p class="text-title-lg text-on-background">80C Utilization</p>
+    <p class="font-mono font-semibold text-on-background">₹{{ section80cUsed | number }} / ₹{{ section80cLimit | number }}</p>
+  </div>
+  <div class="w-full h-3 bg-surface-container-high rounded-full overflow-hidden">
+    <div class="h-full bg-primary-container rounded-full" [style.width.%]="(section80cUsed / section80cLimit) * 100"></div>
+  </div>
+  <p class="text-sm text-on-surface-variant mt-2">
+    @if (section80cUsed === 0) {
+      No ELSS investment found in your imported portfolio. Consider starting one below to claim your ₹{{ section80cLimit | number }} deduction this financial year.
+    } @else {
+      ₹{{ section80cLimit - section80cUsed | number }} remaining to claim full deduction this financial year.
+    }
+  </p>
+</div>
+
+<div>
+  <h3 class="text-title-lg text-on-background mb-3">Top Equity Funds to Consider for Tax Saving</h3>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    @for (s of suggestedSchemes; track s.id) {
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-sm">
+        <div class="flex justify-between items-start">
+          <div>
+            <h4 class="font-semibold text-on-background">{{ s.name }}</h4>
+            <p class="text-xs text-on-surface-variant">{{ s.amc }} &middot; {{ s.category }}</p>
+          </div>
+          <p class="font-mono text-lg font-bold text-on-tertiary-container">{{ s.returns3y }}%</p>
+        </div>
+        <div class="flex justify-between pt-3 mt-3 border-t border-outline-variant text-sm">
+          <span class="text-on-surface-variant">NAV ₹{{ s.nav }}</span>
+          <span class="text-on-surface-variant">Min SIP ₹{{ s.minSip }}</span>
+        </div>
+      </div>
+    }
+  </div>
+</div>

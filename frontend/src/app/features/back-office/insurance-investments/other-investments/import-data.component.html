@@ -1,0 +1,89 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Import Data</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Bulk-import other investments (stocks, bonds, FDs, bullion, etc.) from a CSV. Columns: category, customerName, instrumentName, amount, date.</p>
+  </div>
+  <button class="text-secondary text-sm font-medium hover:underline" (click)="downloadTemplate()">Download Template</button>
+</div>
+
+@if (imported()) {
+  <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/40 rounded-lg p-4 text-on-tertiary-container text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">check_circle</span> Import complete — see the log below.
+  </div>
+}
+
+<div class="bg-surface-container-lowest border-2 border-dashed border-outline-variant rounded-lg p-10 flex flex-col items-center justify-center gap-3 text-center">
+  <span class="material-symbols-outlined text-on-surface-variant text-[40px]">upload_file</span>
+  <p class="text-on-background font-medium">Drag & drop or choose a CSV file</p>
+  <input #fileInput type="file" accept=".csv,text/csv" class="hidden" (change)="onFileSelected($event)" />
+  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openFilePicker()">Choose File</button>
+  @if (fileName()) {
+    <p class="text-xs text-on-surface-variant font-mono">{{ fileName() }}</p>
+  }
+  @if (error()) {
+    <p class="text-error text-sm">{{ error() }}</p>
+  }
+</div>
+
+@if (parsedRows().length) {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+    <div class="p-4 border-b border-outline-variant flex justify-between items-center">
+      <h3 class="text-title-lg text-on-background">Preview — {{ validCount() }} of {{ parsedRows().length }} rows valid</h3>
+      <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium disabled:opacity-40" [disabled]="validCount() === 0" (click)="confirmImport()">
+        Import {{ validCount() }} Rows
+      </button>
+    </div>
+    <table class="w-full text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Category</th>
+          <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Customer</th>
+          <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Instrument</th>
+          <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Amount</th>
+          <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (row of parsedRows(); track $index) {
+          <tr [class.opacity-50]="!row.valid">
+            <td class="py-2 px-4 text-xs">{{ row.category }}</td>
+            <td class="py-2 px-4 text-xs">{{ row.customerName || '—' }}</td>
+            <td class="py-2 px-4 text-xs">{{ row.instrumentName || '—' }}</td>
+            <td class="py-2 px-4 text-right font-mono text-xs">₹{{ row.amount | number }}</td>
+            <td class="py-2 px-4 text-xs">
+              @if (row.valid) {
+                <span class="text-on-tertiary-container">Ready</span>
+              } @else {
+                <span class="text-error">{{ row.issue }}</span>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (svc.importLog().length) {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+    <div class="p-4 border-b border-outline-variant"><h3 class="text-title-lg text-on-background">Import Log</h3></div>
+    <table class="w-full text-left border-collapse">
+      <thead class="bg-surface-container-low border-b border-outline-variant">
+        <tr>
+          <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">File</th>
+          <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Rows Imported</th>
+          <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">When</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+        @for (entry of svc.importLog(); track entry.id) {
+          <tr>
+            <td class="py-2 px-4 font-mono text-xs">{{ entry.fileName }}</td>
+            <td class="py-2 px-4">{{ entry.rowCount }}</td>
+            <td class="py-2 px-4 text-xs text-on-surface-variant">{{ entry.importedOn | date: 'medium' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

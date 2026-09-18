@@ -1,0 +1,71 @@
+<div class="space-y-6">
+  <div class="bg-surface-container-low rounded-lg p-4 text-xs text-on-surface-variant flex gap-2">
+    <span class="material-symbols-outlined text-[18px] shrink-0 text-secondary">security</span>
+    <span>Set up an e-NACH (electronic mandate) so your SIP is auto-debited each month. Secured by NPCI.</span>
+  </div>
+
+  <div>
+    <label class="text-sm font-medium text-on-background block mb-2">Select Bank Account</label>
+    <div class="space-y-3">
+      @for (b of bankAccounts; track b.id) {
+        <label
+          class="relative flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-colors"
+          [class]="state.bankAccountId() === b.id ? 'border-secondary bg-surface-container' : 'border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low'"
+        >
+          <input type="radio" name="bank" class="mt-1 w-4 h-4 text-secondary" [checked]="state.bankAccountId() === b.id" (change)="selectBank(b.id)" />
+          <div class="flex-1 flex justify-between items-center gap-4">
+            <div>
+              <p class="font-semibold text-on-background">{{ b.bankName }}</p>
+              <p class="text-xs font-mono text-on-surface-variant">{{ b.accountMasked }}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-[10px] uppercase text-on-surface-variant">Mandate Limit</p>
+              <p class="font-mono font-semibold text-on-background">₹{{ b.mandateLimit | number }}</p>
+            </div>
+          </div>
+        </label>
+      }
+    </div>
+  </div>
+
+  @if (state.bankAccountId() && !state.mandateAuthorized()) {
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 space-y-3">
+      <p class="text-sm font-medium text-on-background">Authorize via OTP</p>
+      @if (!otpSent()) {
+        <button class="w-full bg-secondary text-on-secondary py-2.5 rounded-md text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50" [disabled]="sendingOtp()" (click)="sendOtp()">
+          {{ sendingOtp() ? 'Sending OTP…' : 'Send OTP to registered mobile' }}
+        </button>
+      } @else {
+        <p class="text-xs text-on-surface-variant">An OTP has been sent to your registered mobile number (mock). Enter any 4+ digit code to continue.</p>
+        <input
+          class="w-full px-4 py-2.5 border border-outline-variant rounded-md text-sm font-mono tracking-widest bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+          placeholder="Enter OTP"
+          maxlength="6"
+          [value]="otp()"
+          (input)="otp.set($any($event.target).value)"
+        />
+        <button class="w-full bg-primary-container text-on-primary py-2.5 rounded-md text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50" [disabled]="otp().length < 4 || verifying()" (click)="authorize()">
+          {{ verifying() ? 'Verifying…' : 'Verify & Authorize Mandate' }}
+        </button>
+      }
+    </div>
+  }
+
+  @if (state.mandateAuthorized()) {
+    <div class="bg-tertiary-container/10 border border-tertiary-container/30 rounded-lg p-4 flex items-center gap-3">
+      <span class="material-symbols-outlined text-on-tertiary-container fill-icon">check_circle</span>
+      <div>
+        <p class="font-medium text-on-tertiary-container">Mandate Authorized</p>
+        <p class="text-xs text-on-surface-variant">{{ selectedBank()?.bankName }} &middot; {{ selectedBank()?.accountMasked }}</p>
+      </div>
+    </div>
+  }
+
+  <button
+    class="w-full bg-primary-container text-on-primary py-3 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+    [disabled]="!state.mandateAuthorized()"
+    (click)="continue()"
+  >
+    Continue to Review
+  </button>
+</div>

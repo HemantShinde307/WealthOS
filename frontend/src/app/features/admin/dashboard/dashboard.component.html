@@ -1,0 +1,141 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Dashboard</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Overview of distributor performance and active alerts.</p>
+  </div>
+  <div class="flex gap-3">
+    <a routerLink="/back-office/customer-investments" class="px-4 py-2 border border-outline-variant bg-surface-container-lowest text-on-surface rounded font-medium text-sm hover:bg-surface-container-low transition-colors">
+      Open Back Office
+    </a>
+    <a routerLink="/onboarding" class="px-4 py-2 bg-primary-container text-on-primary rounded font-medium text-sm hover:opacity-90 transition-opacity">
+      New Customer
+    </a>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+  <app-stat-card label="Total AUM" [value]="totalAum() | inrCompact" trend="up" valueClass="text-on-background" subtext="vs last month" />
+  <app-stat-card label="Active Clients" [value]="activeClientCount().toString()" subtext="across all segments" />
+  <app-stat-card
+    label="Monthly Inflow (Net)"
+    [value]="'₹' + monthlyNetInflowCr + ' Cr'"
+    [trend]="aumMoMChangePct >= 0 ? 'up' : 'down'"
+    [valueClass]="aumMoMChangePct >= 0 ? 'text-on-tertiary-container' : 'text-error'"
+    [subtext]="(aumMoMChangePct >= 0 ? '+' : '') + aumMoMChangePct + '% vs last month'"
+  />
+  <app-stat-card label="Pending KYC" [value]="pendingKyc().length.toString()" valueClass="text-error" subtext="clients awaiting verification" />
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- AUM Growth Chart -->
+  <div class="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col shadow-sm">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-title-lg text-on-background">Platform AUM Growth</h3>
+      <span class="text-xs text-on-surface-variant font-mono">Last 6 months</span>
+    </div>
+    <div class="flex-1 relative w-full h-[240px] border-b border-l border-outline-variant/50 pt-4">
+      <svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+        <path [attr.d]="chartPath" fill="none" stroke="var(--color-primary-container)" stroke-width="2.5" />
+      </svg>
+      <div class="absolute -bottom-6 left-0 w-full flex justify-between text-xs text-on-surface-variant font-mono">
+        @for (p of aumTrend; track p.month) {
+          <span>{{ p.month }}</span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column -->
+  <div class="lg:col-span-4 flex flex-col gap-6">
+    <!-- Action Required -->
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+      <h3 class="text-title-lg text-on-background mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-error">warning</span>
+        Action Required
+      </h3>
+      <ul class="space-y-3">
+        <li class="flex items-start gap-3 p-3 bg-error-container/20 rounded border border-error-container">
+          <span class="material-symbols-outlined text-error mt-0.5">sync_problem</span>
+          <div>
+            <p class="text-label-md text-on-surface font-medium">{{ reconciliationBreaks.count }} Reconciliation Breaks</p>
+            <p class="text-xs text-on-surface-variant mt-1">{{ reconciliationBreaks.detail }}</p>
+            <a routerLink="/admin/compliance" class="text-secondary text-label-md mt-2 inline-block hover:underline">Resolve Now</a>
+          </div>
+        </li>
+        <li class="flex items-start gap-3 p-3 bg-surface-container-low rounded border border-outline-variant">
+          <span class="material-symbols-outlined text-on-surface-variant mt-0.5">credit_card_off</span>
+          <div>
+            <p class="text-label-md text-on-surface font-medium">{{ failedTransactions().length }} Failed Transactions</p>
+            <p class="text-xs text-on-surface-variant mt-1">Due to insufficient funds or mandate issues.</p>
+          </div>
+        </li>
+        <li class="flex items-start gap-3 p-3 bg-surface-container-low rounded border border-outline-variant">
+          <span class="material-symbols-outlined text-on-surface-variant mt-0.5">pending_actions</span>
+          <div>
+            <p class="text-label-md text-on-surface font-medium">{{ pendingKyc().length }} Pending KYCs</p>
+            <p class="text-xs text-on-surface-variant mt-1">Clients awaiting verification.</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- AUM by Segment -->
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex-1 shadow-sm">
+      <h3 class="text-title-lg text-on-background mb-4">AUM by Segment</h3>
+      <div class="flex items-center justify-center h-40">
+        <div class="w-32 h-32 rounded-full relative flex items-center justify-center" [style.background]="'conic-gradient(' + donutGradient() + ')'">
+          <div class="text-center bg-surface-container-lowest w-[calc(100%-24px)] h-[calc(100%-24px)] rounded-full flex flex-col items-center justify-center z-10">
+            <span class="font-mono text-sm font-bold">100%</span>
+          </div>
+        </div>
+      </div>
+      <div class="mt-4 space-y-2">
+        @for (seg of segmentAllocation(); track seg.label) {
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 rounded-full" [style.background]="'var(' + seg.colorVar + ')'"></div>
+              <span class="text-body-md text-on-surface">{{ seg.label }}</span>
+            </div>
+            <span class="font-mono text-sm">{{ seg.pct }}%</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Orders -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col shadow-sm">
+  <div class="p-6 border-b border-outline-variant flex justify-between items-center">
+    <h3 class="text-title-lg text-on-background">Recent Orders</h3>
+    <a routerLink="/advisor/transactions" class="text-secondary text-label-md hover:underline">View All</a>
+  </div>
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full text-left border-collapse min-w-[800px]">
+      <thead>
+        <tr class="bg-surface-container-low border-b border-outline-variant">
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">Customer</th>
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">Scheme Name</th>
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider text-right">Amount</th>
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">Type</th>
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">Date</th>
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">Status</th>
+        </tr>
+      </thead>
+      <tbody class="text-body-md divide-y divide-outline-variant/50">
+        @for (t of recentOrders(); track t.id) {
+          <tr class="hover:bg-surface-container-low/50 transition-colors">
+            <td class="p-4 font-medium text-on-background">{{ t.clientName }}</td>
+            <td class="p-4 text-on-surface-variant">{{ t.schemeName }}</td>
+            <td class="p-4 text-right font-mono">₹{{ t.amount | number }}</td>
+            <td class="p-4 text-on-surface-variant">{{ t.type }}</td>
+            <td class="p-4 text-on-surface-variant">{{ t.date | date: 'MMM d' }}</td>
+            <td class="p-4">
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium" [class]="statusBadgeClass(t.status)">{{ t.status }}</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

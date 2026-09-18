@@ -1,0 +1,117 @@
+<div>
+  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">System Logs</h2>
+  <p class="text-body-md text-on-surface-variant mt-1">Immutable audit trail of all platform actions.</p>
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm flex flex-col gap-4">
+  <div class="flex flex-wrap items-center gap-3">
+    <select
+      class="text-sm border border-outline-variant rounded px-3 py-2 bg-surface-container-lowest focus:outline-none focus:ring-1 focus:ring-primary"
+      [value]="selectedModule()"
+      (change)="setModule($any($event.target).value)"
+    >
+      @for (m of modules(); track m) {
+        <option [value]="m">Module: {{ m }}</option>
+      }
+    </select>
+    <select
+      class="text-sm border border-outline-variant rounded px-3 py-2 bg-surface-container-lowest focus:outline-none focus:ring-1 focus:ring-primary"
+      [value]="selectedActor()"
+      (change)="setActor($any($event.target).value)"
+    >
+      @for (a of actors(); track a) {
+        <option [value]="a">User: {{ a }}</option>
+      }
+    </select>
+    <input
+      type="text"
+      placeholder="Search logs..."
+      class="text-sm border border-outline-variant rounded px-3 py-2 bg-surface-container-lowest flex-1 min-w-[160px] focus:outline-none focus:ring-1 focus:ring-primary"
+      [value]="searchTerm()"
+      (input)="setSearch($any($event.target).value)"
+    />
+    <label class="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer ml-auto">
+      <input type="checkbox" [checked]="highRiskOnly()" (change)="toggleHighRisk()" class="rounded border-outline-variant" />
+      <span class="material-symbols-outlined text-error text-[18px]">warning</span>
+      High-Risk Actions Only
+    </label>
+  </div>
+
+  @if (selectedModule() !== 'All' || selectedActor() !== 'All' || highRiskOnly()) {
+    <div class="flex items-center gap-2 text-sm border-t border-outline-variant pt-3">
+      <span class="text-on-surface-variant text-xs uppercase tracking-wider font-medium">Active Filters:</span>
+      @if (selectedModule() !== 'All') {
+        <span class="px-2 py-1 bg-surface-container-low rounded text-xs flex items-center gap-1">
+          Module: {{ selectedModule() }}
+          <button (click)="setModule('All')" class="material-symbols-outlined text-[14px]">close</button>
+        </span>
+      }
+      @if (selectedActor() !== 'All') {
+        <span class="px-2 py-1 bg-surface-container-low rounded text-xs flex items-center gap-1">
+          User: {{ selectedActor() }}
+          <button (click)="setActor('All')" class="material-symbols-outlined text-[14px]">close</button>
+        </span>
+      }
+      @if (highRiskOnly()) {
+        <span class="px-2 py-1 bg-surface-container-low rounded text-xs flex items-center gap-1">
+          High-Risk Only
+          <button (click)="toggleHighRisk()" class="material-symbols-outlined text-[14px]">close</button>
+        </span>
+      }
+      <button (click)="clearFilters()" class="text-secondary text-xs hover:underline ml-1">Clear All</button>
+    </div>
+  }
+</div>
+
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col shadow-sm">
+  <div class="overflow-x-auto table-scroll">
+    <table class="w-full text-left border-collapse min-w-[900px]">
+      <thead>
+        <tr class="bg-surface-container-low border-b border-outline-variant">
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">Timestamp (UTC)</th>
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">User / Entity</th>
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">Action Performed</th>
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">Module</th>
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">IP Address</th>
+          <th class="p-4 text-label-md text-on-surface-variant uppercase tracking-wider">Status</th>
+        </tr>
+      </thead>
+      <tbody class="text-body-md divide-y divide-outline-variant/50">
+        @for (entry of pagedLog(); track entry.id) {
+          <tr class="transition-colors" [class]="entry.status === 'Failure' ? 'bg-error-container/10 hover:bg-error-container/20' : 'hover:bg-surface-container-low/50'">
+            <td class="p-4 font-mono text-xs text-on-surface-variant">{{ entry.timestamp | date: 'yyyy-MM-dd HH:mm' }}</td>
+            <td class="p-4" [class]="entry.status === 'Failure' ? 'text-error font-medium' : 'text-on-background'">{{ entry.actor }}</td>
+            <td class="p-4 text-on-surface-variant">{{ entry.action }} — {{ entry.entity }}</td>
+            <td class="p-4 text-on-surface-variant">{{ entry.module }}</td>
+            <td class="p-4 font-mono text-xs" [class]="entry.status === 'Failure' ? 'text-error' : 'text-on-surface-variant'">{{ entry.ipAddress }}</td>
+            <td class="p-4">
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium" [class]="statusBadgeClass(entry.status)">{{ entry.status }}</span>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="6" class="p-6 text-center text-on-surface-variant">No log entries match the current filters.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <div class="p-4 border-t border-outline-variant flex justify-between items-center">
+    <span class="text-xs text-on-surface-variant font-mono">Showing {{ pagedLog().length }} of {{ filteredLog().length }} entries</span>
+    <div class="flex items-center gap-1">
+      <button (click)="goToPage(page() - 1)" [disabled]="page() === 1" class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant disabled:opacity-40 hover:bg-surface-container-low">
+        <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+      </button>
+      @for (p of pageNumbers(); track p) {
+        <button
+          (click)="goToPage(p)"
+          class="w-8 h-8 flex items-center justify-center rounded text-sm"
+          [class]="page() === p ? 'bg-primary-container text-on-primary' : 'border border-outline-variant hover:bg-surface-container-low'"
+        >
+          {{ p }}
+        </button>
+      }
+      <button (click)="goToPage(page() + 1)" [disabled]="page() === totalPages()" class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant disabled:opacity-40 hover:bg-surface-container-low">
+        <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+      </button>
+    </div>
+  </div>
+</div>

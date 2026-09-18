@@ -1,0 +1,61 @@
+<app-report-header title="PPF Passbook" subtitle="Year-wise contributions, interest credited and closing balance for each Public Provident Fund account." />
+
+@if (accounts().length > 1) {
+  <div class="flex items-center gap-3">
+    <label class="text-sm text-on-surface-variant">Account</label>
+    <select class="bg-surface-container-lowest border border-outline-variant text-on-surface px-3 py-2 rounded-md text-sm font-medium shadow-sm" (change)="selectAccount($any($event.target).value)">
+      @for (a of accounts(); track a.id) {
+        <option [value]="a.id">{{ a.accountNo }}</option>
+      }
+    </select>
+  </div>
+}
+
+@if (selectedAccount(); as acc) {
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <app-stat-card label="Account No." [value]="acc.accountNo" />
+    <app-stat-card label="Current Balance" [value]="acc.currentBalance | inrCompact" />
+    <app-stat-card label="Interest Rate" [value]="acc.interestRate + '%'" />
+    <app-stat-card label="Years to Maturity" [value]="yearsToMaturity(acc.maturityDate) + ' yr(s)'" />
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm text-sm flex flex-wrap gap-6">
+    <div><span class="text-on-surface-variant">Institution</span><p class="font-medium text-on-background">{{ acc.institution }}</p></div>
+    <div><span class="text-on-surface-variant">Opened On</span><p class="font-mono font-medium text-on-background">{{ acc.openDate | date: 'dd-MMM-yyyy' }}</p></div>
+    <div><span class="text-on-surface-variant">Maturity Date</span><p class="font-mono font-medium text-on-background">{{ acc.maturityDate | date: 'dd-MMM-yyyy' }}</p></div>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+    <div class="p-6 border-b border-outline-variant">
+      <h3 class="text-title-lg text-on-background">Financial Year-wise Ledger</h3>
+    </div>
+    <div class="overflow-x-auto table-scroll">
+      <table class="w-full min-w-[700px] text-left border-collapse">
+        <thead class="bg-surface-container-low border-b border-outline-variant">
+          <tr>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Financial Year</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Opening Balance</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Contribution</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Interest Credited</th>
+            <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Closing Balance</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
+          @for (c of contributions(); track c.financialYear) {
+            <tr class="hover:bg-surface-container-low/50 transition-colors">
+              <td class="py-3 px-4 font-medium">{{ c.financialYear }}</td>
+              <td class="py-3 px-4 text-right font-mono">₹{{ c.openingBalance | number: '1.0-0' }}</td>
+              <td class="py-3 px-4 text-right font-mono">₹{{ c.contribution | number: '1.0-0' }}</td>
+              <td class="py-3 px-4 text-right font-mono text-on-tertiary-container">+₹{{ c.interestCredited | number: '1.0-0' }}</td>
+              <td class="py-3 px-4 text-right font-mono font-medium">₹{{ c.closingBalance | number: '1.0-0' }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="py-6 px-4 text-center text-on-surface-variant">No ledger entries for this account.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+} @else {
+  <p class="text-sm text-on-surface-variant">No PPF account for this customer.</p>
+}

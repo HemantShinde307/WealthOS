@@ -1,0 +1,51 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ['frontend/**', '.github/workflows/deploy-pages.yml']
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: frontend
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+
+      # base-href = the repo name, since this is a project page (username.github.io/<repo>/).
+      # If you instead deploy this as a user/org page (repo literally named username.github.io),
+      # change base-href below to "/".
+      - run: npx ng build --configuration production --base-href "/${{ github.event.repository.name }}/"
+
+      # GitHub Pages is static hosting — a hard refresh on a deep link like /login 404s without
+      # this. Copying index.html to 404.html makes GitHub Pages fall back to the Angular app,
+      # which then resolves the route client-side.
+      - run: cp dist/wealthos-app/browser/index.html dist/wealthos-app/browser/404.html
+
+      - uses: actions/configure-pages@v4
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/dist/wealthos-app/browser
+      - id: deployment
+        uses: actions/deploy-pages@v4

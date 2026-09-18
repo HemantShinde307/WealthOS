@@ -1,0 +1,12 @@
+<div class="flex flex-col items-center text-center py-8 gap-4">
+  <div class="w-20 h-20 rounded-full bg-tertiary-container/10 flex items-center justify-center">
+    <span class="material-symbols-outlined text-on-tertiary-container text-[48px] fill-icon">check_circle</span>
+  </div>
+  <h2 class="text-headline-lg text-on-background">Order Placed Successfully</h2>
+  <p class="text-on-surface-variant max-w-sm">
+    Your purchase order {{ state.lastOrderId() }} of ₹{{ state.amount() | number }} has been submitted and is being processed.
+  </p>
+  <button class="mt-4 bg-primary-container text-on-primary px-6 py-3 rounded-md font-medium hover:opacity-90 transition-opacity" (click)="goToPortfolio()">
+    Back to Portfolio
+  </button>
+</div>

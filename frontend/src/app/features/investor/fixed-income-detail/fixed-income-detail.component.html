@@ -1,0 +1,55 @@
+@if (instrument(); as i) {
+  <div class="flex items-center gap-3">
+    <a routerLink="/investor/fixed-income" class="p-2 -ml-2 rounded-full text-on-surface-variant hover:bg-surface-container-low">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </a>
+    <div class="min-w-0">
+      <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background truncate">{{ i.name }}</h2>
+      <p class="text-body-md text-on-surface-variant mt-1">{{ i.issuer }} &middot; {{ i.type }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+      <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Yield (p.a.)</p>
+      <p class="font-mono text-xl font-bold text-on-tertiary-container">{{ i.yieldPct }}%</p>
+    </div>
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+      <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Rating</p>
+      <p class="font-mono text-xl font-semibold text-on-background">{{ i.rating }}</p>
+    </div>
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+      <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Tenure</p>
+      <p class="font-mono text-xl font-semibold text-on-background">{{ i.tenureMonths }} mo</p>
+    </div>
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4">
+      <p class="text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Face Value</p>
+      <p class="font-mono text-xl font-semibold text-on-background">₹{{ i.faceValue | number }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6">
+      <h3 class="text-title-lg text-on-background mb-4">About This Instrument</h3>
+      <p class="text-sm text-on-surface-variant leading-relaxed">{{ i.description }}</p>
+      <div class="mt-4 space-y-2 text-sm">
+        <div class="flex justify-between"><span class="text-on-surface-variant">Coupon Frequency</span><span class="font-medium text-on-background">{{ i.couponFrequency }}</span></div>
+        <div class="flex justify-between"><span class="text-on-surface-variant">Maturity Date</span><span class="font-medium text-on-background">{{ i.maturityDate | date: 'mediumDate' }}</span></div>
+        <div class="flex justify-between"><span class="text-on-surface-variant">Minimum Investment</span><span class="font-medium text-on-background">₹{{ i.minInvestment | number }}</span></div>
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 flex flex-col">
+      <h3 class="text-title-lg text-on-background mb-4">Illustrative Investment</h3>
+      <div class="flex-1 space-y-2 text-sm">
+        <div class="flex justify-between"><span class="text-on-surface-variant">Units</span><span class="font-medium text-on-background">{{ units }}</span></div>
+        <div class="flex justify-between"><span class="text-on-surface-variant">Investment Amount</span><span class="font-mono font-semibold text-on-background">₹{{ investmentAmount(i.faceValue) | number }}</span></div>
+      </div>
+      <a routerLink="/investor/fixed-income/trade" class="w-full text-center bg-primary-container text-on-primary py-3 rounded-md font-medium hover:opacity-90 transition-opacity mt-4">
+        Proceed to Trade Desk
+      </a>
+    </div>
+  </div>
+} @else {
+  <p class="text-on-surface-variant">Instrument not found.</p>
+}

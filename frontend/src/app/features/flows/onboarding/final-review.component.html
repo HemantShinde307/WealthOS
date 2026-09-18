@@ -1,0 +1,57 @@
+@if (!state.submitted()) {
+  <div class="space-y-6">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg divide-y divide-outline-variant">
+      <div class="p-4">
+        <p class="text-xs text-on-surface-variant uppercase tracking-wider mb-2">Personal Details</p>
+        <div class="grid grid-cols-2 gap-y-2 text-sm">
+          <span class="text-on-surface-variant">Full Name</span><span class="text-on-background font-medium text-right">{{ state.fullName() }}</span>
+          <span class="text-on-surface-variant">PAN</span><span class="text-on-background font-medium text-right">{{ state.pan() | uppercase }}</span>
+          <span class="text-on-surface-variant">Date of Birth</span><span class="text-on-background font-medium text-right">{{ state.dob() }}</span>
+          <span class="text-on-surface-variant">Email</span><span class="text-on-background font-medium text-right">{{ state.email() }}</span>
+          <span class="text-on-surface-variant">Phone</span><span class="text-on-background font-medium text-right">{{ state.phone() }}</span>
+        </div>
+      </div>
+      <div class="p-4">
+        <p class="text-xs text-on-surface-variant uppercase tracking-wider mb-2">Address</p>
+        <p class="text-sm text-on-background">{{ state.addressLine() }}, {{ state.city() }}, {{ state.state() }} - {{ state.pincode() }}</p>
+      </div>
+      <div class="p-4">
+        <p class="text-xs text-on-surface-variant uppercase tracking-wider mb-2">Risk Profile</p>
+        <p class="text-sm font-medium text-on-background">{{ state.riskProfile() }}</p>
+      </div>
+      <div class="p-4">
+        <p class="text-xs text-on-surface-variant uppercase tracking-wider mb-2">Documents</p>
+        <div class="flex flex-wrap gap-2">
+          @for (doc of documents; track doc.key) {
+            <span class="text-xs px-2 py-1 rounded-full bg-tertiary-container/10 text-on-tertiary-container flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px] fill-icon">check_circle</span>
+              {{ doc.label }}
+            </span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-surface-container-low rounded-lg p-4 text-xs text-on-surface-variant flex gap-2">
+      <span class="material-symbols-outlined text-[18px] shrink-0">info</span>
+      <span>By submitting, you confirm the information provided is accurate. Your KYC application will be reviewed within 1-2 business days.</span>
+    </div>
+
+    <button class="w-full bg-primary-container text-on-primary py-3 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50" [disabled]="submitting()" (click)="submit()">
+      {{ submitting() ? 'Submitting…' : 'Submit Application' }}
+    </button>
+  </div>
+} @else {
+  <div class="flex flex-col items-center text-center py-8 gap-4">
+    <div class="w-20 h-20 rounded-full bg-tertiary-container/10 flex items-center justify-center">
+      <span class="material-symbols-outlined text-on-tertiary-container text-[48px] fill-icon">check_circle</span>
+    </div>
+    <h2 class="text-headline-lg text-on-background">Application Submitted</h2>
+    <p class="text-on-surface-variant max-w-sm">
+      Your KYC application ({{ state.clientId() }}) has been submitted for review. You'll be notified once it's verified.
+    </p>
+    <button class="mt-4 bg-primary-container text-on-primary px-6 py-3 rounded-md font-medium hover:opacity-90 transition-opacity" (click)="goToDashboard()">
+      Continue
+    </button>
+  </div>
+}

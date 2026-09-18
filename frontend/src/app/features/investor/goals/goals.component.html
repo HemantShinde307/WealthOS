@@ -1,0 +1,53 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">My Goals</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Track progress towards your life goals.</p>
+  </div>
+  <a routerLink="/goal-planning/select-category" class="flex items-center gap-2 bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium">
+    <span class="material-symbols-outlined text-[18px]">add</span>
+    Create New Goal
+  </a>
+</div>
+
+@if (!myGoals().length) {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-10 flex flex-col items-center text-center gap-3">
+    <span class="material-symbols-outlined text-on-surface-variant text-[40px]">flag</span>
+    <h3 class="text-title-lg text-on-background">No goals yet</h3>
+    <p class="text-on-surface-variant max-w-sm">Create a goal — retirement, a home, education — and we'll suggest a monthly SIP and fund mix to get you there.</p>
+    <a routerLink="/goal-planning/select-category" class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium">
+      Create Your First Goal
+    </a>
+  </div>
+}
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+  @for (goal of myGoals(); track goal.id) {
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-sm flex flex-col gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-secondary-container/10 text-secondary flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined">{{ categoryIcons[goal.category] ?? 'flag' }}</span>
+        </div>
+        <div class="min-w-0">
+          <h3 class="font-semibold text-on-background truncate">{{ goal.name }}</h3>
+          <p class="text-xs text-on-surface-variant">{{ goal.category }} &middot; Target {{ goal.targetDate | date: 'MMM y' }}</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="flex justify-between items-baseline mb-1">
+          <span class="font-mono text-lg font-bold text-on-background">{{ goal.currentAmount | inrCompact }}</span>
+          <span class="text-xs text-on-surface-variant">of {{ goal.targetAmount | inrCompact }}</span>
+        </div>
+        <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+          <div class="h-full bg-primary-container rounded-full transition-all" [style.width.%]="goal.progressPct"></div>
+        </div>
+        <p class="text-xs text-on-surface-variant mt-1">{{ goal.progressPct }}% complete</p>
+      </div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-outline-variant text-sm">
+        <span class="text-on-surface-variant">Monthly SIP</span>
+        <span class="font-mono font-medium text-on-background">₹{{ goal.monthlyInvestment | number }}</span>
+      </div>
+    </div>
+  }
+</div>

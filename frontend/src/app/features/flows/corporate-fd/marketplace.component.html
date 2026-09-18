@@ -1,0 +1,26 @@
+<div class="space-y-4">
+  <div class="bg-surface-container-low rounded-lg p-4 text-sm text-on-surface-variant flex gap-2">
+    <span class="material-symbols-outlined text-[18px] shrink-0">info</span>
+    <span>Corporate Fixed Deposits offer higher interest rates than bank FDs, backed by rated NBFCs and housing finance companies.</span>
+  </div>
+
+  <div class="space-y-3">
+    @for (offer of offers; track offer.id) {
+      <button class="w-full text-left bg-surface-container-lowest border border-outline-variant rounded-lg p-4 hover:border-secondary transition-colors flex justify-between items-center gap-4" (click)="select(offer.id)">
+        <div class="min-w-0">
+          <p class="font-semibold text-on-background truncate">{{ offer.issuer }}</p>
+          <p class="text-xs text-on-surface-variant mt-0.5">Rating: {{ offer.rating }} &middot; Tenure: {{ offer.tenureMonths }} months &middot; Min ₹{{ offer.minInvestment | number }}</p>
+          <div class="flex gap-1 mt-2">
+            @for (opt of offer.payoutOptions; track opt) {
+              <span class="text-[10px] px-2 py-0.5 rounded bg-surface-container-low text-on-surface-variant">{{ opt }}</span>
+            }
+          </div>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="font-mono text-2xl font-bold text-on-tertiary-container">{{ offer.interestRate }}%</p>
+          <p class="text-xs text-on-surface-variant">p.a.</p>
+        </div>
+      </button>
+    }
+  </div>
+</div>
