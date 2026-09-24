@@ -3,6 +3,8 @@ export interface NavItem {
   icon: string;
   route: string;
   filled?: boolean;
+  /** Show a live badge next to the label. */
+  badge?: 'chatUnread';
 }
 
 export interface ShellConfig {

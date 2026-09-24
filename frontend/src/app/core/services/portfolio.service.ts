@@ -1,7 +1,10 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed, effect, untracked } from '@angular/core';
+import { HoldingsApiService, holdingToDto, dtoToHolding } from './holdings-api.service';
 import { Holding, NavPoint } from '../models/domain.models';
 import { CasParsedRow } from './cas-parser.service';
 import { AuthService } from './auth.service';
+import { NavService } from './nav.service';
+import { SchemeService } from './scheme.service';
 
 const CATEGORY_KEYWORDS: Array<[RegExp, string]> = [
   [/small cap/i, 'Small Cap'],
@@ -58,10 +61,148 @@ export class PortfolioService {
   // portfolio — no seed data here either; a real account starts empty and only populates
   // via CAS import (see CasImportStateService / importHoldings) or an actual purchase
   // (recordPurchase).
+  //
+  // `_byCustomer` is the BASELINE (statement / purchase values, never touched by live NAVs).
+  // `holdings` derives from it, overlaying live AMFI NAVs for holdings with a known ISIN, so
+  // updates never compound and everything downstream picks changes up automatically.
+  private readonly navService = inject(NavService);
+  private readonly schemeService = inject(SchemeService);
   private readonly _byCustomer = signal<Record<string, Holding[]>>({});
   private readonly customerId = computed(() => this.auth.currentUser().customerId ?? 'GUEST');
-  readonly holdings = computed(() => this._byCustomer()[this.customerId()] ?? []);
+  private readonly baselineHoldings = computed(() => this._byCustomer()[this.customerId()] ?? []);
+  private readonly isinByName = computed(() => {
+    const map = new Map<string, string>();
+    for (const s of this.schemeService.schemes()) if (s.isin) map.set(s.name, s.isin);
+    return map;
+  });
+
+  readonly holdings = computed<Holding[]>(() => {
+    const navs = this.navService.navsByIsin();
+    const byName = this.isinByName();
+    return this.baselineHoldings().map((h) => {
+      const isin = h.isin ?? byName.get(h.schemeName);
+      const live = isin ? navs[isin] : undefined;
+      if (!live) return isin && !h.isin ? { ...h, isin } : h;
+      const currentValue = Math.round(h.units * live.nav);
+      const unrealizedPl = currentValue - h.investedValue;
+      const unrealizedPlPct = h.investedValue > 0 ? Number(((unrealizedPl / h.investedValue) * 100).toFixed(2)) : 0;
+      return { ...h, isin, currentNav: live.nav, currentValue, unrealizedPl, unrealizedPlPct };
+    });
+  });
   readonly growthSeries = buildGrowthSeries();
+
+  // ---- Server persistence (investor only) ----
+  private readonly holdingsApi = inject(HoldingsApiService);
+  /** customerId of a signed-in investor with a token; null otherwise (API is never touched then). */
+  private readonly sessionId = computed(() => {
+    const u = this.auth.currentUser();
+    return this.auth.isAuthenticated() && u.role === 'investor' && !!u.token && u.customerId ? u.customerId : null;
+  });
+  private readonly loadedIds = signal<Record<string, boolean>>({});
+  /** True while a signed-in investor's stored holdings have not finished their first load. */
+  readonly loading = computed(() => {
+    const id = this.sessionId();
+    return !!id && !this.loadedIds()[id];
+  });
+  private readonly loadingIds = new Set<string>();
+  private readonly dirtyBeforeLoad = new Set<string>();
+  private readonly lastSaved = new Map<string, string>();
+  private readonly saveTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private saveChain: Promise<void> = Promise.resolve();
+  private activeId: string | null = null;
+
+  constructor() {
+    effect(() => this.navService.watch('holdings', this.holdings().map((h) => h.isin)), { allowSignalWrites: true });
+
+    // Load once per login / customer change; reset everything when the session ends or switches.
+    effect(
+      () => {
+        const id = this.sessionId();
+        untracked(() => {
+          if (this.activeId && this.activeId !== id) this.endSession(this.activeId);
+          this.activeId = id;
+          if (id && !this.loadedIds()[id] && !this.loadingIds.has(id)) void this.loadFor(id);
+        });
+      },
+      { allowSignalWrites: true },
+    );
+
+    // Debounced full-set save after every baseline change, once loaded.
+    effect(() => {
+      const id = this.sessionId();
+      const list = this.baselineHoldings();
+      const loaded = id ? this.loadedIds()[id] : false;
+      if (!id || !loaded) return;
+      untracked(() => this.scheduleSave(id, list));
+    });
+  }
+
+  private endSession(id: string): void {
+    clearTimeout(this.saveTimers.get(id));
+    this.saveTimers.delete(id);
+    this.dirtyBeforeLoad.delete(id);
+    this.lastSaved.delete(id);
+    this.loadingIds.delete(id);
+    this._byCustomer.update((map) => {
+      const { [id]: _drop, ...rest } = map;
+      return rest;
+    });
+    this.loadedIds.update((m) => {
+      const { [id]: _drop, ...rest } = m;
+      return rest;
+    });
+  }
+
+  private async loadFor(id: string): Promise<void> {
+    this.loadingIds.add(id);
+    try {
+      const dtos = await this.holdingsApi.load();
+      if (this.sessionId() !== id || !this.loadingIds.has(id)) return; // session changed meanwhile
+      if (this.dirtyBeforeLoad.has(id)) {
+        // Changed before the load returned: the user's version wins and gets saved.
+        this.dirtyBeforeLoad.delete(id);
+      } else {
+        const loaded = dtos.map(dtoToHolding);
+        this._byCustomer.update((map) => ({ ...map, [id]: loaded }));
+        this.lastSaved.set(id, JSON.stringify(loaded.map(holdingToDto)));
+      }
+      this.loadedIds.update((m) => ({ ...m, [id]: true }));
+    } catch {
+      // Silent; the next baseline change retries the load (see markChanged).
+    } finally {
+      this.loadingIds.delete(id);
+    }
+  }
+
+  /** Called by every baseline writer with the customerId captured at the time of the change. */
+  private markChanged(id: string): void {
+    if (this.sessionId() !== id || this.loadedIds()[id]) return;
+    this.dirtyBeforeLoad.add(id);
+    if (!this.loadingIds.has(id)) void this.loadFor(id); // previous load failed: retry
+  }
+
+  private scheduleSave(id: string, list: Holding[]): void {
+    clearTimeout(this.saveTimers.get(id));
+    this.saveTimers.delete(id);
+    const snapshot = JSON.stringify(list.map(holdingToDto));
+    if (this.lastSaved.get(id) === snapshot) return;
+    this.saveTimers.set(
+      id,
+      setTimeout(() => {
+        this.saveTimers.delete(id);
+        if (this.sessionId() !== id) return; // never save under another user's session
+        this.saveChain = this.saveChain.then(async () => {
+          if (this.sessionId() !== id) return;
+          try {
+            await this.holdingsApi.save(list);
+            this.lastSaved.set(id, snapshot);
+          } catch {
+            // Silent; lastSaved unchanged so the next change retries.
+          }
+        });
+      }, 800),
+    );
+  }
 
   readonly currentValue = computed(() => this.holdings().reduce((sum, h) => sum + h.currentValue, 0));
   readonly investedValue = computed(() => this.holdings().reduce((sum, h) => sum + h.investedValue, 0));
@@ -92,6 +233,7 @@ export class PortfolioService {
   private updateHoldings(updater: (list: Holding[]) => Holding[]): void {
     const id = this.customerId();
     this._byCustomer.update((map) => ({ ...map, [id]: updater(map[id] ?? []) }));
+    this.markChanged(id);
   }
 
   /**
@@ -100,15 +242,16 @@ export class PortfolioService {
    * and most portfolio trackers — present consolidated holdings across folios).
    */
   importHoldings(rows: CasParsedRow[]): void {
-    const bySchemeName = new Map<string, { schemeName: string; units: number; investedValue: number; currentValue: number }>();
+    const bySchemeName = new Map<string, { schemeName: string; isin?: string; units: number; investedValue: number; currentValue: number }>();
     for (const row of rows) {
       const existing = bySchemeName.get(row.schemeName);
       if (existing) {
+        existing.isin ??= row.isin;
         existing.units += row.units;
         existing.investedValue += row.investedValue;
         existing.currentValue += row.currentValue;
       } else {
-        bySchemeName.set(row.schemeName, { schemeName: row.schemeName, units: row.units, investedValue: row.investedValue, currentValue: row.currentValue });
+        bySchemeName.set(row.schemeName, { schemeName: row.schemeName, isin: row.isin, units: row.units, investedValue: row.investedValue, currentValue: row.currentValue });
       }
     }
 
@@ -121,6 +264,7 @@ export class PortfolioService {
       const unrealizedPlPct = investedValue > 0 ? Number(((unrealizedPl / investedValue) * 100).toFixed(2)) : 0;
       return {
         schemeId: slugify(agg.schemeName),
+        isin: agg.isin,
         schemeName: agg.schemeName,
         category: guessCategory(agg.schemeName),
         units: Number(agg.units.toFixed(3)),
@@ -133,7 +277,9 @@ export class PortfolioService {
       };
     });
 
-    this._byCustomer.update((map) => ({ ...map, [this.customerId()]: holdings }));
+    const id = this.customerId();
+    this._byCustomer.update((map) => ({ ...map, [id]: holdings }));
+    this.markChanged(id);
   }
 
   /** Adds to an existing holding (by scheme name) or creates a new one, from a real purchase/SIP. */

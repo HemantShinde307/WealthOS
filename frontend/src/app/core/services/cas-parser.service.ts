@@ -7,6 +7,7 @@ export interface CasParsedRow {
   folio: string;
   amc: string;
   schemeName: string;
+  isin?: string;
   units: number;
   investedValue: number;
   currentValue: number;
@@ -82,6 +83,14 @@ function toNumber(raw: string): number {
 // Matches a scheme header line, e.g.:
 // "B1180B-Aditya Birla Sun Life Banking And Financial Services Fund - Gr. REGULAR (Non-Demat) - ISIN: INF209K011W7(Advisor: ARN-242424) Registrar : CAMS"
 const SCHEME_HEADER_RE = /\b[A-Z0-9]{2,14}-([A-Za-z0-9&.,'()/\- ]{6,160}?)\s*\((?:Non[\s-]*)?Demat\)/g;
+// The statement can wrap a long ISIN across two lines, so tolerate whitespace inside it.
+const ISIN_RE = /ISIN:\s*((?:[A-Z0-9]\s*){12})/;
+const ISIN_SHAPE = /^[A-Z]{2}[A-Z0-9]{9}\d$/;
+
+function extractIsin(text: string): string | undefined {
+  const raw = text.match(ISIN_RE)?.[1]?.replace(/\s+/g, '');
+  return raw && ISIN_SHAPE.test(raw) ? raw : undefined;
+}
 const FOLIO_RE = /Folio No\.?:?\s*(\d+(?:\s*\/\s*\d+)?)/;
 const CLOSING_RE = /Closing Unit Balance:\s*([\d,]+\.\d+)\s+Total Cost Value:\s*([\d,]+\.\d+)/;
 const MARKET_VALUE_RE = /Market Value on [^:]+:\s*INR\s*([\d,]+\.\d+)/;
@@ -137,6 +146,7 @@ export class CasParserService {
       const block = fullText.slice(blockStart, blockEnd);
 
       const schemeName = current[1].replace(/\s{2,}/g, ' ').replace(/[\s-]+$/, '').trim();
+      const isin = extractIsin(current[0]) ?? extractIsin(block.slice(0, 200));
       const folioMatch = block.match(FOLIO_RE);
       const closingMatch = block.match(CLOSING_RE);
       const marketMatch = block.match(MARKET_VALUE_RE);
@@ -151,6 +161,7 @@ export class CasParserService {
         folio: folioMatch[1].replace(/\s+/g, ' ').trim(),
         amc: guessAmc(schemeName),
         schemeName,
+        isin,
         units,
         investedValue,
         currentValue,

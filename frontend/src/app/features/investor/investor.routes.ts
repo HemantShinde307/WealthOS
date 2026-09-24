@@ -18,5 +18,6 @@ export const INVESTOR_ROUTES: Routes = [
   { path: 'insurance/needs-analysis', loadComponent: () => import('./insurance-needs-analysis/insurance-needs-analysis.component').then((m) => m.InsuranceNeedsAnalysisComponent) },
   { path: 'insurance/renewals', loadComponent: () => import('./insurance-renewals/insurance-renewals.component').then((m) => m.InsuranceRenewalsComponent) },
   { path: 'tax-saving', loadComponent: () => import('./tax-saving/tax-saving.component').then((m) => m.TaxSavingComponent) },
+  { path: 'messages', loadComponent: () => import('./messages/messages.component').then((m) => m.MessagesComponent) },
   { path: 'reports', loadComponent: () => import('./reports/reports.component').then((m) => m.ReportsComponent) },
 ];

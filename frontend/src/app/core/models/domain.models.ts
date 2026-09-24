@@ -20,6 +20,8 @@ export interface Client {
 
 export interface Scheme {
   id: string;
+  /** AMFI ISIN (Growth); when present the NAV is refreshed live from /api/nav/latest. */
+  isin?: string;
   name: string;
   amc: string;
   category: string;
@@ -38,6 +40,8 @@ export interface Scheme {
 
 export interface Holding {
   schemeId: string;
+  /** ISIN taken from the CAS statement (or resolved from the catalogue) — used to match live NAVs. */
+  isin?: string;
   schemeName: string;
   category: string;
   units: number;

@@ -1,12 +1,15 @@
 package com.wealthos.auth.controller;
 
+import com.wealthos.auth.dto.AuthenticatedStaffResponse;
 import com.wealthos.auth.dto.ErrorResponse;
 import com.wealthos.auth.dto.LoginRequest;
 import com.wealthos.auth.dto.StaffAccountResponse;
 import com.wealthos.auth.repository.AdminAccountRepository;
 import com.wealthos.auth.repository.AdvisorAccountRepository;
 import com.wealthos.auth.repository.FamilyOfficeAccountRepository;
+import com.wealthos.auth.model.BaseAccount;
 import com.wealthos.auth.repository.InstitutionalAccountRepository;
+import com.wealthos.auth.security.JwtService;
 import com.wealthos.auth.service.AdminAccountService;
 import com.wealthos.auth.service.AdvisorAccountService;
 import com.wealthos.auth.service.FamilyOfficeAccountService;
@@ -37,6 +40,7 @@ public class RoleAuthController {
     private final InstitutionalAccountRepository institutionalRepository;
     private final FamilyOfficeAccountService familyOfficeService;
     private final FamilyOfficeAccountRepository familyOfficeRepository;
+    private final JwtService jwtService;
 
     public RoleAuthController(
             AdvisorAccountService advisorService,
@@ -46,7 +50,8 @@ public class RoleAuthController {
             InstitutionalAccountService institutionalService,
             InstitutionalAccountRepository institutionalRepository,
             FamilyOfficeAccountService familyOfficeService,
-            FamilyOfficeAccountRepository familyOfficeRepository) {
+            FamilyOfficeAccountRepository familyOfficeRepository,
+            JwtService jwtService) {
         this.advisorService = advisorService;
         this.advisorRepository = advisorRepository;
         this.adminService = adminService;
@@ -55,6 +60,11 @@ public class RoleAuthController {
         this.institutionalRepository = institutionalRepository;
         this.familyOfficeService = familyOfficeService;
         this.familyOfficeRepository = familyOfficeRepository;
+        this.jwtService = jwtService;
+    }
+
+    private AuthenticatedStaffResponse authenticated(String role, BaseAccount account) {
+        return AuthenticatedStaffResponse.from(account, jwtService.issue(role, account.getAccountCode(), account.getName()));
     }
 
     private static final ResponseEntity<ErrorResponse> INVALID_CREDENTIALS =
@@ -63,7 +73,7 @@ public class RoleAuthController {
     @PostMapping("/advisor/login")
     public ResponseEntity<?> advisorLogin(@Valid @RequestBody LoginRequest request) {
         return advisorService.validateCredentials(request.getEmail(), request.getPassword())
-                .<ResponseEntity<?>>map(account -> ResponseEntity.ok(StaffAccountResponse.from(account)))
+                .<ResponseEntity<?>>map(account -> ResponseEntity.ok(authenticated("advisor", account)))
                 .orElse(INVALID_CREDENTIALS);
     }
 
@@ -75,7 +85,7 @@ public class RoleAuthController {
     @PostMapping("/admin/login")
     public ResponseEntity<?> adminLogin(@Valid @RequestBody LoginRequest request) {
         return adminService.validateCredentials(request.getEmail(), request.getPassword())
-                .<ResponseEntity<?>>map(account -> ResponseEntity.ok(StaffAccountResponse.from(account)))
+                .<ResponseEntity<?>>map(account -> ResponseEntity.ok(authenticated("admin", account)))
                 .orElse(INVALID_CREDENTIALS);
     }
 
@@ -87,7 +97,7 @@ public class RoleAuthController {
     @PostMapping("/institutional/login")
     public ResponseEntity<?> institutionalLogin(@Valid @RequestBody LoginRequest request) {
         return institutionalService.validateCredentials(request.getEmail(), request.getPassword())
-                .<ResponseEntity<?>>map(account -> ResponseEntity.ok(StaffAccountResponse.from(account)))
+                .<ResponseEntity<?>>map(account -> ResponseEntity.ok(authenticated("institutional", account)))
                 .orElse(INVALID_CREDENTIALS);
     }
 
@@ -99,7 +109,7 @@ public class RoleAuthController {
     @PostMapping("/family-office/login")
     public ResponseEntity<?> familyOfficeLogin(@Valid @RequestBody LoginRequest request) {
         return familyOfficeService.validateCredentials(request.getEmail(), request.getPassword())
-                .<ResponseEntity<?>>map(account -> ResponseEntity.ok(StaffAccountResponse.from(account)))
+                .<ResponseEntity<?>>map(account -> ResponseEntity.ok(authenticated("family_office", account)))
                 .orElse(INVALID_CREDENTIALS);
     }
 

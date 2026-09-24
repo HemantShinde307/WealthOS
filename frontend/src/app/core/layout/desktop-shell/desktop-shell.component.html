@@ -39,6 +39,9 @@
         >
           <span class="material-symbols-outlined" [class.fill-icon]="item.filled">{{ item.icon }}</span>
           <span>{{ item.label }}</span>
+          @if (item.badge === 'chatUnread' && chat.unreadTotal() > 0) {
+            <span class="ml-auto min-w-5 h-5 px-1 rounded-full bg-secondary text-on-secondary text-[10px] flex items-center justify-center">{{ chat.unreadTotal() }}</span>
+          }
         </a>
       }
     </nav>

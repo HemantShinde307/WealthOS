@@ -5,6 +5,9 @@
   <div>
     <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">All Holdings</h2>
     <p class="text-body-md text-on-surface-variant mt-1">Complete breakdown of every scheme in your portfolio.</p>
+    @if (nav.latestNavDate(); as navDate) {
+      <p class="text-xs text-on-surface-variant mt-1">NAV as of {{ navDate | date: 'd MMM y' }}</p>
+    }
   </div>
 </div>
 

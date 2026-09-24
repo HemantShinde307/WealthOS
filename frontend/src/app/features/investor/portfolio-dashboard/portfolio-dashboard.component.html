@@ -126,7 +126,12 @@
   <!-- Holdings Table -->
   <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden flex flex-col">
     <div class="p-6 border-b border-outline-variant flex justify-between items-center">
-      <h3 class="text-title-lg text-on-background">Scheme Performance</h3>
+      <div>
+        <h3 class="text-title-lg text-on-background">Scheme Performance</h3>
+        @if (nav.latestNavDate(); as navDate) {
+          <p class="text-xs text-on-surface-variant mt-0.5">NAV as of {{ navDate | date: 'd MMM y' }}</p>
+        }
+      </div>
       <a routerLink="/investor/portfolio/detailed" class="text-secondary font-medium text-sm hover:underline flex items-center gap-1">
         View All <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
       </a>

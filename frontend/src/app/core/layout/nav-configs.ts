@@ -10,6 +10,7 @@ const investorNav: NavItem[] = [
   { label: 'Fixed Income', icon: 'account_balance', route: '/investor/fixed-income' },
   { label: 'Insurance', icon: 'shield', route: '/investor/insurance' },
   { label: 'Tax Saving', icon: 'receipt_long', route: '/investor/tax-saving' },
+  { label: 'Messages', icon: 'chat', route: '/investor/messages', badge: 'chatUnread' },
   { label: 'Reports', icon: 'description', route: '/investor/reports' },
 ];
 
@@ -20,7 +21,7 @@ const advisorNav: NavItem[] = [
   { label: 'Transactions', icon: 'swap_horiz', route: '/advisor/transactions' },
   { label: 'Brokerage', icon: 'payments', route: '/advisor/brokerage' },
   { label: 'Campaigns', icon: 'campaign', route: '/advisor/campaigns' },
-  { label: 'Chat', icon: 'chat', route: '/advisor/chat' },
+  { label: 'Chat', icon: 'chat', route: '/advisor/chat', badge: 'chatUnread' },
   { label: 'Back Office', icon: 'admin_panel_settings', route: '/back-office/customer-investments' },
 ];
 

@@ -13,6 +13,10 @@ export interface InvestorAccount {
   name: string;
   email: string;
   phone: string;
+  /** accountCode of the linked distributor, or null. */
+  distributorCode?: string | null;
+  /** Signed JWT — present on login/signup responses only. */
+  token?: string;
 }
 
 export interface CreateAccountResult {

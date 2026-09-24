@@ -23,6 +23,8 @@ export interface StaffAccount {
   name: string;
   email: string;
   phone: string;
+  /** Signed JWT — present on login responses only. */
+  token?: string;
 }
 
 @Injectable({ providedIn: 'root' })

@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { NavService } from '../../../core/services/nav.service';
 import { PortfolioService } from '../../../core/services/portfolio.service';
 
 @Component({
@@ -11,4 +12,5 @@ import { PortfolioService } from '../../../core/services/portfolio.service';
 })
 export class PortfolioDetailComponent {
   readonly portfolio = inject(PortfolioService);
+  readonly nav = inject(NavService);
 }

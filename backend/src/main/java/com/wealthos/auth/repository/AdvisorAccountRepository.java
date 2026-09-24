@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface AdvisorAccountRepository extends JpaRepository<AdvisorAccount, Long> {
     Optional<AdvisorAccount> findByEmailIgnoreCase(String email);
     boolean existsByEmailIgnoreCase(String email);
+    Optional<AdvisorAccount> findByAccountCode(String accountCode);
+    Optional<AdvisorAccount> findByAccountCodeIgnoreCase(String accountCode);
 }

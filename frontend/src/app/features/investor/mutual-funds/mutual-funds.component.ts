@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { NavService } from '../../../core/services/nav.service';
 import { PortfolioService } from '../../../core/services/portfolio.service';
 import { SchemeService } from '../../../core/services/scheme.service';
 import { InrCompactPipe } from '../../../shared/pipes/inr-compact.pipe';
@@ -13,6 +14,7 @@ import { InrCompactPipe } from '../../../shared/pipes/inr-compact.pipe';
 })
 export class MutualFundsComponent {
   readonly portfolio = inject(PortfolioService);
+  readonly nav = inject(NavService);
   private readonly schemeService = inject(SchemeService);
 
   readonly search = signal('');

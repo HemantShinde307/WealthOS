@@ -1,42 +1,25 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { ClientService } from '../../../core/services/client.service';
-import { Client } from '../../../core/models/domain.models';
-import { CHAT_THREADS, ChatMessage, ChatThread } from '../advisor-mock-data';
-
-interface ChatThreadWithClient extends ChatThread {
-  client: Client;
-}
+import { Component, inject, OnInit } from '@angular/core';
+import { AuthService } from '../../../core/services/auth.service';
+import { ChatService, ConversationDto } from '../../../core/services/chat.service';
+import { ChatThreadComponent } from '../../../shared/components/chat-thread/chat-thread.component';
 
 @Component({
   selector: 'app-client-chat',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [ChatThreadComponent],
   templateUrl: './client-chat.component.html',
 })
-export class ClientChatComponent {
-  private readonly clientService = inject(ClientService);
+export class ClientChatComponent implements OnInit {
+  readonly chat = inject(ChatService);
+  readonly auth = inject(AuthService);
 
-  readonly threads: ChatThreadWithClient[] = CHAT_THREADS.map((t) => ({ ...t, client: this.clientService.getById(t.clientId)! })).filter(
-    (t) => !!t.client,
-  );
+  ngOnInit(): void {
+    this.chat.connect();
+    void this.chat.loadConversations();
+  }
 
-  readonly activeClientId = signal(this.threads[0]?.clientId ?? '');
-  readonly draft = signal('');
-
-  readonly activeThread = computed(() => this.threads.find((t) => t.clientId === this.activeClientId()));
-
-  readonly localMessages = signal<Record<string, ChatMessage[]>>({});
-
-  readonly messages = computed<ChatMessage[]>(() => {
-    const thread = this.activeThread();
-    if (!thread) return [];
-    return [...thread.messages, ...(this.localMessages()[thread.clientId] ?? [])];
-  });
-
-  selectThread(clientId: string): void {
-    this.activeClientId.set(clientId);
+  select(c: ConversationDto): void {
+    if (this.chat.activeCustomerId() !== c.customerId) void this.chat.openConversation(c.customerId);
   }
 
   initials(name: string): string {
@@ -49,16 +32,12 @@ export class ClientChatComponent {
       .toUpperCase();
   }
 
-  send(): void {
-    const text = this.draft().trim();
-    const clientId = this.activeClientId();
-    if (!text || !clientId) return;
-    const now = new Date();
-    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    this.localMessages.update((map) => ({
-      ...map,
-      [clientId]: [...(map[clientId] ?? []), { from: 'advisor', text, time }],
-    }));
-    this.draft.set('');
+  time(iso: string | null): string {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toDateString() === new Date().toDateString()
+      ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : d.toLocaleDateString([], { day: 'numeric', month: 'short' });
   }
 }

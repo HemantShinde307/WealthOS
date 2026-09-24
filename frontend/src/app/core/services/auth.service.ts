@@ -13,6 +13,10 @@ export interface CurrentUser {
   customerId?: string;
   /** Set for the four staff-facing roles (advisor/admin/institutional/family office) — their own account identifier. */
   accountCode?: string;
+  /** Investor only: the distributor (advisor accountCode) they are linked to, if any. */
+  distributorCode?: string | null;
+  /** Bearer token for the backend; persisted with the session and cleared on logout. */
+  token?: string;
 }
 
 export const ROLE_HOME_ROUTE: Record<UserRole, string> = {
@@ -89,13 +93,13 @@ export class AuthService {
       if (!account) {
         return { success: false, error: 'Invalid email or password.' };
       }
-      user = { name: account.name, email: account.email, role, customerId: account.customerId };
+      user = { name: account.name, email: account.email, role, customerId: account.customerId, distributorCode: account.distributorCode ?? null, token: account.token };
     } else {
       const account = await this.staffAccounts.validateCredentials(role, trimmedEmail, password);
       if (!account) {
         return { success: false, error: 'Invalid email or password.' };
       }
-      user = { name: account.name, email: account.email, role, accountCode: account.accountCode };
+      user = { name: account.name, email: account.email, role, accountCode: account.accountCode, token: account.token };
     }
 
     this.currentUser.set(user);
@@ -114,15 +118,25 @@ export class AuthService {
       return { success: false, error: result.error ?? 'Could not create your account. Please try again.' };
     }
 
-    const user: CurrentUser = { name: result.account.name, email: result.account.email, role: 'investor', customerId: result.account.customerId };
+    const user: CurrentUser = { name: result.account.name, email: result.account.email, role: 'investor', customerId: result.account.customerId, distributorCode: result.account.distributorCode ?? null, token: result.account.token };
     this.currentUser.set(user);
     this.isAuthenticated.set(true);
     persistSession(user);
     return { success: true };
   }
 
+  /** Updates the investor's linked distributor in the current (persisted) session. */
+  setDistributorCode(code: string | null): void {
+    this.currentUser.update((u) => {
+      const next = { ...u, distributorCode: code };
+      if (this.isAuthenticated()) persistSession(next);
+      return next;
+    });
+  }
+
   logout(): void {
     this.isAuthenticated.set(false);
+    this.currentUser.update((u) => ({ ...u, token: undefined, distributorCode: undefined }));
     persistSession(null);
   }
 

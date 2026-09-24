@@ -1,6 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { NavService } from '../../../core/services/nav.service';
 import { PortfolioService } from '../../../core/services/portfolio.service';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card.component';
 import { InrCompactPipe } from '../../../shared/pipes/inr-compact.pipe';
@@ -13,6 +14,7 @@ import { InrCompactPipe } from '../../../shared/pipes/inr-compact.pipe';
 })
 export class PortfolioDashboardComponent {
   readonly portfolio = inject(PortfolioService);
+  readonly nav = inject(NavService);
 
   readonly timeRanges = ['1M', '3M', '6M', '1Y'];
   selectedRange = '1Y';

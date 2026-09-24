@@ -31,6 +31,10 @@ public class InvestorAccount {
     @Column
     private String phone;
 
+    // accountCode of the distributor (advisor) this customer is connected to; null until they link one.
+    @Column(name = "distributor_code", length = 32)
+    private String distributorCode;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -87,6 +91,14 @@ public class InvestorAccount {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getDistributorCode() {
+        return distributorCode;
+    }
+
+    public void setDistributorCode(String distributorCode) {
+        this.distributorCode = distributorCode;
     }
 
     public Instant getCreatedAt() {

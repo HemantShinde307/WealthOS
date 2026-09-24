@@ -10,6 +10,7 @@ import com.wealthos.auth.repository.AdvisorAccountRepository;
 import com.wealthos.auth.repository.FamilyOfficeAccountRepository;
 import com.wealthos.auth.repository.InstitutionalAccountRepository;
 import com.wealthos.auth.repository.InvestorAccountRepository;
+import java.util.List;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,6 +52,19 @@ public class DemoAccountSeeder {
             if (familyOfficeRepository.count() == 0) {
                 familyOfficeRepository.save(new FamilyOfficeAccount("FO-1001", "Family Office Desk", "familyoffice@wealthos.com", encoder.encode("demo1234"), "+91 22 6688 4401"));
             }
+
+            // Connect the two demo customers to the demo distributor so the in-app chat can be tried
+            // straight away. Only fills in a missing link; a customer who linked someone else is left alone.
+            advisorRepository.findByAccountCode("ADV-1001").ifPresent(advisor -> {
+                for (String customerId : List.of("CL-DEMO01", "CL-1013")) {
+                    investorRepository.findByCustomerId(customerId).ifPresent(investor -> {
+                        if (investor.getDistributorCode() == null || investor.getDistributorCode().isBlank()) {
+                            investor.setDistributorCode(advisor.getAccountCode());
+                            investorRepository.save(investor);
+                        }
+                    });
+                }
+            });
         };
     }
 }

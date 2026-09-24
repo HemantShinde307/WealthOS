@@ -1,0 +1,50 @@
+<ng-template #linkCard>
+  <div class="flex-1 flex items-center justify-center p-6">
+    <div class="w-full max-w-md bg-surface-container-lowest border border-outline-variant rounded-lg p-6 space-y-4">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-secondary text-[28px]">support_agent</span>
+        <h2 class="text-title-lg text-on-background">Connect with your distributor</h2>
+      </div>
+      <p class="text-sm text-on-surface-variant">Enter the distributor code your advisor gave you (for example ADV-1001) to start chatting with them.</p>
+      <input
+        class="w-full px-4 py-2.5 border border-outline-variant rounded-md text-sm bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
+        placeholder="Distributor code"
+        maxlength="40"
+        [value]="code()"
+        (input)="onCode($event)"
+        (keydown.enter)="connectDistributor()"
+      />
+      @if (linkError(); as err) {
+        <p class="text-sm text-error">{{ err }}</p>
+      }
+      <div class="flex gap-2">
+        <button
+          class="bg-primary-container text-on-primary px-4 py-2 rounded-md text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+          [disabled]="linking() || !code().trim()"
+          (click)="connectDistributor()"
+        >
+          {{ linking() ? 'Connecting...' : 'Connect' }}
+        </button>
+        @if (changing()) {
+          <button class="px-4 py-2 rounded-md text-sm text-on-surface-variant hover:bg-surface-container-low" (click)="changing.set(false)">Cancel</button>
+        }
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<div class="h-[calc(100vh-8rem)] flex bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+  @if (!auth.currentUser().token) {
+    <div class="flex-1 flex items-center justify-center text-on-surface-variant p-6 text-center">Please sign out and sign in again to use messages.</div>
+  } @else if (changing() || (chat.conversations().length === 0 && !auth.currentUser().distributorCode)) {
+    <ng-container *ngTemplateOutlet="linkCard" />
+  } @else {
+    @if (chat.activeConversation(); as conv) {
+      <app-chat-thread [peerName]="conv.advisorName" [online]="chat.isOnline(conv)">
+        <button class="text-secondary text-sm font-medium hover:underline" (click)="startChange()">Change distributor</button>
+      </app-chat-thread>
+    } @else {
+      <div class="flex-1 flex items-center justify-center text-on-surface-variant">Loading conversation...</div>
+    }
+  }
+</div>

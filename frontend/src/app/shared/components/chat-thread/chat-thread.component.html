@@ -1,0 +1,100 @@
+<div class="flex-1 flex flex-col min-w-0 min-h-0">
+  <div class="p-4 border-b border-outline-variant flex items-center gap-3">
+    <div class="w-9 h-9 rounded-full bg-primary-container text-on-primary flex items-center justify-center text-xs font-semibold">
+      {{ initials(peerName()) }}
+    </div>
+    <div class="min-w-0">
+      <p class="font-medium text-on-background truncate">{{ peerName() }}</p>
+      <p class="text-xs text-on-surface-variant flex items-center gap-1">
+        <span class="w-2 h-2 rounded-full" [class]="online() ? 'bg-on-tertiary-container' : 'bg-outline'"></span>
+        {{ online() ? 'Online' : 'Offline' }}
+      </p>
+    </div>
+    <div class="ml-auto shrink-0"><ng-content /></div>
+  </div>
+
+  <div #scroller class="flex-1 overflow-y-auto p-4 space-y-3">
+    @if (chat.hasMore()) {
+      <div class="text-center">
+        <button
+          class="text-secondary text-xs font-medium hover:underline disabled:opacity-50"
+          [disabled]="chat.loadingOlder()"
+          (click)="chat.loadOlder()"
+        >
+          {{ chat.loadingOlder() ? 'Loading...' : 'Load earlier messages' }}
+        </button>
+      </div>
+    }
+    @if (chat.loadingMessages() && chat.messages().length === 0) {
+      <p class="text-center text-sm text-on-surface-variant">Loading messages...</p>
+    } @else if (chat.messages().length === 0) {
+      <p class="text-center text-sm text-on-surface-variant">No messages yet. Say hello!</p>
+    }
+    @for (m of chat.messages(); track trackMessage($index, m)) {
+      <div class="flex" [class.justify-end]="isMine(m)">
+        <div
+          class="max-w-[70%] rounded-lg px-3 py-2 text-sm"
+          [class]="isMine(m) ? 'bg-primary-container text-on-primary' : 'bg-surface-container-low text-on-surface'"
+          [class.opacity-70]="m.pending"
+        >
+          <p class="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{{ m.text }}</p>
+          <p class="text-[10px] opacity-70 mt-1 text-right flex items-center justify-end gap-1">
+            <span>{{ time(m.sentAt) }}</span>
+            @if (isMine(m)) {
+              @if (m.failed) {
+                <span class="material-symbols-outlined text-[14px]">error</span>
+              } @else if (m.pending) {
+                <span class="material-symbols-outlined text-[14px]">schedule</span>
+              } @else if (m.readAt) {
+                <span class="material-symbols-outlined text-[14px]" title="Read">done_all</span>
+              } @else {
+                <span class="material-symbols-outlined text-[14px]" title="Sent">done</span>
+              }
+            }
+          </p>
+          @if (m.failed && m.clientId) {
+            <p class="text-[11px] mt-1 text-right">
+              Not sent.
+              <button class="underline font-medium" (click)="chat.retry(m.clientId)">Retry</button>
+              <span class="opacity-70"> | </span>
+              <button class="underline" (click)="chat.discard(m.clientId)">Discard</button>
+            </p>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (chat.error(); as err) {
+    <div class="px-4 py-2 text-xs text-error bg-error-container/40 border-t border-outline-variant">{{ err }}</div>
+  }
+
+  <div class="p-3 border-t border-outline-variant">
+    @if (!chat.connected()) {
+      <p class="text-xs text-on-surface-variant mb-2 flex items-center gap-1">
+        <span class="material-symbols-outlined text-[14px]">sync</span>
+        Disconnected - reconnecting. You can send messages once the connection is back.
+      </p>
+    }
+    <div class="flex items-end gap-2">
+      <textarea
+        rows="1"
+        maxlength="2000"
+        class="flex-1 px-4 py-2.5 border border-outline-variant rounded-2xl text-sm bg-surface-container-lowest focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30 resize-none max-h-32 disabled:opacity-60"
+        [placeholder]="chat.connected() ? 'Type a message... (Enter to send, Shift+Enter for a new line)' : 'Waiting for connection...'"
+        [disabled]="!chat.connected()"
+        [value]="draft()"
+        (input)="onInput($event)"
+        (keydown.enter)="onEnter($event)"
+      ></textarea>
+      <button
+        class="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center shrink-0 hover:opacity-90 transition-opacity disabled:opacity-50"
+        [disabled]="!chat.connected() || !draft().trim()"
+        (click)="send()"
+        aria-label="Send message"
+      >
+        <span class="material-symbols-outlined text-[20px]">send</span>
+      </button>
+    </div>
+  </div>
+</div>
