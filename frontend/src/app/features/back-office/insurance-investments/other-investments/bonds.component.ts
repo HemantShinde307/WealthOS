@@ -1,16 +1,23 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OtherInvestmentsService } from '../other-investments.service';
 import { BondHolding } from '../insurance-investments-data.mock';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 @Component({
   selector: 'app-other-investments-bonds',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './bonds.component.html',
 })
 export class BondsComponent {
   readonly svc = inject(OtherInvestmentsService);
+
+  readonly exportHeaders = ['Customer', 'Issuer', 'ISIN', 'Face Value', 'Quantity', 'Coupon Rate (%)', 'Purchase Date', 'Maturity Date'];
+  readonly exportRows = computed(() =>
+    this.svc.bonds().map((b) => [b.customerName, b.issuer, b.isin, b.faceValue, b.quantity, b.couponRate, b.purchaseDate, b.maturityDate]),
+  );
 
   readonly editingId = signal<string | null>(null);
   readonly formVisible = signal(false);
@@ -77,7 +84,8 @@ export class BondsComponent {
     this.formVisible.set(false);
   }
 
-  remove(id: string): void {
-    this.svc.deleteBond(id);
+  remove(b: BondHolding): void {
+    if (!confirmDelete(`the ${b.issuer} bond for ${b.customerName}`)) return;
+    this.svc.deleteBond(b.id);
   }
 }

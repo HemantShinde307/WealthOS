@@ -35,7 +35,7 @@
   </div>
 }
 
-<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
   <input
     class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background"
     placeholder="Search folio no. / scheme / customer"
@@ -48,6 +48,9 @@
       <option [value]="amc">{{ amc }}</option>
     }
   </select>
+  <div class="flex sm:justify-end">
+    <app-export-button filename="batch-eligible-folios" [headers]="exportHeaders" [rows]="exportRows()" />
+  </div>
 </div>
 
 <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">

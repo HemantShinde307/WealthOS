@@ -2,12 +2,13 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BackOfficeCustomer, RISK_QUESTIONNAIRE, RISK_QUESTIONNAIRE_MAX_SCORE, scoreToRiskProfile } from '../back-office-data.mock';
+import { ExportButtonComponent } from '../../../shared/components/export-button/export-button.component';
 import { BackOfficeCustomerService } from '../back-office-customer.service';
 
 @Component({
   selector: 'app-risk-profile-assessment',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ExportButtonComponent],
   templateUrl: './risk-profile-assessment.component.html',
 })
 export class RiskProfileAssessmentComponent {
@@ -18,6 +19,9 @@ export class RiskProfileAssessmentComponent {
   readonly customerId = this.route.snapshot.paramMap.get('id')!;
   readonly customer = computed(() => this.boService.getCustomer(this.customerId));
   readonly history = computed(() => this.boService.historyFor(this.customerId));
+
+  readonly exportHeaders = ['Date', 'Method', 'Profile', 'Score', 'Max Score', 'Reason', 'Assessed By'];
+  readonly exportRows = computed(() => this.history().map((h) => [h.timestamp, h.method, h.profile, h.score, h.maxScore, h.reason, h.assessedBy]));
   readonly reviewDue = computed(() => {
     const c = this.customer();
     return c ? this.boService.isReviewDue(c) : false;

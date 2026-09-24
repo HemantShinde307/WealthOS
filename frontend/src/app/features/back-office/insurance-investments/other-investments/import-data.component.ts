@@ -1,7 +1,9 @@
-import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OtherInvestmentsService } from '../other-investments.service';
-import { OtherInvestmentImportRow } from '../insurance-investments-data.mock';
+import { ImportLogEntry, OtherInvestmentImportRow } from '../insurance-investments-data.mock';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 interface ParsedRow extends OtherInvestmentImportRow {
   valid: boolean;
@@ -13,7 +15,7 @@ const CATEGORIES = new Set<OtherInvestmentImportRow['category']>(['Stock', 'Bond
 @Component({
   selector: 'app-other-investments-import-data',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './import-data.component.html',
 })
 export class OtherInvestmentsImportDataComponent {
@@ -24,6 +26,13 @@ export class OtherInvestmentsImportDataComponent {
   readonly parsedRows = signal<ParsedRow[]>([]);
   readonly error = signal<string | null>(null);
   readonly imported = signal(false);
+
+  readonly logExportHeaders = ['File', 'Rows Imported', 'Imported On'];
+  readonly logExportRows = computed(() => this.svc.importLog().map((e) => [e.fileName, e.rowCount, e.importedOn]));
+  readonly previewExportHeaders = ['Category', 'Customer', 'Instrument', 'Amount', 'Date', 'Status'];
+  readonly previewExportRows = computed(() =>
+    this.parsedRows().map((r) => [r.category, r.customerName, r.instrumentName, r.amount, r.date, r.valid ? 'Ready' : r.issue]),
+  );
 
   readonly validCount = () => this.parsedRows().filter((r) => r.valid).length;
 
@@ -97,6 +106,11 @@ export class OtherInvestmentsImportDataComponent {
     this.imported.set(true);
     this.parsedRows.set([]);
     this.fileName.set(null);
+  }
+
+  removeLogEntry(e: ImportLogEntry): void {
+    if (!confirmDelete(`the import log entry for ${e.fileName}`)) return;
+    this.svc.deleteImportLogEntry(e.id);
   }
 
   downloadTemplate(): void {

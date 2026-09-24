@@ -2,6 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HolidayRecord } from '../setup-data.mock';
 import { SetupService } from '../setup.service';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 type HolidayDraft = Partial<HolidayRecord>;
 
@@ -10,11 +12,16 @@ const EMPTY_DRAFT: HolidayDraft = { date: '', name: '', type: 'National', status
 @Component({
   selector: 'app-holidays-master',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './holidays-master.component.html',
 })
 export class HolidaysMasterComponent {
   readonly setup = inject(SetupService);
+
+  readonly exportHeaders = ['Date', 'Holiday', 'Type', 'Status'];
+  readonly exportRows = computed(() =>
+    this.setup.holidays().map((h) => [h.date, h.name, h.type, h.status]),
+  );
 
   readonly formMode = signal<'closed' | 'add' | 'edit'>('closed');
   readonly editingId = signal<string | null>(null);
@@ -58,6 +65,8 @@ export class HolidaysMasterComponent {
   }
 
   remove(id: string): void {
+    const item = this.setup.holidays().find((x) => x.id === id);
+    if (!confirmDelete(`${item?.name ?? 'this holiday'}`)) return;
     this.setup.deleteHoliday(id);
     if (this.editingId() === id) this.cancel();
   }

@@ -1,6 +1,9 @@
-import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BrokerImportRow, MutualFundService } from './mutual-fund.service';
+import { BrokerRecord } from './mutual-fund-data.mock';
+import { ExportButtonComponent } from '../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../shared/utils/confirm';
 
 interface ParsedRow extends BrokerImportRow {
   valid: boolean;
@@ -10,7 +13,7 @@ interface ParsedRow extends BrokerImportRow {
 @Component({
   selector: 'app-mf-import-principal-broker-data',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './import-principal-broker-data.component.html',
 })
 export class ImportPrincipalBrokerDataComponent {
@@ -21,6 +24,58 @@ export class ImportPrincipalBrokerDataComponent {
   readonly parsedRows = signal<ParsedRow[]>([]);
   readonly error = signal<string | null>(null);
   readonly imported = signal<number | null>(null);
+
+  readonly previewExportHeaders = ['Broker Code', 'Broker Name', 'ARN', 'EUIN', 'Folio', 'Status'];
+  readonly previewExportRows = computed(() =>
+    this.parsedRows().map((r) => [r.brokerCode, r.brokerName, r.arn, r.euin, r.folio, r.valid ? 'Ready' : (r.issue ?? 'Invalid')]),
+  );
+
+  readonly exportHeaders = ['Broker Code', 'Broker Name', 'ARN', 'EUIN', 'Folio'];
+  readonly exportRows = computed(() =>
+    this.mfService.brokerRecords().map((b) => [b.brokerCode, b.brokerName, b.arn, b.euin, this.mfService.getFolio(b.folioId)?.folioNumber ?? b.folioId]),
+  );
+
+  readonly editingId = signal<string | null>(null);
+  readonly editBrokerCode = signal('');
+  readonly editBrokerName = signal('');
+  readonly editArn = signal('');
+  readonly editEuin = signal('');
+  readonly editError = signal<string | null>(null);
+
+  startEdit(b: BrokerRecord): void {
+    this.editingId.set(b.id);
+    this.editBrokerCode.set(b.brokerCode);
+    this.editBrokerName.set(b.brokerName);
+    this.editArn.set(b.arn);
+    this.editEuin.set(b.euin);
+    this.editError.set(null);
+  }
+
+  cancelEdit(): void {
+    this.editingId.set(null);
+  }
+
+  saveEdit(): void {
+    const id = this.editingId();
+    if (!id) return;
+    if (!this.editBrokerCode().trim() || !this.editArn().trim()) {
+      this.editError.set('Broker code and ARN are required.');
+      return;
+    }
+    this.mfService.updateBrokerRecord(id, {
+      brokerCode: this.editBrokerCode().trim(),
+      brokerName: this.editBrokerName().trim(),
+      arn: this.editArn().trim(),
+      euin: this.editEuin().trim(),
+    });
+    this.editingId.set(null);
+  }
+
+  remove(b: BrokerRecord): void {
+    if (!confirmDelete(`the broker mapping ${b.brokerCode} for this folio`)) return;
+    this.mfService.deleteBrokerRecord(b.id);
+    if (this.editingId() === b.id) this.editingId.set(null);
+  }
 
   readonly validCount = () => this.parsedRows().filter((r) => r.valid).length;
 

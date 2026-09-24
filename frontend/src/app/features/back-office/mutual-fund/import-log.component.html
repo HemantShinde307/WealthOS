@@ -3,9 +3,12 @@
     <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Import Log</h2>
     <p class="text-body-md text-on-surface-variant mt-1">Every registrar transaction file imported into Mutual Fund back office — {{ mfService.registrarImportLog().length }} imports on record.</p>
   </div>
-  <a routerLink="/back-office/customer-investments/mutual-fund/import-from-registrar" class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium whitespace-nowrap">
-    + New Import
-  </a>
+  <div class="flex gap-2">
+    <app-export-button filename="mutual-fund-import-log" [headers]="exportHeaders" [rows]="exportRows()" />
+    <a routerLink="/back-office/customer-investments/mutual-fund/import-from-registrar" class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium whitespace-nowrap">
+      + New Import
+    </a>
+  </div>
 </div>
 
 <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
@@ -16,6 +19,7 @@
         <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Registrar</th>
         <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Rows Imported</th>
         <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Imported On</th>
+        <th class="py-2.5 px-4"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
@@ -27,10 +31,13 @@
           </td>
           <td class="py-2.5 px-4 text-right font-mono">{{ entry.rowCount }}</td>
           <td class="py-2.5 px-4 text-xs text-on-surface-variant">{{ entry.importedOn | date: 'medium' }}</td>
+          <td class="py-2.5 px-4 text-right whitespace-nowrap">
+            <button class="text-error text-xs font-medium hover:underline" (click)="remove(entry.id, entry.fileName)">Delete</button>
+          </td>
         </tr>
       }
       @if (!mfService.registrarImportLog().length) {
-        <tr><td colspan="4" class="py-10 text-center text-on-surface-variant">No imports yet.</td></tr>
+        <tr><td colspan="5" class="py-10 text-center text-on-surface-variant">No imports yet.</td></tr>
       }
     </tbody>
   </table>

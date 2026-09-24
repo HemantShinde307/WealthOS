@@ -2,6 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Branch } from '../setup-data.mock';
 import { SetupService } from '../setup.service';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 type BranchDraft = Partial<Branch>;
 
@@ -10,11 +12,16 @@ const EMPTY_DRAFT: BranchDraft = { name: '', code: '', city: '', state: '', addr
 @Component({
   selector: 'app-branches',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './branches.component.html',
 })
 export class BranchesComponent {
   readonly setup = inject(SetupService);
+
+  readonly exportHeaders = ['Code', 'Name', 'City', 'State', 'Address', 'Phone', 'Email', 'Manager', 'Opened On', 'Status'];
+  readonly exportRows = computed(() =>
+    this.filtered().map((b) => [b.code, b.name, b.city, b.state, b.address, b.phone, b.email, b.managerName, b.openedOn, b.status]),
+  );
 
   readonly searchTerm = signal('');
   readonly formMode = signal<'closed' | 'add' | 'edit'>('closed');
@@ -62,6 +69,17 @@ export class BranchesComponent {
   }
 
   remove(id: string): void {
+    const name = this.setup.branchName(id);
+    const inUse =
+      this.setup.employees().some((e) => e.branchId === id) ||
+      this.setup.associates().some((a) => a.branchId === id) ||
+      this.setup.users().some((u) => u.branchId === id) ||
+      this.setup.rmMappings().some((m) => m.branchIds.includes(id));
+    if (inUse) {
+      window.alert(`${name} still has employees, associates, users or RM mappings assigned. Reassign or remove them before deleting the branch.`);
+      return;
+    }
+    if (!confirmDelete(`the branch ${name}`)) return;
     this.setup.deleteBranch(id);
     if (this.editingId() === id) this.cancel();
   }

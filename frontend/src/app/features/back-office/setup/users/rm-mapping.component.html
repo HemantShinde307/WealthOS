@@ -3,9 +3,12 @@
     <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Relationship Manager Mapping</h2>
     <p class="text-body-md text-on-surface-variant mt-1">{{ setup.rmMappings().length }} mappings across {{ relationshipManagers().length }} RMs</p>
   </div>
-  <button class="flex items-center gap-2 bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openAdd()">
-    <span class="material-symbols-outlined text-[18px]">add</span> Add Mapping
-  </button>
+  <div class="flex gap-2">
+    <app-export-button filename="rm-mapping" [headers]="exportHeaders" [rows]="exportRows()" />
+    <button class="flex items-center gap-2 bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openAdd()">
+      <span class="material-symbols-outlined text-[18px]">add</span> Add Mapping
+    </button>
+  </div>
 </div>
 
 @if (formMode() !== 'closed') {

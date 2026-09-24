@@ -2,6 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SetupScheduledReport } from '../setup-data.mock';
 import { SetupService } from '../setup.service';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 type ReportDraft = Partial<SetupScheduledReport>;
 
@@ -10,11 +12,16 @@ const EMPTY_DRAFT: ReportDraft = { reportName: '', recipientGroup: '', frequency
 @Component({
   selector: 'app-scheduled-reports-management',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './scheduled-reports-management.component.html',
 })
 export class ScheduledReportsManagementComponent {
   readonly setup = inject(SetupService);
+
+  readonly exportHeaders = ['Report', 'Recipient Group', 'Frequency', 'Next Run', 'Status'];
+  readonly exportRows = computed(() =>
+    this.filtered().map((r) => [r.reportName, r.recipientGroup, r.frequency, r.nextRun, r.status]),
+  );
 
   readonly searchTerm = signal('');
   readonly formMode = signal<'closed' | 'add' | 'edit'>('closed');
@@ -62,6 +69,8 @@ export class ScheduledReportsManagementComponent {
   }
 
   remove(id: string): void {
+    const item = this.setup.setupScheduledReports().find((x) => x.id === id);
+    if (!confirmDelete(`${item?.reportName ?? 'this schedule'}`)) return;
     this.setup.deleteSetupScheduledReport(id);
     if (this.editingId() === id) this.cancel();
   }

@@ -2,15 +2,22 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OtherInvestmentsService } from '../other-investments.service';
 import { BullionHolding } from '../insurance-investments-data.mock';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 @Component({
   selector: 'app-other-investments-bullion',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './bullion.component.html',
 })
 export class BullionComponent {
   readonly svc = inject(OtherInvestmentsService);
+
+  readonly exportHeaders = ['Customer', 'Metal', 'Form', 'Weight (g)', 'Purchase Rate', 'Current Rate', 'Purchase Date', 'Current Value'];
+  readonly exportRows = computed(() =>
+    this.rows().map((b) => [b.customerName, b.metal, b.form, b.weightGrams, b.purchaseRate, b.currentRate, b.purchaseDate, b.value]),
+  );
   readonly metals: BullionHolding['metal'][] = ['Gold', 'Silver'];
   readonly forms: BullionHolding['form'][] = ['Coin', 'Bar', 'Jewellery', 'Digital Gold'];
 
@@ -77,7 +84,8 @@ export class BullionComponent {
     this.formVisible.set(false);
   }
 
-  remove(id: string): void {
-    this.svc.deleteBullion(id);
+  remove(b: BullionHolding): void {
+    if (!confirmDelete(`the ${b.metal} holding for ${b.customerName}`)) return;
+    this.svc.deleteBullion(b.id);
   }
 }

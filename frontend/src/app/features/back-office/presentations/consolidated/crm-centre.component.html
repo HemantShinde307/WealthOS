@@ -1,4 +1,6 @@
-<app-report-header title="CRM Centre" subtitle="360° relationship view — holdings, upcoming actions and recent activity across every product." />
+<app-report-header title="CRM Centre" subtitle="360° relationship view — holdings, upcoming actions and recent activity across every product.">
+  <app-export-button reportActions filename="crm-centre-holdings" [headers]="exportHeaders" [rows]="exportRows()" />
+</app-report-header>
 
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
   <app-stat-card label="Total Wealth" [value]="presentations.totalWealth() | inrCompact" />

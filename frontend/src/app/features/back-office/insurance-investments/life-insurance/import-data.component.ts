@@ -1,7 +1,9 @@
-import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LifeInsuranceService } from '../life-insurance.service';
 import { LIFE_INSURERS, LIFE_POLICY_TYPES, LifeInsuranceImportRow, LifeInsurancePolicy } from '../insurance-investments-data.mock';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 interface ParsedRow extends LifeInsuranceImportRow {
   valid: boolean;
@@ -14,12 +16,15 @@ const FREQUENCIES = new Set<LifeInsurancePolicy['premiumFrequency']>(['Monthly',
 @Component({
   selector: 'app-life-insurance-import-data',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './import-data.component.html',
 })
 export class LifeInsuranceImportDataComponent {
   readonly svc = inject(LifeInsuranceService);
   readonly insurers = LIFE_INSURERS;
+
+  readonly logHeaders = ['File', 'Rows Imported', 'Imported On'];
+  readonly logRows = computed(() => this.svc.importLog().map((e) => [e.fileName, e.rowCount, e.importedOn]));
 
   readonly fileInput = viewChild.required<ElementRef<HTMLInputElement>>('fileInput');
   readonly fileName = signal<string | null>(null);
@@ -104,6 +109,11 @@ export class LifeInsuranceImportDataComponent {
     this.imported.set(true);
     this.parsedRows.set([]);
     this.fileName.set(null);
+  }
+
+  removeLog(id: string, fileName: string): void {
+    if (!confirmDelete(`the import log entry for ${fileName}`)) return;
+    this.svc.deleteImportLog(id);
   }
 
   downloadTemplate(): void {

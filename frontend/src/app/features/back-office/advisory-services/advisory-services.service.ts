@@ -98,12 +98,28 @@ export class AdvisoryServicesService {
     this._applications.update((list) => list.map((a) => (a.id === id ? { ...a, status } : a)));
   }
 
+  updateApplication(id: string, patch: Partial<ApplicationRegisterEntry>): void {
+    this._applications.update((list) => list.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+  }
+
+  deleteApplication(id: string): void {
+    this._applications.update((list) => list.filter((x) => x.id !== id));
+  }
+
   // ---- Services: Service Requests -----------------------------------------
   private readonly _serviceRequests = signal<ServiceRequestEntry[]>(MOCK_SERVICE_REQUESTS.map((s) => ({ ...s })));
   readonly serviceRequests = this._serviceRequests.asReadonly();
 
   setServiceRequestStatus(id: string, status: ServiceRequestStatus): void {
     this._serviceRequests.update((list) => list.map((s) => (s.id === id ? { ...s, status } : s)));
+  }
+
+  updateServiceRequest(id: string, patch: Partial<ServiceRequestEntry>): void {
+    this._serviceRequests.update((list) => list.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+  }
+
+  deleteServiceRequest(id: string): void {
+    this._serviceRequests.update((list) => list.filter((x) => x.id !== id));
   }
 
   // ---- New Products: Loan Against Securities -------------------------------
@@ -126,6 +142,14 @@ export class AdvisoryServicesService {
     return facility;
   }
 
+  updateLasFacility(id: string, patch: Partial<LasFacility>): void {
+    this._lasFacilities.update((list) => list.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+  }
+
+  deleteLasFacility(id: string): void {
+    this._lasFacilities.update((list) => list.filter((x) => x.id !== id));
+  }
+
   // ---- New Products: Equity Baskets ----------------------------------------
   readonly equityBaskets = MOCK_EQUITY_BASKETS;
   private readonly _basketOrders = signal<BasketOrder[]>([]);
@@ -137,6 +161,14 @@ export class AdvisoryServicesService {
     return order;
   }
 
+  updateBasketOrder(id: string, patch: Partial<BasketOrder>): void {
+    this._basketOrders.update((list) => list.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+  }
+
+  deleteBasketOrder(id: string): void {
+    this._basketOrders.update((list) => list.filter((x) => x.id !== id));
+  }
+
   // ---- New Products: P2P Investment -----------------------------------------
   readonly p2pOptions = MOCK_P2P_OPTIONS;
   private readonly _p2pOrders = signal<P2pOrder[]>([]);
@@ -146,6 +178,14 @@ export class AdvisoryServicesService {
     const order: P2pOrder = { id: `PO-${String(nextP2pOrderSeq++).padStart(4, '0')}`, planName, customerName, amount, investedOn: '2026-09-16', status: 'Order Placed' };
     this._p2pOrders.update((list) => [order, ...list]);
     return order;
+  }
+
+  updateP2pOrder(id: string, patch: Partial<P2pOrder>): void {
+    this._p2pOrders.update((list) => list.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+  }
+
+  deleteP2pOrder(id: string): void {
+    this._p2pOrders.update((list) => list.filter((x) => x.id !== id));
   }
 
   // ---- New Products: DigiGold ------------------------------------------------
@@ -170,6 +210,14 @@ export class AdvisoryServicesService {
     return txn;
   }
 
+  updateDigiGoldTransaction(id: string, patch: Partial<DigiGoldTransaction>): void {
+    this._digiGoldTxns.update((list) => list.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+  }
+
+  deleteDigiGoldTransaction(id: string): void {
+    this._digiGoldTxns.update((list) => list.filter((x) => x.id !== id));
+  }
+
   // ---- New Products: eCAS -----------------------------------------------------
   private readonly _ecasRequests = signal<EcasRequest[]>(MOCK_ECAS_REQUESTS.map((e) => ({ ...e })));
   readonly ecasRequests = this._ecasRequests.asReadonly();
@@ -190,6 +238,14 @@ export class AdvisoryServicesService {
     return request;
   }
 
+  updateEcasRequest(id: string, patch: Partial<EcasRequest>): void {
+    this._ecasRequests.update((list) => list.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+  }
+
+  deleteEcasRequest(id: string): void {
+    this._ecasRequests.update((list) => list.filter((x) => x.id !== id));
+  }
+
   // ---- New Products: WhatsApp (FintsoClick) -----------------------------------
   readonly whatsAppTemplates = MOCK_WHATSAPP_TEMPLATES;
   private readonly _whatsAppSendLog = signal<WhatsAppSendLogEntry[]>(MOCK_WHATSAPP_SEND_LOG.map((w) => ({ ...w })));
@@ -206,6 +262,10 @@ export class AdvisoryServicesService {
     };
     this._whatsAppSendLog.update((list) => [entry, ...list]);
     return entry;
+  }
+
+  deleteWhatsAppLogEntry(id: string): void {
+    this._whatsAppSendLog.update((list) => list.filter((x) => x.id !== id));
   }
 
   // ---- New Products: IPO -------------------------------------------------------
@@ -225,5 +285,23 @@ export class AdvisoryServicesService {
     };
     this._ipoApplications.update((list) => [application, ...list]);
     return application;
+  }
+
+  updateIpoApplication(id: string, patch: Partial<IpoApplication>): void {
+    this._ipoApplications.update((list) =>
+      list.map((x) => {
+        if (x.id !== id) return x;
+        const next = { ...x, ...patch };
+        if (patch.lots !== undefined) {
+          const listing = this.ipoListings.find((l) => l.companyName === next.companyName);
+          if (listing) next.amount = next.lots * listing.lotSize * listing.priceBandHigh;
+        }
+        return next;
+      }),
+    );
+  }
+
+  deleteIpoApplication(id: string): void {
+    this._ipoApplications.update((list) => list.filter((x) => x.id !== id));
   }
 }

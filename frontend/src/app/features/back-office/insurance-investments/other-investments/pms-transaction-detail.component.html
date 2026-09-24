@@ -1,6 +1,9 @@
-<div>
-  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">PMS Transaction Detail</h2>
-  <p class="text-body-md text-on-surface-variant mt-1">Log Portfolio Management Service transactions. {{ svc.pmsTransactions().length }} transactions recorded.</p>
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">PMS Transaction Detail</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Log Portfolio Management Service transactions. {{ svc.pmsTransactions().length }} transactions recorded.</p>
+  </div>
+  <app-export-button filename="pms-transactions" [headers]="exportHeaders" [rows]="exportRows()" />
 </div>
 
 @if (saved()) {
@@ -45,12 +48,15 @@
     <label class="text-label-md text-on-surface-variant">Date</label>
     <input type="date" class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="date()" (input)="date.set($any($event.target).value)" />
   </div>
-  <div class="md:col-span-3 flex justify-end">
-    <button class="bg-primary-container text-on-primary px-5 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="record()">Record Transaction</button>
+  <div class="md:col-span-3 flex justify-end gap-2">
+    @if (editingId()) {
+      <button class="px-4 py-2 border border-outline-variant rounded-md text-sm font-medium hover:bg-surface-container-low" (click)="cancelEdit()">Cancel</button>
+    }
+    <button class="bg-primary-container text-on-primary px-5 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="record()">{{ editingId() ? 'Save Changes' : 'Record Transaction' }}</button>
   </div>
 </div>
 
-<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden overflow-x-auto">
   <div class="p-4 border-b border-outline-variant"><h3 class="text-title-lg text-on-background">Transaction Log</h3></div>
   <table class="w-full text-left border-collapse">
     <thead class="bg-surface-container-low border-b border-outline-variant">
@@ -62,6 +68,7 @@
         <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Qty</th>
         <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Amount</th>
         <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Date</th>
+        <th class="py-2.5 px-4"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
@@ -76,6 +83,10 @@
           <td class="py-2 px-4 text-right font-mono">{{ t.quantity ? (t.quantity | number) : '—' }}</td>
           <td class="py-2 px-4 text-right font-mono">₹{{ t.amount | number }}</td>
           <td class="py-2 px-4 text-xs">{{ t.date | date: 'mediumDate' }}</td>
+          <td class="py-2 px-4 text-right whitespace-nowrap">
+            <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="edit(t)">Edit</button>
+            <button class="text-error text-xs font-medium hover:underline" (click)="remove(t)">Delete</button>
+          </td>
         </tr>
       }
     </tbody>

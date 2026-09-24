@@ -24,6 +24,7 @@ export interface ImportCustomerRow {
 
 let nextCustomerSeq = 2000;
 let nextGroupSeq = 100;
+let nextImportSeq = 1;
 
 @Injectable({ providedIn: 'root' })
 export class BackOfficeCustomerService {
@@ -90,6 +91,16 @@ export class BackOfficeCustomerService {
 
   updateCustomer(id: string, patch: Partial<BackOfficeCustomer>): void {
     this._customers.update((list) => list.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+  }
+
+  /** Removes a customer; also clears any group primary-contact reference to them. */
+  deleteCustomer(id: string): void {
+    this.removeMemberFromGroup(id);
+    this._customers.update((list) => list.filter((c) => c.id !== id));
+  }
+
+  deleteImportLog(id: string): void {
+    this._importLog.update((log) => log.filter((e) => e.id !== id));
   }
 
   setStatus(ids: string[], status: 'Active' | 'Inactive'): void {
@@ -288,7 +299,7 @@ export class BackOfficeCustomerService {
       sortOrder: 0,
     }));
     this._customers.update((list) => [...list, ...newCustomers]);
-    this._importLog.update((log) => [{ id: `IMP-${log.length + 1}`, fileName, rowCount: newCustomers.length, importedOn: new Date().toISOString() }, ...log]);
+    this._importLog.update((log) => [{ id: `IMP-${nextImportSeq++}`, fileName, rowCount: newCustomers.length, importedOn: new Date().toISOString() }, ...log]);
     return newCustomers.length;
   }
 }

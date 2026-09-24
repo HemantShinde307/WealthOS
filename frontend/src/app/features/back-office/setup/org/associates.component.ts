@@ -2,6 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Associate } from '../setup-data.mock';
 import { SetupService } from '../setup.service';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 type AssociateDraft = Partial<Associate>;
 
@@ -10,11 +12,16 @@ const EMPTY_DRAFT: AssociateDraft = { associateCode: '', name: '', arnCode: '', 
 @Component({
   selector: 'app-associates',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './associates.component.html',
 })
 export class AssociatesComponent {
   readonly setup = inject(SetupService);
+
+  readonly exportHeaders = ['Code', 'Name', 'ARN', 'Branch', 'Commission Slab', 'Phone', 'Email', 'Status'];
+  readonly exportRows = computed(() =>
+    this.filtered().map((a) => [a.associateCode, a.name, a.arnCode, this.setup.branchName(a.branchId), a.commissionSlab, a.phone, a.email, a.status]),
+  );
 
   readonly searchTerm = signal('');
   readonly formMode = signal<'closed' | 'add' | 'edit'>('closed');
@@ -60,6 +67,8 @@ export class AssociatesComponent {
   }
 
   remove(id: string): void {
+    const item = this.setup.associates().find((x) => x.id === id);
+    if (!confirmDelete(`${item?.name ?? 'this associate'}`)) return;
     this.setup.deleteAssociate(id);
     if (this.editingId() === id) this.cancel();
   }

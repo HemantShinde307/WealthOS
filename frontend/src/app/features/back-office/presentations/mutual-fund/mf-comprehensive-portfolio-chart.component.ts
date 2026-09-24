@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { PresentationsService } from '../presentations.service';
 import { ReportHeaderComponent } from '../shared/report-header.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
 import { InrCompactPipe } from '../../../../shared/pipes/inr-compact.pipe';
 import { buildDonutSegments, buildLinePath, cagr, donutGradient, xirr, yearsBetween } from '../shared/chart-utils';
 
@@ -12,7 +13,7 @@ import { buildDonutSegments, buildLinePath, cagr, donutGradient, xirr, yearsBetw
 @Component({
   selector: 'app-mf-comprehensive-portfolio-chart',
   standalone: true,
-  imports: [CommonModule, ReportHeaderComponent, StatCardComponent, InrCompactPipe],
+  imports: [CommonModule, ReportHeaderComponent, StatCardComponent, InrCompactPipe, ExportButtonComponent],
   templateUrl: './mf-comprehensive-portfolio-chart.component.html',
 })
 export class MfComprehensivePortfolioChartComponent {
@@ -42,6 +43,11 @@ export class MfComprehensivePortfolioChartComponent {
       ...row,
       absRetPct: row.invested > 0 ? Number((((row.current - row.invested) / row.invested) * 100).toFixed(2)) : 0,
     })),
+  );
+
+  readonly exportHeaders = ['Scheme', 'Invested', 'Present Value', 'Gain', 'Abs. Ret. %', 'CAGR %'];
+  readonly exportRows = computed(() =>
+    this.schemeSummary().map((r) => [r.holding.schemeName, r.invested, r.current, r.current - r.invested, r.absRetPct, r.cagrPct]),
   );
 
   readonly categorySummary = this.presentations.mfCategorySummary;

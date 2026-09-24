@@ -34,6 +34,7 @@
     <div class="p-4 border-b border-outline-variant flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
       <h3 class="text-title-lg text-on-background">Members</h3>
       <div class="flex gap-2 items-center">
+        <app-export-button [filename]="'group-' + g.id + '-members'" [headers]="exportHeaders" [rows]="exportRows()" />
         <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-1.5 text-sm text-on-background" [value]="addMemberId()" (change)="addMemberId.set($any($event.target).value)">
           <option value="">Add existing customer...</option>
           @for (c of ungrouped(); track c.id) {

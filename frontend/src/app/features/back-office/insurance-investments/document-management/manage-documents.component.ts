@@ -1,12 +1,14 @@
-import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DocumentsService } from '../documents.service';
 import { DOCUMENT_CATEGORIES, DocumentEntry } from '../insurance-investments-data.mock';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 @Component({
   selector: 'app-manage-documents',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './manage-documents.component.html',
 })
 export class ManageDocumentsComponent {
@@ -25,6 +27,17 @@ export class ManageDocumentsComponent {
     const cat = this.filterCategory();
     return cat === 'All' ? this.svc.documents() : this.svc.documents().filter((d) => d.category === cat);
   };
+
+  readonly exportHeaders = ['Name', 'Category', 'Linked Customer', 'File Type', 'Size (KB)', 'Uploaded On'];
+  readonly exportRows = computed(() =>
+    this.filteredDocuments().map((d) => [d.name, d.category, d.linkedCustomer, d.fileType, d.fileSizeKb, d.uploadedOn]),
+  );
+
+  readonly editingId = signal<string | null>(null);
+  readonly editName = signal('');
+  readonly editCategory = signal<DocumentEntry['category']>('KYC');
+  readonly editCustomer = signal('');
+  readonly editError = signal<string | null>(null);
 
   openFilePicker(): void {
     this.fileInput().nativeElement.click();
@@ -63,7 +76,36 @@ export class ManageDocumentsComponent {
     this.fileInput().nativeElement.value = '';
   }
 
-  remove(id: string): void {
-    this.svc.deleteDocument(id);
+  edit(d: DocumentEntry): void {
+    this.editingId.set(d.id);
+    this.editName.set(d.name);
+    this.editCategory.set(d.category);
+    this.editCustomer.set(d.linkedCustomer);
+    this.editError.set(null);
+  }
+
+  cancelEdit(): void {
+    this.editingId.set(null);
+  }
+
+  saveEdit(): void {
+    const id = this.editingId();
+    if (!id) return;
+    if (!this.editName().trim() || !this.editCustomer().trim()) {
+      this.editError.set('Document name and linked customer are required.');
+      return;
+    }
+    this.svc.updateDocument(id, {
+      name: this.editName().trim(),
+      category: this.editCategory(),
+      linkedCustomer: this.editCustomer().trim(),
+    });
+    this.editingId.set(null);
+  }
+
+  remove(d: DocumentEntry): void {
+    if (!confirmDelete(`the document ${d.name}`)) return;
+    this.svc.deleteDocument(d.id);
+    if (this.editingId() === d.id) this.editingId.set(null);
   }
 }

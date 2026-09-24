@@ -1,16 +1,23 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OtherInvestmentsService } from '../other-investments.service';
 import { DebentureHolding } from '../insurance-investments-data.mock';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 @Component({
   selector: 'app-other-investments-debentures',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './debentures.component.html',
 })
 export class DebenturesComponent {
   readonly svc = inject(OtherInvestmentsService);
+
+  readonly exportHeaders = ['Customer', 'Issuer', 'ISIN', 'Face Value', 'Quantity', 'Interest Rate (%)', 'Convertible', 'Purchase Date', 'Maturity Date'];
+  readonly exportRows = computed(() =>
+    this.svc.debentures().map((d) => [d.customerName, d.issuer, d.isin, d.faceValue, d.quantity, d.interestRate, d.convertible ? 'Yes' : 'No', d.purchaseDate, d.maturityDate]),
+  );
 
   readonly editingId = signal<string | null>(null);
   readonly formVisible = signal(false);
@@ -81,7 +88,8 @@ export class DebenturesComponent {
     this.formVisible.set(false);
   }
 
-  remove(id: string): void {
-    this.svc.deleteDebenture(id);
+  remove(d: DebentureHolding): void {
+    if (!confirmDelete(`the ${d.issuer} debenture for ${d.customerName}`)) return;
+    this.svc.deleteDebenture(d.id);
   }
 }

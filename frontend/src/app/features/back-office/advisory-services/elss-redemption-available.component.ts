@@ -1,15 +1,19 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ExportButtonComponent } from '../../../shared/components/export-button/export-button.component';
 import { AdvisoryServicesService } from './advisory-services.service';
 
 @Component({
   selector: 'app-elss-redemption-available',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './elss-redemption-available.component.html',
 })
 export class ElssRedemptionAvailableComponent {
   readonly svc = inject(AdvisoryServicesService);
+
+  readonly exportHeaders = ['Customer', 'Scheme', 'AMC', 'Folio', 'Purchase Date', 'Holding (yrs)', 'Units Available', 'Current Value', 'Actioned'];
+  readonly exportRows = computed(() => this.filtered().map((h) => [h.customerName, h.schemeName, h.amc, h.folioNo, h.purchaseDate, Number(h.holdingYears.toFixed(1)), h.units, Math.round(h.currentValue), h.actioned ? 'Yes' : 'No']));
 
   readonly search = signal('');
   readonly hideActioned = signal(false);

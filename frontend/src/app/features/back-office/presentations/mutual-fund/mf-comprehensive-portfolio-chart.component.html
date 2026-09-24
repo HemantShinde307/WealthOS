@@ -1,4 +1,6 @@
-<app-report-header [title]="isBeta ? 'Comprehensive Portfolio Chart (Beta)' : 'Comprehensive Portfolio Chart'" subtitle="Invested vs. current value trajectory across the full mutual fund portfolio, with category break-up." [beta]="isBeta" />
+<app-report-header [title]="isBeta ? 'Comprehensive Portfolio Chart (Beta)' : 'Comprehensive Portfolio Chart'" subtitle="Invested vs. current value trajectory across the full mutual fund portfolio, with category break-up." [beta]="isBeta">
+  <app-export-button reportActions filename="mf-comprehensive-portfolio-scheme-summary" [headers]="exportHeaders" [rows]="exportRows()" />
+</app-report-header>
 
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
   <app-stat-card label="Invested Value" [value]="presentations.mfInvestedValue() | inrCompact" />

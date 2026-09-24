@@ -3,7 +3,10 @@
     <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Instrument Masters</h2>
     <p class="text-body-md text-on-surface-variant mt-1">{{ svc.masters().length }} master instrument definitions used across the Other Investments screens.</p>
   </div>
-  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openNew()">+ New Instrument</button>
+  <div class="flex gap-2">
+    <app-export-button filename="instrument-masters" [headers]="exportHeaders" [rows]="exportRows()" />
+    <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openNew()">+ New Instrument</button>
+  </div>
 </div>
 
 @if (formVisible()) {
@@ -62,7 +65,7 @@
           <td class="py-2 px-4 text-xs text-on-surface-variant">{{ m.notes }}</td>
           <td class="py-2 px-4 text-right whitespace-nowrap">
             <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="edit(m)">Edit</button>
-            <button class="text-error text-xs font-medium hover:underline" (click)="remove(m.id)">Delete</button>
+            <button class="text-error text-xs font-medium hover:underline" (click)="remove(m)">Delete</button>
           </td>
         </tr>
       }

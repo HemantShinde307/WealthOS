@@ -1,6 +1,8 @@
-import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { ExportButtonComponent } from '../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../shared/utils/confirm';
 import { ImportCustomerRow, BackOfficeCustomerService } from '../back-office-customer.service';
 
 interface ParsedRow extends ImportCustomerRow {
@@ -14,7 +16,7 @@ const SEGMENTS = new Set(['Retail', 'HNI', 'Corporate', 'NRI', 'Family Office'])
 @Component({
   selector: 'app-import-customers',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ExportButtonComponent],
   templateUrl: './import-customers.component.html',
 })
 export class ImportCustomersComponent {
@@ -25,6 +27,14 @@ export class ImportCustomersComponent {
   readonly parsedRows = signal<ParsedRow[]>([]);
   readonly error = signal<string | null>(null);
   readonly imported = signal(false);
+
+  readonly logHeaders = ['File', 'Rows Imported', 'Imported On'];
+  readonly logRows = computed(() => this.boService.importLog().map((e) => [e.fileName, e.rowCount, e.importedOn]));
+
+  removeLog(id: string, fileName: string): void {
+    if (!confirmDelete(`the import log entry for ${fileName}`)) return;
+    this.boService.deleteImportLog(id);
+  }
 
   readonly validCount = () => this.parsedRows().filter((r) => r.valid).length;
 

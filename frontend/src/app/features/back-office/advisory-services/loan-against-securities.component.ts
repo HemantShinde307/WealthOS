@@ -1,14 +1,16 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ExportButtonComponent } from '../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../shared/utils/confirm';
 import { AdvisoryServicesService } from './advisory-services.service';
-import { ADVISORY_CUSTOMERS } from './advisory-services-data.mock';
+import { ADVISORY_CUSTOMERS, LasFacility, LasStatus } from './advisory-services-data.mock';
 
 const LENDERS = ['HDFC Bank', 'ICICI Bank', 'Kotak Mahindra Bank', 'Axis Finance', 'Bajaj Finserv'];
 
 @Component({
   selector: 'app-loan-against-securities',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './loan-against-securities.component.html',
 })
 export class LoanAgainstSecuritiesComponent {
@@ -47,5 +49,52 @@ export class LoanAgainstSecuritiesComponent {
     });
     this.submitted.set(true);
     this.showForm.set(false);
+  }
+
+  readonly exportHeaders = ['Customer', 'Lender', 'Pledged Securities Value', 'Sanctioned Limit', 'Utilized Amount', 'Interest Rate (%)', 'Sanction Date', 'Status'];
+  readonly exportRows = computed(() => this.filtered().map((x) => [x.customerName, x.lender, x.pledgedSecuritiesValue, x.sanctionedLimit, x.utilizedAmount, x.interestRatePct, x.sanctionDate, x.status]));
+
+  readonly editingId = signal<string | null>(null);
+  readonly eCustomerName = signal<string>('');
+  readonly eLender = signal<string>('');
+  readonly ePledgedSecuritiesValue = signal<number>(0);
+  readonly eSanctionedLimit = signal<number>(0);
+  readonly eUtilizedAmount = signal<number>(0);
+  readonly eInterestRatePct = signal<number>(0);
+  readonly eStatus = signal<LasStatus>('Under Review');
+  readonly editError = signal<string | null>(null);
+  readonly statusOptions: LasStatus[] = ['Active', 'Under Review', 'Closed'];
+
+  edit(x: LasFacility): void {
+    this.editingId.set(x.id);
+    this.eCustomerName.set(x.customerName);
+    this.eLender.set(x.lender);
+    this.ePledgedSecuritiesValue.set(x.pledgedSecuritiesValue);
+    this.eSanctionedLimit.set(x.sanctionedLimit);
+    this.eUtilizedAmount.set(x.utilizedAmount);
+    this.eInterestRatePct.set(x.interestRatePct);
+    this.eStatus.set(x.status);
+    this.editError.set(null);
+  }
+
+  cancelEdit(): void {
+    this.editingId.set(null);
+  }
+
+  saveEdit(): void {
+    const id = this.editingId();
+    if (!id) return;
+    if (!this.eCustomerName().trim() || !this.eLender().trim()) {
+      this.editError.set('Please fill in all required fields.');
+      return;
+    }
+    this.svc.updateLasFacility(id, { customerName: this.eCustomerName().trim(), lender: this.eLender().trim(), pledgedSecuritiesValue: this.ePledgedSecuritiesValue(), sanctionedLimit: this.eSanctionedLimit(), utilizedAmount: this.eUtilizedAmount(), interestRatePct: this.eInterestRatePct(), status: this.eStatus() });
+    this.editingId.set(null);
+  }
+
+  remove(x: LasFacility): void {
+    if (!confirmDelete(`the loan facility ${x.id} for ${x.customerName}`)) return;
+    this.svc.deleteLasFacility(x.id);
+    if (this.editingId() === x.id) this.editingId.set(null);
   }
 }

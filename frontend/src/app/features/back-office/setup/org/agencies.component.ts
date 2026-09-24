@@ -2,6 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Agency } from '../setup-data.mock';
 import { SetupService } from '../setup.service';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 type AgencyDraft = Partial<Agency>;
 
@@ -10,11 +12,16 @@ const EMPTY_DRAFT: AgencyDraft = { agencyCode: '', name: '', type: 'Bank', conta
 @Component({
   selector: 'app-agencies',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './agencies.component.html',
 })
 export class AgenciesComponent {
   readonly setup = inject(SetupService);
+
+  readonly exportHeaders = ['Code', 'Agency', 'Type', 'Contact Person', 'Phone', 'Email', 'City', 'Status'];
+  readonly exportRows = computed(() =>
+    this.filtered().map((a) => [a.agencyCode, a.name, a.type, a.contactPerson, a.phone, a.email, a.city, a.status]),
+  );
 
   readonly searchTerm = signal('');
   readonly formMode = signal<'closed' | 'add' | 'edit'>('closed');
@@ -60,6 +67,8 @@ export class AgenciesComponent {
   }
 
   remove(id: string): void {
+    const item = this.setup.agencies().find((x) => x.id === id);
+    if (!confirmDelete(`${item?.name ?? 'this agency'}`)) return;
     this.setup.deleteAgency(id);
     if (this.editingId() === id) this.cancel();
   }

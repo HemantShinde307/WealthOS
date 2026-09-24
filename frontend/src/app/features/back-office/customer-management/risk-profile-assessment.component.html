@@ -132,7 +132,10 @@
   }
 
   <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
-    <div class="p-4 border-b border-outline-variant"><h3 class="text-title-lg text-on-background">Assessment History</h3></div>
+    <div class="p-4 border-b border-outline-variant flex justify-between items-center">
+      <h3 class="text-title-lg text-on-background">Assessment History</h3>
+      <app-export-button [filename]="'risk-assessment-history-' + customerId" [headers]="exportHeaders" [rows]="exportRows()" />
+    </div>
     <table class="w-full text-left border-collapse">
       <thead class="bg-surface-container-low border-b border-outline-variant">
         <tr>

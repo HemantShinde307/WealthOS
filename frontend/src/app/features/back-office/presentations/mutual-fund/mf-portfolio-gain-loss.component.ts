@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { PresentationsService } from '../presentations.service';
 import { ReportHeaderComponent } from '../shared/report-header.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
 import { InrCompactPipe } from '../../../../shared/pipes/inr-compact.pipe';
 
 @Component({
   selector: 'app-mf-portfolio-gain-loss',
   standalone: true,
-  imports: [CommonModule, ReportHeaderComponent, StatCardComponent, InrCompactPipe],
+  imports: [CommonModule, ReportHeaderComponent, StatCardComponent, InrCompactPipe, ExportButtonComponent],
   templateUrl: './mf-portfolio-gain-loss.component.html',
 })
 export class MfPortfolioGainLossComponent {
@@ -24,6 +25,9 @@ export class MfPortfolioGainLossComponent {
       })
       .sort((a, b) => b.gain - a.gain),
   );
+
+  readonly exportHeaders = ['Scheme', 'Folio No', 'Invested Value', 'Current Value', 'Gain / Loss', 'Gain / Loss (%)'];
+  readonly exportRows = computed(() => this.rows().map((r) => [r.schemeName, r.folioNo, r.invested, r.current, r.gain, r.gainPct]));
 
   readonly gainers = computed(() => this.rows().filter((r) => r.gain >= 0));
   readonly losers = computed(() => this.rows().filter((r) => r.gain < 0));

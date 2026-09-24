@@ -1,12 +1,14 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ExportButtonComponent } from '../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../shared/utils/confirm';
 import { AdvisoryServicesService } from './advisory-services.service';
-import { ADVISORY_CUSTOMERS, EcasStatus } from './advisory-services-data.mock';
+import { ADVISORY_CUSTOMERS, EcasStatus, EcasRequest } from './advisory-services-data.mock';
 
 @Component({
   selector: 'app-ecas',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './ecas.component.html',
 })
 export class EcasComponent {
@@ -50,5 +52,50 @@ export class EcasComponent {
     this.submitted.set(true);
     this.showForm.set(false);
     this.formEmail.set('');
+  }
+
+  readonly exportHeaders = ['Request No.', 'Customer', 'PAN', 'Email', 'From Date', 'To Date', 'Requested On', 'Requested By', 'Status'];
+  readonly exportRows = computed(() => this.filtered().map((x) => [x.id, x.customerName, x.pan, x.emailId, x.fromDate, x.toDate, x.requestedOn, x.requestedBy, x.status]));
+
+  readonly editingId = signal<string | null>(null);
+  readonly eCustomerName = signal<string>('');
+  readonly ePan = signal<string>('');
+  readonly eEmailId = signal<string>('');
+  readonly eFromDate = signal<string>('');
+  readonly eToDate = signal<string>('');
+  readonly eStatus = signal<EcasStatus>('Queued');
+  readonly editError = signal<string | null>(null);
+  readonly statusOptions: EcasStatus[] = ['Queued', 'Processing', 'Sent', 'Failed'];
+
+  edit(x: EcasRequest): void {
+    this.editingId.set(x.id);
+    this.eCustomerName.set(x.customerName);
+    this.ePan.set(x.pan);
+    this.eEmailId.set(x.emailId);
+    this.eFromDate.set(x.fromDate);
+    this.eToDate.set(x.toDate);
+    this.eStatus.set(x.status);
+    this.editError.set(null);
+  }
+
+  cancelEdit(): void {
+    this.editingId.set(null);
+  }
+
+  saveEdit(): void {
+    const id = this.editingId();
+    if (!id) return;
+    if (!this.eCustomerName().trim() || !this.ePan().trim() || !this.eEmailId().trim()) {
+      this.editError.set('Please fill in all required fields.');
+      return;
+    }
+    this.svc.updateEcasRequest(id, { customerName: this.eCustomerName().trim(), pan: this.ePan().trim(), emailId: this.eEmailId().trim(), fromDate: this.eFromDate(), toDate: this.eToDate(), status: this.eStatus() });
+    this.editingId.set(null);
+  }
+
+  remove(x: EcasRequest): void {
+    if (!confirmDelete(`eCAS request ${x.id} for ${x.customerName}`)) return;
+    this.svc.deleteEcasRequest(x.id);
+    if (this.editingId() === x.id) this.editingId.set(null);
   }
 }

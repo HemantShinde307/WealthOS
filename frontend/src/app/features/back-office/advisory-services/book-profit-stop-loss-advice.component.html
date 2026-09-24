@@ -1,6 +1,9 @@
-<div>
-  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Book Profit / Stop Loss Advice</h2>
-  <p class="text-body-md text-on-surface-variant mt-1">Holdings flagged where gains exceed +20% (book profit) or losses exceed -10% (stop loss advised).</p>
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Book Profit / Stop Loss Advice</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Holdings flagged where gains exceed +20% (book profit) or losses exceed -10% (stop loss advised).</p>
+  </div>
+  <app-export-button filename="book-profit-stop-loss-advice" [headers]="exportHeaders" [rows]="exportRows()" />
 </div>
 
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">

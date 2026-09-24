@@ -51,7 +51,10 @@
 
   @if (mandates().length) {
     <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
-      <div class="p-4 border-b border-outline-variant"><h3 class="text-title-lg text-on-background">Systematic Mandates</h3></div>
+      <div class="p-4 border-b border-outline-variant flex justify-between items-center">
+        <h3 class="text-title-lg text-on-background">Systematic Mandates</h3>
+        <app-export-button filename="folio-mandates" [headers]="mandateExportHeaders" [rows]="mandateExportRows()" />
+      </div>
       <table class="w-full text-left border-collapse">
         <thead class="bg-surface-container-low border-b border-outline-variant">
           <tr>
@@ -60,6 +63,7 @@
             <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Frequency</th>
             <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Next Due</th>
             <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+            <th class="py-2.5 px-4"></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
@@ -70,6 +74,9 @@
               <td class="py-2 px-4 text-xs">{{ m.frequency }}</td>
               <td class="py-2 px-4 text-xs">{{ m.nextDueDate | date: 'mediumDate' }}</td>
               <td class="py-2 px-4 text-xs">{{ m.status }}</td>
+              <td class="py-2 px-4 text-right whitespace-nowrap">
+                <button class="text-error text-xs font-medium hover:underline" (click)="removeMandate(m)">Delete</button>
+              </td>
             </tr>
           }
         </tbody>
@@ -78,7 +85,10 @@
   }
 
   <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
-    <div class="p-4 border-b border-outline-variant"><h3 class="text-title-lg text-on-background">Transaction History</h3></div>
+    <div class="p-4 border-b border-outline-variant flex justify-between items-center">
+      <h3 class="text-title-lg text-on-background">Transaction History</h3>
+      <app-export-button filename="folio-transactions" [headers]="txnExportHeaders" [rows]="txnExportRows()" />
+    </div>
     <table class="w-full text-left border-collapse">
       <thead class="bg-surface-container-low border-b border-outline-variant">
         <tr>
@@ -88,6 +98,7 @@
           <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Units</th>
           <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">NAV</th>
           <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Source</th>
+          <th class="py-2.5 px-4"></th>
         </tr>
       </thead>
       <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
@@ -99,10 +110,13 @@
             <td class="py-2 px-4 text-right font-mono">{{ t.units | number: '1.3-3' }}</td>
             <td class="py-2 px-4 text-right font-mono">₹{{ t.nav | number: '1.2-2' }}</td>
             <td class="py-2 px-4 text-xs text-on-surface-variant">{{ t.source }}</td>
+            <td class="py-2 px-4 text-right whitespace-nowrap">
+              <button class="text-error text-xs font-medium hover:underline" (click)="removeTransaction(t)">Delete</button>
+            </td>
           </tr>
         }
         @if (!transactions().length) {
-          <tr><td colspan="6" class="py-8 text-center text-on-surface-variant">No transactions recorded for this folio yet.</td></tr>
+          <tr><td colspan="7" class="py-8 text-center text-on-surface-variant">No transactions recorded for this folio yet.</td></tr>
         }
       </tbody>
     </table>

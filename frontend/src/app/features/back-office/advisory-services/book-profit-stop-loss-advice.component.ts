@@ -1,15 +1,19 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ExportButtonComponent } from '../../../shared/components/export-button/export-button.component';
 import { AdvisoryServicesService } from './advisory-services.service';
 
 @Component({
   selector: 'app-book-profit-stop-loss-advice',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './book-profit-stop-loss-advice.component.html',
 })
 export class BookProfitStopLossAdviceComponent {
   readonly svc = inject(AdvisoryServicesService);
+
+  readonly exportHeaders = ['Customer', 'Scheme', 'Category', 'AMC', 'Folio', 'Invested', 'Current Value', 'Gain %', 'Signal', 'Actioned'];
+  readonly exportRows = computed(() => this.filtered().map((h) => [h.customerName, h.schemeName, h.category, h.amc, h.folioNo, Math.round(h.invested), Math.round(h.currentValue), Number(h.gainPct.toFixed(1)), h.signal, h.actioned ? 'Yes' : 'No']));
 
   readonly signalFilter = signal<'All' | 'Book Profit' | 'Stop Loss Advised'>('All');
   readonly search = signal('');

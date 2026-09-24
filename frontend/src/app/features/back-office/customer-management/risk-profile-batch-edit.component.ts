@@ -1,16 +1,20 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BackOfficeCustomer } from '../back-office-data.mock';
+import { ExportButtonComponent } from '../../../shared/components/export-button/export-button.component';
 import { BackOfficeCustomerService } from '../back-office-customer.service';
 
 @Component({
   selector: 'app-risk-profile-batch-edit',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './risk-profile-batch-edit.component.html',
 })
 export class RiskProfileBatchEditComponent {
   readonly boService = inject(BackOfficeCustomerService);
+
+  readonly exportHeaders = ['ID', 'Name', 'Segment', 'Current Risk Profile'];
+  readonly exportRows = computed(() => this.filtered().map((c) => [c.id, c.name, c.segment, c.riskProfile]));
 
   readonly segmentFilter = signal('All');
   readonly currentRiskFilter = signal('All');

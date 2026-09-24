@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Role } from '../setup-data.mock';
 import { SetupService } from '../setup.service';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 type RoleDraft = Partial<Role>;
 
@@ -11,11 +13,16 @@ const EMPTY_DRAFT: RoleDraft = { name: '', description: '' };
 @Component({
   selector: 'app-roles-master',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ExportButtonComponent],
   templateUrl: './roles-master.component.html',
 })
 export class RolesMasterComponent {
   readonly setup = inject(SetupService);
+
+  readonly exportHeaders = ['Role', 'Description', 'Users', 'Privileges', 'Created On'];
+  readonly exportRows = computed(() =>
+    this.filtered().map((r) => [r.name, r.description, this.setup.userCountForRole(r.id), this.privilegeCount(r.id), r.createdOn]),
+  );
 
   readonly searchTerm = signal('');
   readonly formMode = signal<'closed' | 'add' | 'edit'>('closed');
@@ -66,6 +73,7 @@ export class RolesMasterComponent {
 
   remove(id: string): void {
     if (this.setup.userCountForRole(id) > 0) return;
+    if (!confirmDelete(`the ${this.setup.roleName(id)} role`)) return;
     this.setup.deleteRole(id);
     if (this.editingId() === id) this.cancel();
   }

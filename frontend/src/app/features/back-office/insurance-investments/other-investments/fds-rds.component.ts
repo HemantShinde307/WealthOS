@@ -1,16 +1,23 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OtherInvestmentsService } from '../other-investments.service';
 import { BANKS, FdRdEntry } from '../insurance-investments-data.mock';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 @Component({
   selector: 'app-other-investments-fds-rds',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './fds-rds.component.html',
 })
 export class FdsRdsComponent {
   readonly svc = inject(OtherInvestmentsService);
+
+  readonly exportHeaders = ['Customer', 'Bank', 'Type', 'Principal / Installment', 'Tenure (months)', 'Interest Rate (%)', 'Start Date', 'Maturity Date'];
+  readonly exportRows = computed(() =>
+    this.svc.fdsRds().map((f) => [f.customerName, f.bank, f.type, f.principalOrInstallment, f.tenureMonths, f.interestRate, f.startDate, f.maturityDate]),
+  );
   readonly banks = BANKS;
   readonly types: FdRdEntry['type'][] = ['FD', 'RD'];
 
@@ -79,7 +86,8 @@ export class FdsRdsComponent {
     this.formVisible.set(false);
   }
 
-  remove(id: string): void {
-    this.svc.deleteFdRd(id);
+  remove(f: FdRdEntry): void {
+    if (!confirmDelete(`the ${f.bank} ${f.type} for ${f.customerName}`)) return;
+    this.svc.deleteFdRd(f.id);
   }
 }

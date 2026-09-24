@@ -4,6 +4,7 @@
     <p class="text-body-md text-on-surface-variant mt-1">{{ setup.roles().length }} roles defined</p>
   </div>
   <div class="flex gap-2">
+    <app-export-button filename="roles" [headers]="exportHeaders" [rows]="exportRows()" />
     <a routerLink="/back-office/setup/users/role-privileges" class="px-4 py-2 border border-outline-variant bg-surface-container-lowest text-on-surface rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium">Manage Privileges</a>
     <button class="flex items-center gap-2 bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openAdd()">
       <span class="material-symbols-outlined text-[18px]">add</span> Add Role

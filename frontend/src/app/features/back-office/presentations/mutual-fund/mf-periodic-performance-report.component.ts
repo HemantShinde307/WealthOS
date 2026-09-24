@@ -2,6 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PresentationsService } from '../presentations.service';
 import { ReportHeaderComponent } from '../shared/report-header.component';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
 
 interface PeriodReturn {
   label: string;
@@ -22,12 +23,15 @@ const PERIODS: PeriodReturn[] = [
 @Component({
   selector: 'app-mf-periodic-performance-report',
   standalone: true,
-  imports: [CommonModule, ReportHeaderComponent],
+  imports: [CommonModule, ReportHeaderComponent, ExportButtonComponent],
   templateUrl: './mf-periodic-performance-report.component.html',
 })
 export class MfPeriodicPerformanceReportComponent {
   readonly presentations = inject(PresentationsService);
   readonly periods = PERIODS.map((p) => p.label);
+
+  readonly exportHeaders = ['Scheme', 'Category', ...PERIODS.map((p) => `${p.label} (%)`)];
+  readonly exportRows = computed(() => this.rows().map((r) => [r.scheme, r.category, ...r.returns]));
 
   readonly rows = computed(() =>
     this.presentations.mfHoldings().map((h) => {

@@ -1,6 +1,7 @@
 import { Component, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
 import { SCHEDULED_REPORTS, ScheduledReport } from '../../analytics-data.mock';
 
 type StatusFilter = 'All' | ScheduledReport['status'];
@@ -8,7 +9,7 @@ type StatusFilter = 'All' | ScheduledReport['status'];
 @Component({
   selector: 'app-scheduled-reports',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ExportButtonComponent],
   templateUrl: './scheduled-reports.component.html',
 })
 export class ScheduledReportsComponent {
@@ -25,6 +26,11 @@ export class ScheduledReportsComponent {
       return matchesTerm && matchesStatus;
     });
   });
+
+  readonly exportHeaders = ['Client Name', 'Report Type', 'Frequency', 'Next Run Date', 'Delivery Method', 'Status'];
+  readonly exportRows = computed(() =>
+    this.filteredReports().map((r) => [r.clientName, r.reportType, r.frequency, r.nextRunDate, r.deliveryMethod, r.status]),
+  );
 
   readonly activeCount = computed(() => this.reports().filter((r) => r.status === 'Active').length);
   readonly errorCount = computed(() => this.reports().filter((r) => r.status === 'Error').length);

@@ -4,16 +4,27 @@ import { RouterLink } from '@angular/router';
 import { PresentationsService } from '../presentations.service';
 import { ReportHeaderComponent } from '../shared/report-header.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
 import { InrCompactPipe } from '../../../../shared/pipes/inr-compact.pipe';
 
 @Component({
   selector: 'app-crm-centre',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReportHeaderComponent, StatCardComponent, InrCompactPipe],
+  imports: [CommonModule, RouterLink, ReportHeaderComponent, StatCardComponent, InrCompactPipe, ExportButtonComponent],
   templateUrl: './crm-centre.component.html',
 })
 export class CrmCentreComponent {
   readonly presentations = inject(PresentationsService);
+
+  readonly exportHeaders = ['Product', 'Holdings', 'Current Value'];
+  readonly exportRows = computed(() => [
+    ['Mutual Funds', `${this.presentations.mfHoldings().length} folios`, this.presentations.mfCurrentValue()],
+    ['Direct Equity', `${this.presentations.stockHoldings().length} scrips`, this.presentations.stockCurrentValue()],
+    ['FDs / RDs / Bonds', `${this.presentations.fdRdInvestments().length} instruments`, this.presentations.fdRdCurrentValue()],
+    ['PPF', `${this.presentations.ppfAccounts().length} accounts`, this.presentations.ppfBalance()],
+    ['Bullion', `${this.presentations.bullionHoldings().length} holdings`, this.presentations.bullionCurrentValue()],
+    ['General Insurance (sum insured)', `${this.presentations.giPolicies().length} policies`, this.presentations.giSumInsuredTotal()],
+  ]);
 
   readonly upcomingActions = computed(() => {
     const actions: { date: string; kind: string; detail: string; icon: string }[] = [];

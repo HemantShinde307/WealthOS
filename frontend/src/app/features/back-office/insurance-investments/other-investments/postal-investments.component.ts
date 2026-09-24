@@ -1,16 +1,23 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OtherInvestmentsService } from '../other-investments.service';
 import { PostalInvestment } from '../insurance-investments-data.mock';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 @Component({
   selector: 'app-other-investments-postal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './postal-investments.component.html',
 })
 export class PostalInvestmentsComponent {
   readonly svc = inject(OtherInvestmentsService);
+
+  readonly exportHeaders = ['Customer', 'Scheme', 'Certificate Number', 'Amount', 'Interest Rate (%)', 'Investment Date', 'Maturity Date'];
+  readonly exportRows = computed(() =>
+    this.svc.postal().map((p) => [p.customerName, p.schemeName, p.certificateNumber, p.amount, p.interestRate, p.investmentDate, p.maturityDate]),
+  );
   readonly schemes: PostalInvestment['schemeName'][] = ['NSC', 'KVP', 'Sukanya Samriddhi Yojana', 'Post Office Time Deposit', 'Senior Citizen Savings Scheme'];
 
   readonly editingId = signal<string | null>(null);
@@ -74,7 +81,8 @@ export class PostalInvestmentsComponent {
     this.formVisible.set(false);
   }
 
-  remove(id: string): void {
-    this.svc.deletePostal(id);
+  remove(p: PostalInvestment): void {
+    if (!confirmDelete(`the ${p.schemeName} investment for ${p.customerName}`)) return;
+    this.svc.deletePostal(p.id);
   }
 }

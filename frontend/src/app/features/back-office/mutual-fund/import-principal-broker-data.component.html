@@ -29,9 +29,12 @@
   <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
     <div class="p-4 border-b border-outline-variant flex justify-between items-center">
       <h3 class="text-title-lg text-on-background">Preview — {{ validCount() }} of {{ parsedRows().length }} rows valid</h3>
-      <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium disabled:opacity-40" [disabled]="validCount() === 0" (click)="confirmImport()">
-        Import {{ validCount() }} Records
-      </button>
+      <div class="flex gap-2">
+        <app-export-button filename="broker-import-preview" [headers]="previewExportHeaders" [rows]="previewExportRows()" />
+        <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium disabled:opacity-40" [disabled]="validCount() === 0" (click)="confirmImport()">
+          Import {{ validCount() }} Records
+        </button>
+      </div>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse">
@@ -69,7 +72,35 @@
 }
 
 <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
-  <div class="p-4 border-b border-outline-variant"><h3 class="text-title-lg text-on-background">Broker-of-Record Mappings</h3></div>
+  <div class="p-4 border-b border-outline-variant flex justify-between items-center">
+    <h3 class="text-title-lg text-on-background">Broker-of-Record Mappings</h3>
+    <app-export-button filename="broker-of-record-mappings" [headers]="exportHeaders" [rows]="exportRows()" />
+  </div>
+  @if (editingId()) {
+    <div class="p-4 border-b border-outline-variant grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Broker Code</label>
+        <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="editBrokerCode()" (input)="editBrokerCode.set($any($event.target).value)" />
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Broker Name</label>
+        <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="editBrokerName()" (input)="editBrokerName.set($any($event.target).value)" />
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">ARN</label>
+        <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="editArn()" (input)="editArn.set($any($event.target).value)" />
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">EUIN</label>
+        <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="editEuin()" (input)="editEuin.set($any($event.target).value)" />
+      </div>
+      <div class="sm:col-span-4 flex justify-end gap-2">
+        <button class="px-4 py-2 border border-outline-variant bg-surface-container-lowest text-on-surface rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium" (click)="cancelEdit()">Cancel</button>
+        <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="saveEdit()">Save Changes</button>
+      </div>
+      @if (editError()) { <p class="text-error text-sm sm:col-span-4">{{ editError() }}</p> }
+    </div>
+  }
   <table class="w-full text-left border-collapse">
     <thead class="bg-surface-container-low border-b border-outline-variant">
       <tr>
@@ -78,6 +109,7 @@
         <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">ARN</th>
         <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">EUIN</th>
         <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Folio</th>
+        <th class="py-2.5 px-4"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
@@ -88,10 +120,14 @@
           <td class="py-2 px-4 font-mono text-xs">{{ b.arn }}</td>
           <td class="py-2 px-4 font-mono text-xs">{{ b.euin }}</td>
           <td class="py-2 px-4 font-mono text-xs">{{ mfService.getFolio(b.folioId)?.folioNumber ?? b.folioId }}</td>
+          <td class="py-2 px-4 text-right whitespace-nowrap">
+            <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="startEdit(b)">Edit</button>
+            <button class="text-error text-xs font-medium hover:underline" (click)="remove(b)">Delete</button>
+          </td>
         </tr>
       }
       @if (!mfService.brokerRecords().length) {
-        <tr><td colspan="5" class="py-10 text-center text-on-surface-variant">No broker-of-record mappings yet.</td></tr>
+        <tr><td colspan="6" class="py-10 text-center text-on-surface-variant">No broker-of-record mappings yet.</td></tr>
       }
     </tbody>
   </table>

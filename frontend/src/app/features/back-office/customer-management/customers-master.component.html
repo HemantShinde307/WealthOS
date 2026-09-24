@@ -4,6 +4,7 @@
     <p class="text-body-md text-on-surface-variant mt-1">{{ boService.customers().length }} customers · {{ boService.activeCount() }} active · {{ boService.inactiveCount() }} inactive</p>
   </div>
   <div class="flex gap-2">
+    <app-export-button filename="customers-master" [headers]="exportHeaders" [rows]="exportRows()" />
     <a routerLink="/back-office/customer-management/import" class="flex items-center gap-1.5 bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium">
       <span class="material-symbols-outlined text-[18px]">upload_file</span>
       Import Customers
@@ -14,6 +15,10 @@
     </a>
   </div>
 </div>
+
+@if (editingCustomer(); as ec) {
+  <app-customer-edit-form [customer]="ec" (saved)="saveEdit($event)" (cancelled)="editingCustomer.set(null)" />
+}
 
 <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
   <div class="p-4 border-b border-outline-variant">
@@ -39,6 +44,7 @@
           <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Group</th>
           <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
           <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">AUM</th>
+          <th class="py-3 px-4"></th>
         </tr>
       </thead>
       <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
@@ -73,10 +79,14 @@
               </span>
             </td>
             <td class="py-3 px-4 text-right font-mono">{{ c.aum | inrCompact }}</td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="$event.stopPropagation(); edit(c)">Edit</button>
+              <button class="text-error text-xs font-medium hover:underline" (click)="$event.stopPropagation(); remove(c)">Delete</button>
+            </td>
           </tr>
         }
         @if (!filtered().length) {
-          <tr><td colspan="8" class="py-10 text-center text-on-surface-variant">No customers match your search.</td></tr>
+          <tr><td colspan="9" class="py-10 text-center text-on-surface-variant">No customers match your search.</td></tr>
         }
       </tbody>
     </table>

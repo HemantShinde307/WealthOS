@@ -41,6 +41,7 @@ let nextRecurringDepositSeq = 100;
 let nextIncomeSchemeSeq = 100;
 let nextBullionSeq = 100;
 let nextPmsSeq = 100;
+let nextImportLogSeq = 1;
 
 /** Backs all thirteen "Other Investments" screens with one shared signal-based service. */
 @Injectable({ providedIn: 'root' })
@@ -207,6 +208,17 @@ export class OtherInvestmentsService {
   addPmsTransaction(p: Omit<PmsTransaction, 'id'>): void {
     this._pmsTransactions.update((list) => [{ ...p, id: `PMS-${nextPmsSeq++}` }, ...list]);
   }
+  updatePmsTransaction(id: string, patch: Partial<PmsTransaction>): void {
+    this._pmsTransactions.update((list) => list.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  }
+  deletePmsTransaction(id: string): void {
+    this._pmsTransactions.update((list) => list.filter((p) => p.id !== id));
+  }
+
+  // --- Import log ---
+  deleteImportLogEntry(id: string): void {
+    this._importLog.update((list) => list.filter((e) => e.id !== id));
+  }
 
   // --- Generic bulk import (any instrument category) ---
   importOtherInvestments(rows: OtherInvestmentImportRow[], fileName: string): number {
@@ -238,7 +250,7 @@ export class OtherInvestmentsService {
       }
     }
     this._importLog.update((log) => [
-      { id: `IMP-${log.length + 1}`, fileName, rowCount: rows.length, importedOn: new Date().toISOString() },
+      { id: `IMP-${nextImportLogSeq++}`, fileName, rowCount: rows.length, importedOn: new Date().toISOString() },
       ...log,
     ]);
     return rows.length;

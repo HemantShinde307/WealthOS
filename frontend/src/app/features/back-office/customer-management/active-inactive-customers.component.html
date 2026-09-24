@@ -1,7 +1,14 @@
-<div>
-  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Active/Inactive Customers</h2>
-  <p class="text-body-md text-on-surface-variant mt-1">{{ boService.activeCount() }} active · {{ boService.inactiveCount() }} inactive</p>
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Active/Inactive Customers</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">{{ boService.activeCount() }} active · {{ boService.inactiveCount() }} inactive</p>
+  </div>
+  <app-export-button [filename]="statusTab() === 'Active' ? 'active-customers' : 'inactive-customers'" [headers]="exportHeaders" [rows]="exportRows()" />
 </div>
+
+@if (editingCustomer(); as ec) {
+  <app-customer-edit-form [customer]="ec" (saved)="saveEdit($event)" (cancelled)="editingCustomer.set(null)" />
+}
 
 <div class="flex gap-2">
   <button class="px-4 py-2 rounded-md text-sm font-medium transition-colors" [class]="statusTab() === 'Active' ? 'bg-primary-container text-on-primary' : 'bg-surface-container-lowest border border-outline-variant text-on-surface'" (click)="setTab('Active')">
@@ -45,7 +52,9 @@
           <td class="py-3 px-4 font-medium text-on-background">{{ c.name }}</td>
           <td class="py-3 px-4"><span class="bg-surface-container-low text-on-surface px-2 py-0.5 rounded text-xs">{{ c.segment }}</span></td>
           <td class="py-3 px-4 text-right font-mono">{{ c.aum | inrCompact }}</td>
-          <td class="py-3 px-4 text-right">
+          <td class="py-3 px-4 text-right whitespace-nowrap">
+            <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="edit(c)">Edit</button>
+            <button class="text-error text-xs font-medium hover:underline mr-3" (click)="remove(c)">Delete</button>
             @if (c.status === 'Active') {
               <button class="text-error text-xs font-medium hover:underline" (click)="setOne(c.id, 'Inactive')">Deactivate</button>
             } @else {

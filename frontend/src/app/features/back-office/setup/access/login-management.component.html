@@ -1,7 +1,45 @@
-<div>
-  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Customer Login Management</h2>
-  <p class="text-body-md text-on-surface-variant mt-1">{{ activeCount() }} active · {{ lockedCount() }} locked · {{ disabledCount() }} disabled</p>
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Customer Login Management</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">{{ activeCount() }} active · {{ lockedCount() }} locked · {{ disabledCount() }} disabled</p>
+  </div>
+  <app-export-button filename="customer-logins" [headers]="exportHeaders" [rows]="exportRows()" />
 </div>
+
+@if (editingId()) {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col gap-4">
+    <h3 class="text-title-lg text-on-background">Edit Customer Login</h3>
+    @if (error()) {
+      <div class="bg-error/10 border border-error/40 rounded-lg p-3 text-error text-sm">{{ error() }}</div>
+    }
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Customer</label>
+        <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="customerName()" (input)="customerName.set($any($event.target).value)" />
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Username</label>
+        <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm font-mono text-on-background" [value]="username()" (input)="username.set($any($event.target).value)" />
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Email</label>
+        <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="email()" (input)="email.set($any($event.target).value)" />
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Status</label>
+        <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="editStatus()" (change)="editStatus.set($any($event.target).value)">
+          <option>Active</option>
+          <option>Disabled</option>
+          <option>Locked</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="saveEdit()">Save Changes</button>
+      <button class="px-4 py-2 border border-outline-variant rounded-md text-sm font-medium text-on-surface hover:bg-surface-container-low" (click)="cancelEdit()">Cancel</button>
+    </div>
+  </div>
+}
 
 @if (resetMessage(); as rm) {
   <div class="bg-on-tertiary-container/10 border border-on-tertiary-container/30 rounded-lg p-4 flex items-center justify-between gap-4">
@@ -69,7 +107,9 @@
               } @else {
                 <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="setStatus(c.id, 'Active')">Enable</button>
               }
-              <button class="text-secondary text-xs font-medium hover:underline" (click)="reset(c.id)">Reset Password</button>
+              <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="reset(c.id)">Reset Password</button>
+              <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="edit(c)">Edit</button>
+              <button class="text-error text-xs font-medium hover:underline" (click)="remove(c)">Delete</button>
             </td>
           </tr>
         }

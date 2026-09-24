@@ -238,4 +238,62 @@ export class MutualFundService {
   deleteBrokerageSlab(id: string): void {
     this._brokerageSlabs.update((list) => list.filter((s) => s.id !== id));
   }
+
+  updateFolio(id: string, patch: Partial<MfFolio>): void {
+    this._folios.update((list) => list.map((f) => (f.id === id ? { ...f, ...patch } : f)));
+  }
+
+  /** Deleting a folio also drops its transactions, mandates (source or target) and broker mappings. */
+  deleteFolio(id: string): void {
+    this._folios.update((list) => list.filter((f) => f.id !== id));
+    this._transactions.update((list) => list.filter((t) => t.folioId !== id));
+    this._mandates.update((list) => list.filter((m) => m.folioId !== id && m.targetFolioId !== id));
+    this._brokerRecords.update((list) => list.filter((b) => b.folioId !== id));
+  }
+
+  /** Edit a transaction's amount/units/nav/date; the folio's unit balance is adjusted by the change in units. */
+  updateTransaction(id: string, patch: Partial<Pick<MfTransaction, 'amount' | 'units' | 'nav' | 'date'>>): void {
+    const txn = this._transactions().find((t) => t.id === id);
+    if (!txn) return;
+    const nextUnits = patch.units ?? txn.units;
+    const delta = nextUnits - txn.units;
+    this._transactions.update((list) => list.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+    if (delta !== 0) {
+      const sign = txn.transactionType === 'Redemption' || txn.transactionType === 'SWP' || txn.transactionType === 'STP Out' ? -1 : 1;
+      this._folios.update((list) =>
+        list.map((f) => (f.id === txn.folioId ? { ...f, units: Math.max(Math.round((f.units + sign * delta) * 1000) / 1000, 0) } : f)),
+      );
+    }
+  }
+
+  /** Deleting a transaction reverses its effect on the folio's unit balance. */
+  deleteTransaction(id: string): void {
+    const txn = this._transactions().find((t) => t.id === id);
+    if (!txn) return;
+    this._transactions.update((list) => list.filter((t) => t.id !== id));
+    const sign = txn.transactionType === 'Redemption' || txn.transactionType === 'SWP' || txn.transactionType === 'STP Out' ? 1 : -1;
+    this._folios.update((list) =>
+      list.map((f) => (f.id === txn.folioId ? { ...f, units: Math.max(Math.round((f.units + sign * txn.units) * 1000) / 1000, 0) } : f)),
+    );
+  }
+
+  updateMandate(id: string, patch: Partial<SystematicMandate>): void {
+    this._mandates.update((list) => list.map((m) => (m.id === id ? { ...m, ...patch } : m)));
+  }
+
+  deleteMandate(id: string): void {
+    this._mandates.update((list) => list.filter((m) => m.id !== id));
+  }
+
+  updateBrokerRecord(id: string, patch: Partial<BrokerRecord>): void {
+    this._brokerRecords.update((list) => list.map((b) => (b.id === id ? { ...b, ...patch } : b)));
+  }
+
+  deleteBrokerRecord(id: string): void {
+    this._brokerRecords.update((list) => list.filter((b) => b.id !== id));
+  }
+
+  deleteRegistrarImportLogEntry(id: string): void {
+    this._registrarImportLog.update((list) => list.filter((r) => r.id !== id));
+  }
 }

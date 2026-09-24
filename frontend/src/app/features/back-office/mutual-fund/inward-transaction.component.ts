@@ -1,11 +1,14 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MutualFundService } from './mutual-fund.service';
+import { MfTransaction } from './mutual-fund-data.mock';
+import { ExportButtonComponent } from '../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../shared/utils/confirm';
 
 @Component({
   selector: 'app-mf-inward',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './inward-transaction.component.html',
 })
 export class InwardTransactionComponent {
@@ -42,6 +45,53 @@ export class InwardTransactionComponent {
   });
 
   readonly recentInward = computed(() => this.mfService.transactions().filter((t) => t.transactionType === 'Purchase' || t.transactionType === 'Additional Purchase').slice(0, 12));
+
+  readonly exportHeaders = ['Date', 'Folio', 'Scheme', 'Type', 'Amount', 'Units', 'NAV', 'Status', 'Source'];
+  readonly exportRows = computed(() =>
+    this.recentInward().map((t) => [t.date, this.mfService.getFolio(t.folioId)?.folioNumber ?? t.folioId, t.scheme, t.transactionType, t.amount, t.units, t.nav, t.status, t.source]),
+  );
+
+  readonly editingId = signal<string | null>(null);
+  readonly editAmount = signal<number | null>(null);
+  readonly editNav = signal<number | null>(null);
+  readonly editDate = signal('');
+  readonly editError = signal<string | null>(null);
+
+  readonly editUnits = computed(() => {
+    const amt = this.editAmount();
+    const navVal = this.editNav();
+    if (!amt || !navVal || navVal <= 0) return 0;
+    return Math.round((amt / navVal) * 1000) / 1000;
+  });
+
+  startEdit(t: MfTransaction): void {
+    this.editingId.set(t.id);
+    this.editAmount.set(t.amount);
+    this.editNav.set(t.nav);
+    this.editDate.set(t.date);
+    this.editError.set(null);
+  }
+
+  cancelEdit(): void {
+    this.editingId.set(null);
+  }
+
+  saveEdit(): void {
+    const id = this.editingId();
+    if (!id) return;
+    const amt = this.editAmount();
+    const navVal = this.editNav();
+    if (!amt || amt <= 0) { this.editError.set('Enter a valid amount.'); return; }
+    if (!navVal || navVal <= 0) { this.editError.set('Enter a valid NAV.'); return; }
+    this.mfService.updateTransaction(id, { amount: amt, nav: navVal, units: this.editUnits(), date: this.editDate() });
+    this.editingId.set(null);
+  }
+
+  remove(t: MfTransaction): void {
+    if (!confirmDelete(`the ${t.transactionType} of ₹${t.amount.toLocaleString('en-IN')} on ${t.date} (folio balance will be adjusted)`)) return;
+    this.mfService.deleteTransaction(t.id);
+    if (this.editingId() === t.id) this.editingId.set(null);
+  }
 
   selectFolio(id: string): void {
     const f = this.mfService.getFolio(id);

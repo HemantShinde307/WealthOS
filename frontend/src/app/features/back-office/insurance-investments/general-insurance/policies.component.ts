@@ -1,12 +1,14 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GeneralInsuranceService } from '../general-insurance.service';
 import { GENERAL_INSURERS, GENERAL_POLICY_TYPES, GeneralInsurancePolicy } from '../insurance-investments-data.mock';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 @Component({
   selector: 'app-general-insurance-policies',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './policies.component.html',
 })
 export class GeneralInsurancePoliciesComponent {
@@ -14,6 +16,11 @@ export class GeneralInsurancePoliciesComponent {
   readonly insurers = GENERAL_INSURERS;
   readonly types = GENERAL_POLICY_TYPES;
   readonly statuses: GeneralInsurancePolicy['status'][] = ['Active', 'Due for Renewal', 'Expired', 'Cancelled'];
+
+  readonly exportHeaders = ['Policy No.', 'Policyholder', 'Insurer', 'Type', 'Sum Insured', 'Premium', 'Issue Date', 'Renewal Date', 'Status'];
+  readonly exportRows = computed(() =>
+    this.svc.policies().map((p) => [p.policyNumber, p.policyholderName, p.insurer, p.type, p.sumInsured, p.premium, p.issueDate, p.renewalDate, p.status]),
+  );
 
   readonly editingId = signal<string | null>(null);
   readonly formVisible = signal(false);
@@ -92,7 +99,8 @@ export class GeneralInsurancePoliciesComponent {
     this.editingId.set(null);
   }
 
-  remove(id: string): void {
-    this.svc.deletePolicy(id);
+  remove(p: GeneralInsurancePolicy): void {
+    if (!confirmDelete(`policy ${p.policyNumber} (${p.policyholderName})`)) return;
+    this.svc.deletePolicy(p.id);
   }
 }

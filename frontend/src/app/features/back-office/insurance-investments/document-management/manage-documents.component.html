@@ -1,6 +1,9 @@
-<div>
-  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Manage Documents</h2>
-  <p class="text-body-md text-on-surface-variant mt-1">{{ svc.documents().length }} documents in the vault. Upload KYC papers, policy bonds, statements and more.</p>
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Manage Documents</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">{{ svc.documents().length }} documents in the vault. Upload KYC papers, policy bonds, statements and more.</p>
+  </div>
+  <app-export-button filename="documents" [headers]="exportHeaders" [rows]="exportRows()" />
 </div>
 
 @if (uploaded()) {
@@ -40,6 +43,32 @@
   </div>
 </div>
 
+@if (editingId()) {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+    @if (editError()) {
+      <div class="md:col-span-3 bg-error/10 border border-error/40 rounded-lg p-3 text-error text-sm">{{ editError() }}</div>
+    }
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Document Name</label>
+      <input class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="editName()" (input)="editName.set($any($event.target).value)" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Category</label>
+      <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="editCategory()" (change)="editCategory.set($any($event.target).value)">
+        @for (c of categories; track c) { <option [value]="c" [selected]="c === editCategory()">{{ c }}</option> }
+      </select>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-label-md text-on-surface-variant">Linked Customer</label>
+      <input class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="editCustomer()" (input)="editCustomer.set($any($event.target).value)" />
+    </div>
+    <div class="md:col-span-3 flex justify-end gap-2">
+      <button class="px-4 py-2 border border-outline-variant rounded-md text-sm font-medium hover:bg-surface-container-low" (click)="cancelEdit()">Cancel</button>
+      <button class="bg-primary-container text-on-primary px-5 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+}
+
 <div class="flex items-center gap-2">
   <label class="text-label-md text-on-surface-variant">Filter</label>
   <select class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="filterCategory()" (change)="filterCategory.set($any($event.target).value)">
@@ -72,7 +101,8 @@
           <td class="py-2 px-4 text-right text-xs">{{ d.fileSizeKb | number }} KB</td>
           <td class="py-2 px-4 text-xs">{{ d.uploadedOn | date: 'mediumDate' }}</td>
           <td class="py-2 px-4 text-right whitespace-nowrap">
-            <button class="text-error text-xs font-medium hover:underline" (click)="remove(d.id)">Delete</button>
+            <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="edit(d)">Edit</button>
+            <button class="text-error text-xs font-medium hover:underline" (click)="remove(d)">Delete</button>
           </td>
         </tr>
       }

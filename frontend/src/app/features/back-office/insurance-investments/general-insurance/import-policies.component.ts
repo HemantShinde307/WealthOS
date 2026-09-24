@@ -1,7 +1,9 @@
-import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GeneralInsuranceService } from '../general-insurance.service';
 import { GENERAL_INSURERS, GENERAL_POLICY_TYPES, GeneralInsuranceImportRow } from '../insurance-investments-data.mock';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 interface ParsedRow extends GeneralInsuranceImportRow {
   valid: boolean;
@@ -13,12 +15,15 @@ const TYPES = new Set(GENERAL_POLICY_TYPES);
 @Component({
   selector: 'app-general-insurance-import-policies',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './import-policies.component.html',
 })
 export class GeneralInsuranceImportPoliciesComponent {
   readonly svc = inject(GeneralInsuranceService);
   readonly insurers = GENERAL_INSURERS;
+
+  readonly logHeaders = ['File', 'Rows Imported', 'Imported On'];
+  readonly logRows = computed(() => this.svc.importLog().map((e) => [e.fileName, e.rowCount, e.importedOn]));
 
   readonly fileInput = viewChild.required<ElementRef<HTMLInputElement>>('fileInput');
   readonly fileName = signal<string | null>(null);
@@ -102,6 +107,11 @@ export class GeneralInsuranceImportPoliciesComponent {
     this.imported.set(true);
     this.parsedRows.set([]);
     this.fileName.set(null);
+  }
+
+  removeLog(id: string, fileName: string): void {
+    if (!confirmDelete(`the import log entry for ${fileName}`)) return;
+    this.svc.deleteImportLog(id);
   }
 
   downloadTemplate(): void {

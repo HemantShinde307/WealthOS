@@ -1,16 +1,23 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OtherInvestmentsService } from '../other-investments.service';
 import { CompanyDeposit } from '../insurance-investments-data.mock';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 @Component({
   selector: 'app-other-investments-company-deposits',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './company-deposits.component.html',
 })
 export class CompanyDepositsComponent {
   readonly svc = inject(OtherInvestmentsService);
+
+  readonly exportHeaders = ['Customer', 'Company', 'Amount', 'Interest Rate (%)', 'Tenure (months)', 'Start Date', 'Maturity Date'];
+  readonly exportRows = computed(() =>
+    this.svc.companyDeposits().map((c) => [c.customerName, c.companyName, c.amount, c.interestRate, c.tenureMonths, c.startDate, c.maturityDate]),
+  );
 
   readonly editingId = signal<string | null>(null);
   readonly formVisible = signal(false);
@@ -73,7 +80,8 @@ export class CompanyDepositsComponent {
     this.formVisible.set(false);
   }
 
-  remove(id: string): void {
-    this.svc.deleteCompanyDeposit(id);
+  remove(c: CompanyDeposit): void {
+    if (!confirmDelete(`the ${c.companyName} deposit for ${c.customerName}`)) return;
+    this.svc.deleteCompanyDeposit(c.id);
   }
 }

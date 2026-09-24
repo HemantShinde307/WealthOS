@@ -1,4 +1,6 @@
-<app-report-header title="Portfolio Gain - Loss" subtitle="Unrealised gain/loss per folio, ranked best to worst performer." />
+<app-report-header title="Portfolio Gain - Loss" subtitle="Unrealised gain/loss per folio, ranked best to worst performer.">
+  <app-export-button reportActions filename="mf-portfolio-gain-loss" [headers]="exportHeaders" [rows]="exportRows()" />
+</app-report-header>
 
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
   <app-stat-card label="Total Gain / Loss" [value]="(presentations.mfGainLoss() >= 0 ? '+' : '') + (presentations.mfGainLoss() | inrCompact)" [valueClass]="presentations.mfGainLoss() >= 0 ? 'text-on-tertiary-container' : 'text-error'" />

@@ -95,6 +95,8 @@ export class SetupService {
   }
   deleteEmployee(id: string): void {
     this._employees.update((list) => list.filter((e) => e.id !== id));
+    // an RM mapping is meaningless without its relationship manager
+    this._rmMappings.update((list) => list.filter((m) => m.rmEmployeeId !== id));
   }
 
   addAssociate(a: Omit<Associate, 'id'>): void {
@@ -223,8 +225,23 @@ export class SetupService {
   // --- Customer Access ----------------------------------------------------
   private readonly _customerLogins = signal<CustomerLogin[]>(MOCK_CUSTOMER_LOGINS.map((c) => ({ ...c })));
   readonly customerLogins = this._customerLogins.asReadonly();
-  readonly smsEmailLog = signal<SmsEmailUsageLogEntry[]>(MOCK_SMS_EMAIL_LOG).asReadonly();
-  readonly reportMailBackLog = signal<ReportMailBackLogEntry[]>(MOCK_REPORT_MAIL_BACK_LOG).asReadonly();
+  private readonly _smsEmailLog = signal<SmsEmailUsageLogEntry[]>(MOCK_SMS_EMAIL_LOG.map((e) => ({ ...e })));
+  readonly smsEmailLog = this._smsEmailLog.asReadonly();
+  private readonly _reportMailBackLog = signal<ReportMailBackLogEntry[]>(MOCK_REPORT_MAIL_BACK_LOG.map((e) => ({ ...e })));
+  readonly reportMailBackLog = this._reportMailBackLog.asReadonly();
+
+  updateCustomerLogin(id: string, patch: Partial<CustomerLogin>): void {
+    this._customerLogins.update((list) => list.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+  }
+  deleteCustomerLogin(id: string): void {
+    this._customerLogins.update((list) => list.filter((c) => c.id !== id));
+  }
+  deleteSmsEmailLogEntry(id: string): void {
+    this._smsEmailLog.update((list) => list.filter((e) => e.id !== id));
+  }
+  deleteReportMailBackLogEntry(id: string): void {
+    this._reportMailBackLog.update((list) => list.filter((e) => e.id !== id));
+  }
 
   setLoginStatus(id: string, status: CustomerLogin['status']): void {
     this._customerLogins.update((list) => list.map((c) => (c.id === id ? { ...c, status, failedAttempts: status === 'Active' ? 0 : c.failedAttempts } : c)));
@@ -263,6 +280,9 @@ export class SetupService {
   addRecommendedFund(f: Omit<RecommendedFund, 'id' | 'rank'>): void {
     this._recommendedFunds.update((list) => [...list, { ...f, id: nextId('RF'), rank: list.length + 1 }]);
   }
+  updateRecommendedFund(id: string, patch: Partial<RecommendedFund>): void {
+    this._recommendedFunds.update((list) => list.map((f) => (f.id === id ? { ...f, ...patch } : f)));
+  }
   removeRecommendedFund(id: string): void {
     this._recommendedFunds.update((list) => list.filter((f) => f.id !== id).map((f, i) => ({ ...f, rank: i + 1 })));
   }
@@ -300,10 +320,25 @@ export class SetupService {
     );
   }
 
-  readonly scheduleServiceLog = signal<ScheduleServiceLogEntry[]>(MOCK_SCHEDULE_SERVICE_LOG).asReadonly();
+  updateScheduledService(id: string, patch: Partial<ScheduledService>): void {
+    this._scheduledServices.update((list) => list.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+  }
+  deleteScheduledService(id: string): void {
+    this._scheduledServices.update((list) => list.filter((s) => s.id !== id));
+  }
+
+  private readonly _scheduleServiceLog = signal<ScheduleServiceLogEntry[]>(MOCK_SCHEDULE_SERVICE_LOG.map((e) => ({ ...e })));
+  readonly scheduleServiceLog = this._scheduleServiceLog.asReadonly();
+  deleteScheduleServiceLogEntry(id: string): void {
+    this._scheduleServiceLog.update((list) => list.filter((e) => e.id !== id));
+  }
 
   private readonly _broadcastLog = signal<BroadcastMessage[]>(MOCK_BROADCAST_LOG.map((b) => ({ ...b })));
   readonly broadcastLog = this._broadcastLog.asReadonly();
+
+  deleteBroadcast(id: string): void {
+    this._broadcastLog.update((list) => list.filter((b) => b.id !== id));
+  }
 
   sendBroadcast(msg: Omit<BroadcastMessage, 'id' | 'sentOn' | 'status'>): void {
     const entry: BroadcastMessage = { ...msg, id: nextId('BC'), sentOn: new Date().toISOString().slice(0, 16).replace('T', ' '), status: 'Sent' };
@@ -355,6 +390,11 @@ export class SetupService {
     this._holidays.update((list) => list.filter((h) => h.id !== id));
   }
 
-  readonly setupImportLog = signal<SetupImportLogEntry[]>(MOCK_SETUP_IMPORT_LOG).asReadonly();
+  private readonly _setupImportLog = signal<SetupImportLogEntry[]>(MOCK_SETUP_IMPORT_LOG.map((e) => ({ ...e })));
+  readonly setupImportLog = this._setupImportLog.asReadonly();
+  deleteSetupImportLogEntry(id: string): void {
+    this._setupImportLog.update((list) => list.filter((e) => e.id !== id));
+  }
+
   readonly versionHistory = signal<VersionHistoryEntry[]>(MOCK_VERSION_HISTORY).asReadonly();
 }

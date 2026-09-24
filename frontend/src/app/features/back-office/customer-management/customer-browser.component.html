@@ -3,10 +3,9 @@
     <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Customer Browser</h2>
     <p class="text-body-md text-on-surface-variant mt-1">{{ results().length }} of {{ boService.customers().length }} customers match your filters.</p>
   </div>
-  <button class="flex items-center gap-1.5 bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium" (click)="exportCsv()">
-    <span class="material-symbols-outlined text-[18px]">download</span>
-    Export CSV
-  </button>
+  <div class="flex gap-2">
+    <app-export-button filename="customer-browser" [headers]="exportHeaders" [rows]="exportRows()" />
+  </div>
 </div>
 
 <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -44,6 +43,10 @@
   />
 </div>
 
+@if (editingCustomer(); as ec) {
+  <app-customer-edit-form [customer]="ec" (saved)="saveEdit($event)" (cancelled)="editingCustomer.set(null)" />
+}
+
 <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
   <div class="overflow-x-auto table-scroll">
     <table class="w-full min-w-[900px] text-left border-collapse">
@@ -55,6 +58,7 @@
           <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">KYC</th>
           <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
           <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">AUM</th>
+          <th class="py-3 px-4"></th>
         </tr>
       </thead>
       <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
@@ -70,10 +74,14 @@
               <span class="text-xs px-2 py-0.5 rounded" [class]="c.status === 'Active' ? 'bg-on-tertiary-container/15 text-on-tertiary-container' : 'bg-surface-container text-on-surface-variant'">{{ c.status }}</span>
             </td>
             <td class="py-3 px-4 text-right font-mono">{{ c.aum | inrCompact }}</td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="edit(c)">Edit</button>
+              <button class="text-error text-xs font-medium hover:underline" (click)="remove(c)">Delete</button>
+            </td>
           </tr>
         }
         @if (!results().length) {
-          <tr><td colspan="6" class="py-10 text-center text-on-surface-variant">No customers match these filters.</td></tr>
+          <tr><td colspan="7" class="py-10 text-center text-on-surface-variant">No customers match these filters.</td></tr>
         }
       </tbody>
     </table>

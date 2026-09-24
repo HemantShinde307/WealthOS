@@ -1,4 +1,6 @@
-<app-report-header title="PPF Passbook" subtitle="Year-wise contributions, interest credited and closing balance for each Public Provident Fund account." />
+<app-report-header title="PPF Passbook" subtitle="Year-wise contributions, interest credited and closing balance for each Public Provident Fund account.">
+  <app-export-button reportActions filename="ppf-passbook" [headers]="exportHeaders" [rows]="exportRows()" />
+</app-report-header>
 
 @if (accounts().length > 1) {
   <div class="flex items-center gap-3">

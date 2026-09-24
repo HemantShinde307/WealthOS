@@ -3,6 +3,7 @@
     <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
     {{ exporting() ? 'Exporting…' : 'Export PDF' }}
   </button>
+  <app-export-button reportActions filename="mf-account-statement" [headers]="exportHeaders" [rows]="exportRows()" />
 </app-report-header>
 
 <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm flex flex-wrap items-end gap-4">

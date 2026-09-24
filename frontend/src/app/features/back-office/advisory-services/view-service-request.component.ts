@@ -1,12 +1,14 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ExportButtonComponent } from '../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../shared/utils/confirm';
 import { AdvisoryServicesService } from './advisory-services.service';
-import { ServiceRequestPriority, ServiceRequestStatus } from './advisory-services-data.mock';
+import { ServiceRequestPriority, ServiceRequestStatus, ServiceRequestEntry } from './advisory-services-data.mock';
 
 @Component({
   selector: 'app-view-service-request',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './view-service-request.component.html',
 })
 export class ViewServiceRequestComponent {
@@ -47,5 +49,51 @@ export class ViewServiceRequestComponent {
 
   markResolved(id: string): void {
     this.svc.setServiceRequestStatus(id, 'Resolved');
+  }
+
+  readonly exportHeaders = ['Ticket No.', 'Customer', 'Subject', 'Category', 'Priority', 'Status', 'Raised On', 'Assigned To', 'Description'];
+  readonly exportRows = computed(() => this.filtered().map((x) => [x.id, x.customerName, x.subject, x.category, x.priority, x.status, x.raisedOn, x.assignedTo, x.description]));
+
+  readonly editingId = signal<string | null>(null);
+  readonly eCustomerName = signal<string>('');
+  readonly eSubject = signal<string>('');
+  readonly eCategory = signal<string>('');
+  readonly ePriority = signal<ServiceRequestPriority>('Medium');
+  readonly eStatus = signal<ServiceRequestStatus>('Open');
+  readonly eAssignedTo = signal<string>('');
+  readonly eDescription = signal<string>('');
+  readonly editError = signal<string | null>(null);
+
+  edit(x: ServiceRequestEntry): void {
+    this.editingId.set(x.id);
+    this.eCustomerName.set(x.customerName);
+    this.eSubject.set(x.subject);
+    this.eCategory.set(x.category);
+    this.ePriority.set(x.priority);
+    this.eStatus.set(x.status);
+    this.eAssignedTo.set(x.assignedTo);
+    this.eDescription.set(x.description);
+    this.editError.set(null);
+  }
+
+  cancelEdit(): void {
+    this.editingId.set(null);
+  }
+
+  saveEdit(): void {
+    const id = this.editingId();
+    if (!id) return;
+    if (!this.eCustomerName().trim() || !this.eSubject().trim()) {
+      this.editError.set('Please fill in all required fields.');
+      return;
+    }
+    this.svc.updateServiceRequest(id, { customerName: this.eCustomerName().trim(), subject: this.eSubject().trim(), category: this.eCategory().trim(), priority: this.ePriority(), status: this.eStatus(), assignedTo: this.eAssignedTo().trim(), description: this.eDescription().trim() });
+    this.editingId.set(null);
+  }
+
+  remove(x: ServiceRequestEntry): void {
+    if (!confirmDelete(`service request ${x.id} for ${x.customerName}`)) return;
+    this.svc.deleteServiceRequest(x.id);
+    if (this.editingId() === x.id) this.editingId.set(null);
   }
 }

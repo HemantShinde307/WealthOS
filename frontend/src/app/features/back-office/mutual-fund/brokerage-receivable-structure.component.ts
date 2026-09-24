@@ -1,7 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MutualFundService } from './mutual-fund.service';
 import { BrokerageSlab } from './mutual-fund-data.mock';
+import { ExportButtonComponent } from '../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../shared/utils/confirm';
 
 interface SlabDraft {
   schemeCategory: string;
@@ -16,11 +18,16 @@ const EMPTY_DRAFT: SlabDraft = { schemeCategory: '', upfrontPct: null, trailPct:
 @Component({
   selector: 'app-mf-brokerage-receivable-structure',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './brokerage-receivable-structure.component.html',
 })
 export class BrokerageReceivableStructureComponent {
   readonly mfService = inject(MutualFundService);
+
+  readonly exportHeaders = ['Scheme Category', 'Upfront %', 'Trail %', 'Effective From', 'Effective To'];
+  readonly exportRows = computed(() =>
+    this.mfService.brokerageSlabs().map((s) => [s.schemeCategory, s.upfrontPct, s.trailPct, s.effectiveFrom, s.effectiveTo ?? '']),
+  );
 
   readonly showForm = signal(false);
   readonly editingId = signal<string | null>(null);
@@ -62,8 +69,9 @@ export class BrokerageReceivableStructureComponent {
     this.editingId.set(null);
   }
 
-  remove(id: string): void {
-    this.mfService.deleteBrokerageSlab(id);
+  remove(slab: BrokerageSlab): void {
+    if (!confirmDelete(`the ${slab.schemeCategory} brokerage slab`)) return;
+    this.mfService.deleteBrokerageSlab(slab.id);
   }
 
   setField<K extends keyof SlabDraft>(key: K, value: SlabDraft[K]): void {

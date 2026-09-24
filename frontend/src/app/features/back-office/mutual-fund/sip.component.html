@@ -3,9 +3,12 @@
     <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Systematic Investments (SIP)</h2>
     <p class="text-body-md text-on-surface-variant mt-1">{{ mfService.sipMandates().length }} SIP mandates on file.</p>
   </div>
-  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="toggleForm()">
-    {{ showForm() ? 'Cancel' : '+ Register New SIP' }}
-  </button>
+  <div class="flex gap-2">
+    <app-export-button filename="mf-sip-mandates" [headers]="exportHeaders" [rows]="exportRows()" />
+    <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="toggleForm()">
+      {{ showForm() ? 'Cancel' : '+ Register New SIP' }}
+    </button>
+  </div>
 </div>
 
 @if (showForm()) {
@@ -40,6 +43,36 @@
     </div>
     @if (error()) { <p class="text-error text-sm sm:col-span-4">{{ error() }}</p> }
     @if (success()) { <p class="text-on-tertiary-container text-sm sm:col-span-4">{{ success() }}</p> }
+  </div>
+}
+
+@if (editingId()) {
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Amount (₹)</label>
+      <input type="number" min="0" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="editAmount()" (input)="editAmount.set($any($event.target).valueAsNumber || null)" />
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Frequency</label>
+      <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="editFrequency()" (change)="editFrequency.set($any($event.target).value)">
+        <option>Weekly</option>
+        <option>Monthly</option>
+        <option>Quarterly</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Next Due Date</label>
+      <input type="date" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="editNextDue()" (input)="editNextDue.set($any($event.target).value)" />
+    </div>
+    <div>
+      <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">End Date (optional)</label>
+      <input type="date" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="editEndDate()" (input)="editEndDate.set($any($event.target).value)" />
+    </div>
+    <div class="sm:col-span-4 flex justify-end gap-2">
+      <button class="px-4 py-2 border border-outline-variant bg-surface-container-lowest text-on-surface rounded-md hover:bg-surface-container-low transition-colors text-sm font-medium" (click)="cancelEdit()">Cancel</button>
+      <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="saveEdit()">Save Changes</button>
+    </div>
+    @if (editError()) { <p class="text-error text-sm sm:col-span-4">{{ editError() }}</p> }
   </div>
 }
 
@@ -84,13 +117,13 @@
           <td class="py-2.5 px-4 whitespace-nowrap">
             @if (m.status === 'Active') {
               <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="pause(m.id)">Pause</button>
-              <button class="text-error text-xs font-medium hover:underline" (click)="stop(m.id)">Stop</button>
+              <button class="text-error text-xs font-medium hover:underline mr-3" (click)="stop(m.id)">Stop</button>
             } @else if (m.status === 'Paused') {
               <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="resume(m.id)">Resume</button>
-              <button class="text-error text-xs font-medium hover:underline" (click)="stop(m.id)">Stop</button>
-            } @else {
-              <span class="text-xs text-on-surface-variant">—</span>
+              <button class="text-error text-xs font-medium hover:underline mr-3" (click)="stop(m.id)">Stop</button>
             }
+            <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="startEdit(m)">Edit</button>
+            <button class="text-error text-xs font-medium hover:underline" (click)="remove(m)">Delete</button>
           </td>
         </tr>
       }

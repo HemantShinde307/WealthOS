@@ -2,12 +2,14 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { InrCompactPipe } from '../../../shared/pipes/inr-compact.pipe';
+import { ExportButtonComponent } from '../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../shared/utils/confirm';
 import { BackOfficeCustomerService } from '../back-office-customer.service';
 
 @Component({
   selector: 'app-group-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, InrCompactPipe],
+  imports: [CommonModule, RouterLink, InrCompactPipe, ExportButtonComponent],
   templateUrl: './group-detail.component.html',
 })
 export class GroupDetailComponent {
@@ -26,6 +28,9 @@ export class GroupDetailComponent {
   readonly totalAum = computed(() => this.members().reduce((sum, m) => sum + m.aum, 0));
   readonly ungrouped = this.boService.ungroupedCustomers;
 
+  readonly exportHeaders = ['Customer ID', 'Name', 'Primary Contact', 'AUM'];
+  readonly exportRows = computed(() => this.members().map((m) => [m.id, m.name, this.group()?.primaryContactId === m.id ? 'Yes' : 'No', m.aum]));
+
   readonly addMemberId = signal('');
 
   addMember(): void {
@@ -36,6 +41,8 @@ export class GroupDetailComponent {
   }
 
   removeMember(customerId: string): void {
+    const m = this.members().find((x) => x.id === customerId);
+    if (!confirmDelete(`${m?.name ?? customerId} from this group`)) return;
     this.boService.removeMemberFromGroup(customerId);
   }
 

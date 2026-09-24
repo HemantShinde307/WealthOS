@@ -1,13 +1,14 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MutualFundService } from './mutual-fund.service';
+import { ExportButtonComponent } from '../../../shared/components/export-button/export-button.component';
 
 type BatchTransactionType = 'Purchase' | 'Additional Purchase' | 'Redemption';
 
 @Component({
   selector: 'app-mf-batch-creation-of-transactions',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './batch-creation-of-transactions.component.html',
 })
 export class BatchCreationOfTransactionsComponent {
@@ -33,6 +34,9 @@ export class BatchCreationOfTransactionsComponent {
       return f.folioNumber.toLowerCase().includes(q) || f.customerName.toLowerCase().includes(q) || f.scheme.toLowerCase().includes(q);
     });
   });
+
+  readonly exportHeaders = ['Folio', 'AMC', 'Scheme', 'Customer', 'Units Held'];
+  readonly exportRows = computed(() => this.filtered().map((f) => [f.folioNumber, f.amc, f.scheme, f.customerName, f.units]));
 
   toggle(id: string): void {
     this.selectedIds.update((set) => {

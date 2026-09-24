@@ -5,12 +5,13 @@ import { PresentationsService } from '../presentations.service';
 import { ReportHeaderComponent } from '../shared/report-header.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import { InrCompactPipe } from '../../../../shared/pipes/inr-compact.pipe';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
 import { buildDonutSegments, buildLinePath, donutGradient } from '../shared/chart-utils';
 
 @Component({
   selector: 'app-consolidated-wealth-portfolio',
   standalone: true,
-  imports: [CommonModule, ReportHeaderComponent, StatCardComponent, InrCompactPipe],
+  imports: [CommonModule, ReportHeaderComponent, StatCardComponent, InrCompactPipe, ExportButtonComponent],
   templateUrl: './consolidated-wealth-portfolio.component.html',
 })
 export class ConsolidatedWealthPortfolioComponent {
@@ -39,6 +40,9 @@ export class ConsolidatedWealthPortfolioComponent {
     { label: 'PPF', invested: this.presentations.ppfAccounts().reduce((s, p) => s + p.currentBalance, 0), current: this.presentations.ppfBalance() },
     { label: 'Bullion', invested: this.presentations.bullionInvestedValue(), current: this.presentations.bullionCurrentValue() },
   ]);
+
+  readonly exportHeaders = ['Asset Class', 'Invested Value', 'Current Value', 'Gain / Loss'];
+  readonly exportRows = computed(() => this.rows().map((r) => [r.label, r.invested, r.current, r.current - r.invested]));
 
   exportPdf(): void {
     this.exporting.set(true);

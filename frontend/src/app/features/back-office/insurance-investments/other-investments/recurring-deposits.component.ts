@@ -1,16 +1,23 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OtherInvestmentsService } from '../other-investments.service';
 import { BANKS, RecurringDepositEntry } from '../insurance-investments-data.mock';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 @Component({
   selector: 'app-other-investments-recurring-deposits',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './recurring-deposits.component.html',
 })
 export class RecurringDepositsComponent {
   readonly svc = inject(OtherInvestmentsService);
+
+  readonly exportHeaders = ['Customer', 'Bank', 'Installment Amount', 'Tenure (months)', 'Interest Rate (%)', 'Start Date', 'Maturity Date'];
+  readonly exportRows = computed(() =>
+    this.svc.recurringDeposits().map((r) => [r.customerName, r.bank, r.installmentAmount, r.tenureMonths, r.interestRate, r.startDate, r.maturityDate]),
+  );
   readonly banks = BANKS;
 
   readonly editingId = signal<string | null>(null);
@@ -74,7 +81,8 @@ export class RecurringDepositsComponent {
     this.formVisible.set(false);
   }
 
-  remove(id: string): void {
-    this.svc.deleteRecurringDeposit(id);
+  remove(r: RecurringDepositEntry): void {
+    if (!confirmDelete(`the ${r.bank} recurring deposit for ${r.customerName}`)) return;
+    this.svc.deleteRecurringDeposit(r.id);
   }
 }

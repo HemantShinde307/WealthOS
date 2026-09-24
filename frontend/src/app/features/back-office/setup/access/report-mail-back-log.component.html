@@ -1,6 +1,9 @@
-<div>
-  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Report Mail Back Log</h2>
-  <p class="text-body-md text-on-surface-variant mt-1">{{ setup.reportMailBackLog().length }} entries · {{ bouncedCount() }} bounced · {{ failedCount() }} failed</p>
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Report Mail Back Log</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">{{ setup.reportMailBackLog().length }} entries · {{ bouncedCount() }} bounced · {{ failedCount() }} failed</p>
+  </div>
+  <app-export-button filename="report-mail-back-log" [headers]="exportHeaders" [rows]="exportRows()" />
 </div>
 
 <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
@@ -36,6 +39,7 @@
           <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Sent On</th>
           <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
           <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Reason</th>
+          <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Actions</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
@@ -52,10 +56,13 @@
               >{{ e.status }}</span>
             </td>
             <td class="py-3 px-4 text-on-surface-variant">{{ e.reason }}</td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              <button class="text-error text-xs font-medium hover:underline" (click)="remove(e)">Delete</button>
+            </td>
           </tr>
         }
         @if (!filtered().length) {
-          <tr><td colspan="6" class="py-10 text-center text-on-surface-variant">No entries match your filters.</td></tr>
+          <tr><td colspan="7" class="py-10 text-center text-on-surface-variant">No entries match your filters.</td></tr>
         }
       </tbody>
     </table>

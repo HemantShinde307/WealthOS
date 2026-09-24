@@ -2,6 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ArnRecord } from '../setup-data.mock';
 import { SetupService } from '../setup.service';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 type ArnDraft = Partial<ArnRecord>;
 
@@ -10,11 +12,16 @@ const EMPTY_DRAFT: ArnDraft = { arnCode: '', holderName: '', category: 'Individu
 @Component({
   selector: 'app-arn-master',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './arn-master.component.html',
 })
 export class ArnMasterComponent {
   readonly setup = inject(SetupService);
+
+  readonly exportHeaders = ['ARN', 'Holder', 'Category', 'Empanelled On', 'Valid Till', 'Status'];
+  readonly exportRows = computed(() =>
+    this.filtered().map((a) => [a.arnCode, a.holderName, a.category, a.empanelledOn, a.validTill, a.status]),
+  );
 
   readonly searchTerm = signal('');
   readonly formMode = signal<'closed' | 'add' | 'edit'>('closed');
@@ -60,6 +67,8 @@ export class ArnMasterComponent {
   }
 
   remove(id: string): void {
+    const item = this.setup.arnRecords().find((x) => x.id === id);
+    if (!confirmDelete(`ARN ${item?.arnCode ?? ''}`)) return;
     this.setup.deleteArnRecord(id);
     if (this.editingId() === id) this.cancel();
   }

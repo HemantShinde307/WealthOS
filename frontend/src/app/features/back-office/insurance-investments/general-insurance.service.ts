@@ -2,6 +2,7 @@ import { Injectable, computed, signal } from '@angular/core';
 import { GeneralInsuranceImportRow, GeneralInsurancePolicy, ImportLogEntry, MOCK_GENERAL_POLICIES } from './insurance-investments-data.mock';
 
 let nextPolicySeq = 500;
+let nextImportSeq = 1;
 
 @Injectable({ providedIn: 'root' })
 export class GeneralInsuranceService {
@@ -31,6 +32,10 @@ export class GeneralInsuranceService {
     this._policies.update((list) => list.filter((p) => p.id !== id));
   }
 
+  deleteImportLog(id: string): void {
+    this._importLog.update((log) => log.filter((e) => e.id !== id));
+  }
+
   importPolicies(rows: GeneralInsuranceImportRow[], fileName: string): number {
     const today = new Date().toISOString().slice(0, 10);
     const newPolicies: GeneralInsurancePolicy[] = rows.map((r) => ({
@@ -47,7 +52,7 @@ export class GeneralInsuranceService {
     }));
     this._policies.update((list) => [...newPolicies, ...list]);
     this._importLog.update((log) => [
-      { id: `IMP-${log.length + 1}`, fileName, rowCount: newPolicies.length, importedOn: new Date().toISOString() },
+      { id: `IMP-${nextImportSeq++}`, fileName, rowCount: newPolicies.length, importedOn: new Date().toISOString() },
       ...log,
     ]);
     return newPolicies.length;

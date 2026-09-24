@@ -2,15 +2,22 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OtherInvestmentsService } from '../other-investments.service';
 import { StockHolding } from '../insurance-investments-data.mock';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 @Component({
   selector: 'app-other-investments-stocks',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './stocks.component.html',
 })
 export class OtherInvestmentsStocksComponent {
   readonly svc = inject(OtherInvestmentsService);
+
+  readonly exportHeaders = ['Customer', 'Symbol', 'Exchange', 'Quantity', 'Buy Price', 'Current Price', 'Gain / Loss', 'Buy Date'];
+  readonly exportRows = computed(() =>
+    this.rows().map((s) => [s.customerName, s.symbol, s.exchange, s.quantity, s.buyPrice, s.currentPrice, s.gainLoss, s.buyDate]),
+  );
   readonly exchanges: StockHolding['exchange'][] = ['NSE', 'BSE'];
 
   readonly editingId = signal<string | null>(null);
@@ -78,7 +85,8 @@ export class OtherInvestmentsStocksComponent {
     this.formVisible.set(false);
   }
 
-  remove(id: string): void {
-    this.svc.deleteStock(id);
+  remove(s: StockHolding): void {
+    if (!confirmDelete(`the ${s.symbol} holding for ${s.customerName}`)) return;
+    this.svc.deleteStock(s.id);
   }
 }

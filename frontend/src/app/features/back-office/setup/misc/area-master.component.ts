@@ -2,6 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AreaRecord } from '../setup-data.mock';
 import { SetupService } from '../setup.service';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 type AreaDraft = Partial<AreaRecord>;
 
@@ -10,11 +12,16 @@ const EMPTY_DRAFT: AreaDraft = { areaName: '', pincode: '', city: '', state: '',
 @Component({
   selector: 'app-area-master',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './area-master.component.html',
 })
 export class AreaMasterComponent {
   readonly setup = inject(SetupService);
+
+  readonly exportHeaders = ['Area', 'Pincode', 'City', 'State', 'Status'];
+  readonly exportRows = computed(() =>
+    this.filtered().map((a) => [a.areaName, a.pincode, a.city, a.state, a.status]),
+  );
 
   readonly searchTerm = signal('');
   readonly formMode = signal<'closed' | 'add' | 'edit'>('closed');
@@ -60,6 +67,8 @@ export class AreaMasterComponent {
   }
 
   remove(id: string): void {
+    const item = this.setup.areas().find((x) => x.id === id);
+    if (!confirmDelete(`${item?.areaName ?? 'this area'}`)) return;
     this.setup.deleteArea(id);
     if (this.editingId() === id) this.cancel();
   }

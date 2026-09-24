@@ -4,6 +4,7 @@ import { jsPDF } from 'jspdf';
 import { PresentationsService } from '../presentations.service';
 import { ReportHeaderComponent } from '../shared/report-header.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
 import { InrCompactPipe } from '../../../../shared/pipes/inr-compact.pipe';
 
 /** Account Statement — the classic MFU/RTA consolidated statement: customer + folio header,
@@ -12,7 +13,7 @@ import { InrCompactPipe } from '../../../../shared/pipes/inr-compact.pipe';
 @Component({
   selector: 'app-mf-account-statement',
   standalone: true,
-  imports: [CommonModule, ReportHeaderComponent, StatCardComponent, InrCompactPipe],
+  imports: [CommonModule, ReportHeaderComponent, StatCardComponent, InrCompactPipe, ExportButtonComponent],
   templateUrl: './mf-account-statement.component.html',
 })
 export class MfAccountStatementComponent {
@@ -25,6 +26,9 @@ export class MfAccountStatementComponent {
       .filter((t) => t.date >= this.presentations.fromDate() && t.date <= this.presentations.toDate())
       .sort((a, b) => a.date.localeCompare(b.date)),
   );
+
+  readonly exportHeaders = ['Date', 'Scheme', 'Folio No', 'Type', 'Amount', 'Units', 'NAV'];
+  readonly exportRows = computed(() => this.transactions().map((t) => [t.date, t.schemeName, t.folioNo, t.type, t.amount, t.units, t.nav]));
 
   setFromDate(value: string): void {
     this.presentations.setDateRange(value, this.presentations.toDate());

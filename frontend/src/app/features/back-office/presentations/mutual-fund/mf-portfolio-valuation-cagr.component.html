@@ -1,4 +1,6 @@
-<app-report-header title="Portfolio Valuation (CAGR Report)" subtitle="Annualised CAGR for every folio, computed from its original investment date to today." />
+<app-report-header title="Portfolio Valuation (CAGR Report)" subtitle="Annualised CAGR for every folio, computed from its original investment date to today.">
+  <app-export-button reportActions filename="mf-portfolio-valuation-cagr" [headers]="exportHeaders" [rows]="exportRows()" />
+</app-report-header>
 
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
   <app-stat-card label="Invested Value" [value]="presentations.mfInvestedValue() | inrCompact" />

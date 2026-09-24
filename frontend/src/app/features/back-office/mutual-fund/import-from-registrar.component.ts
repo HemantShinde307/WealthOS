@@ -1,8 +1,10 @@
-import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MutualFundService, RegistrarImportRow } from './mutual-fund.service';
 import { MfTransactionType } from './mutual-fund-data.mock';
+import { ExportButtonComponent } from '../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../shared/utils/confirm';
 
 interface ParsedRow extends RegistrarImportRow {
   valid: boolean;
@@ -14,7 +16,7 @@ const VALID_TYPES = new Set<MfTransactionType>(['Purchase', 'Additional Purchase
 @Component({
   selector: 'app-mf-import-from-registrar',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ExportButtonComponent],
   templateUrl: './import-from-registrar.component.html',
 })
 export class ImportFromRegistrarComponent {
@@ -26,6 +28,21 @@ export class ImportFromRegistrarComponent {
   readonly parsedRows = signal<ParsedRow[]>([]);
   readonly error = signal<string | null>(null);
   readonly imported = signal<number | null>(null);
+
+  readonly exportHeaders = ['Folio', 'Scheme', 'Type', 'Amount', 'Units', 'NAV', 'Date', 'Status'];
+  readonly exportRows = computed(() =>
+    this.parsedRows().map((r) => [r.folio, r.scheme, r.transactionType, r.amount, r.units, r.nav, r.date, r.valid ? 'Ready' : (r.issue ?? 'Invalid')]),
+  );
+
+  readonly logExportHeaders = ['File', 'Registrar', 'Rows Imported', 'Imported On'];
+  readonly logExportRows = computed(() =>
+    this.mfService.registrarImportLog().slice(0, 5).map((e) => [e.fileName, e.registrar, e.rowCount, e.importedOn]),
+  );
+
+  removeLogEntry(id: string, fileName: string): void {
+    if (!confirmDelete(`the import log entry for ${fileName}`)) return;
+    this.mfService.deleteRegistrarImportLogEntry(id);
+  }
 
   readonly validCount = () => this.parsedRows().filter((r) => r.valid).length;
 

@@ -46,7 +46,10 @@
 </div>
 
 <div>
-  <h3 class="text-title-lg text-on-background font-semibold text-sm mb-2">Send Log</h3>
+  <div class="flex justify-between items-center mb-2">
+    <h3 class="text-title-lg text-on-background font-semibold text-sm">Send Log</h3>
+    <app-export-button filename="whatsapp-send-log" [headers]="exportHeaders" [rows]="exportRows()" />
+  </div>
   <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden overflow-x-auto">
     <table class="w-full text-left border-collapse">
       <thead class="bg-surface-container-low border-b border-outline-variant">
@@ -57,6 +60,7 @@
           <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Template Used</th>
           <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Timestamp</th>
           <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+          <th class="py-3 px-4"></th>
         </tr>
       </thead>
       <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
@@ -76,6 +80,9 @@
                   'bg-error/10 text-error': w.sentStatus === 'Failed'
                 }"
               >{{ w.sentStatus }}</span>
+            </td>
+            <td class="py-2 px-4 text-right whitespace-nowrap">
+              <button class="text-error text-xs font-medium hover:underline" (click)="remove(w)">Delete</button>
             </td>
           </tr>
         }

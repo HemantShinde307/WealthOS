@@ -3,9 +3,12 @@
     <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Brokerage Receivable Structure</h2>
     <p class="text-body-md text-on-surface-variant mt-1">{{ mfService.brokerageSlabs().length }} slab structures configured across scheme categories.</p>
   </div>
-  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="startCreate()">
-    + New Slab
-  </button>
+  <div class="flex gap-2">
+    <app-export-button filename="brokerage-receivable-structure" [headers]="exportHeaders" [rows]="exportRows()" />
+    <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="startCreate()">
+      + New Slab
+    </button>
+  </div>
 </div>
 
 @if (showForm()) {
@@ -60,7 +63,7 @@
           <td class="py-2.5 px-4 text-xs">{{ s.effectiveTo ? (s.effectiveTo | date: 'mediumDate') : '—' }}</td>
           <td class="py-2.5 px-4 whitespace-nowrap">
             <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="startEdit(s)">Edit</button>
-            <button class="text-error text-xs font-medium hover:underline" (click)="remove(s.id)">Delete</button>
+            <button class="text-error text-xs font-medium hover:underline" (click)="remove(s)">Delete</button>
           </td>
         </tr>
       }

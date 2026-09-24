@@ -71,13 +71,17 @@
 
 @if (boService.importLog().length) {
   <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
-    <div class="p-4 border-b border-outline-variant"><h3 class="text-title-lg text-on-background">Import Log</h3></div>
+    <div class="p-4 border-b border-outline-variant flex justify-between items-center">
+      <h3 class="text-title-lg text-on-background">Import Log</h3>
+      <app-export-button filename="import-log" [headers]="logHeaders" [rows]="logRows()" />
+    </div>
     <table class="w-full text-left border-collapse">
       <thead class="bg-surface-container-low border-b border-outline-variant">
         <tr>
           <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">File</th>
           <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Rows Imported</th>
           <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">When</th>
+          <th class="py-2.5 px-4"></th>
         </tr>
       </thead>
       <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
@@ -86,6 +90,9 @@
             <td class="py-2 px-4 font-mono text-xs">{{ entry.fileName }}</td>
             <td class="py-2 px-4">{{ entry.rowCount }}</td>
             <td class="py-2 px-4 text-xs text-on-surface-variant">{{ entry.importedOn | date: 'medium' }}</td>
+            <td class="py-2 px-4 text-right whitespace-nowrap">
+              <button class="text-error text-xs font-medium hover:underline" (click)="removeLog(entry.id, entry.fileName)">Delete</button>
+            </td>
           </tr>
         }
       </tbody>

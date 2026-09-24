@@ -1,6 +1,9 @@
-<div>
-  <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Recommended Funds</h2>
-  <p class="text-body-md text-on-surface-variant mt-1">{{ setup.recommendedFunds().length }} curated schemes shown to customers, ranked in display order</p>
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Recommended Funds</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">{{ setup.recommendedFunds().length }} curated schemes shown to customers, ranked in display order</p>
+  </div>
+  <app-export-button filename="recommended-funds" [headers]="exportHeaders" [rows]="exportRows()" />
 </div>
 
 <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-end flex-wrap">
@@ -16,7 +19,10 @@
     <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Category</label>
     <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" placeholder="e.g. Equity — Flexi Cap" [value]="category()" (input)="category.set($any($event.target).value)" />
   </div>
-  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium whitespace-nowrap" (click)="add()">+ Add Fund</button>
+  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium whitespace-nowrap" (click)="add()">{{ editingId() ? 'Save Changes' : '+ Add Fund' }}</button>
+  @if (editingId()) {
+    <button class="px-4 py-2 border border-outline-variant rounded-md text-sm font-medium hover:bg-surface-container-low whitespace-nowrap" (click)="clearForm()">Cancel</button>
+  }
 </div>
 
 <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
@@ -47,7 +53,8 @@
               <button class="text-on-surface-variant hover:text-on-background disabled:opacity-30 mr-3" [disabled]="last" (click)="moveDown(f.id)" title="Move down">
                 <span class="material-symbols-outlined text-[18px] align-middle">arrow_downward</span>
               </button>
-              <button class="text-error text-xs font-medium hover:underline" (click)="remove(f.id)">Remove</button>
+              <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="edit(f)">Edit</button>
+              <button class="text-error text-xs font-medium hover:underline" (click)="remove(f)">Delete</button>
             </td>
           </tr>
         }

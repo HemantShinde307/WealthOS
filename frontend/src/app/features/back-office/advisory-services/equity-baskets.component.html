@@ -67,7 +67,41 @@
 
 @if (svc.basketOrders().length) {
   <div>
-    <h3 class="text-title-lg text-on-background font-semibold mb-2">Recent Orders</h3>
+    <div class="flex justify-between items-center mb-2">
+      <h3 class="text-title-lg text-on-background font-semibold">Recent Orders</h3>
+      <app-export-button filename="equity-basket-orders" [headers]="exportHeaders" [rows]="exportRows()" />
+    </div>
+    @if (editingId()) {
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col gap-3">
+        <h3 class="text-title-lg text-on-background font-semibold text-sm">Edit Order</h3>
+        @if (editError()) {
+          <div class="bg-error/10 border border-error/40 rounded-lg p-3 text-error text-sm">{{ editError() }}</div>
+        }
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 items-end">
+          <div>
+            <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Customer</label>
+            <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="eCustomerName()" (input)="eCustomerName.set($any($event.target).value)" />
+          </div>
+          <div>
+            <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Amount (₹)</label>
+            <input type="number" class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background font-mono" [value]="eAmount()" (input)="eAmount.set(+$any($event.target).value)" />
+          </div>
+          <div>
+            <label class="block text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Status</label>
+            <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="eStatus()" (change)="eStatus.set($any($event.target).value)">
+              @for (o of statusOptions; track o) {
+                <option [value]="o">{{ o }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2">
+          <button class="px-4 py-2 border border-outline-variant rounded-md text-sm font-medium hover:bg-surface-container-low" (click)="cancelEdit()">Cancel</button>
+          <button class="bg-primary-container text-on-primary px-5 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="saveEdit()">Save Changes</button>
+        </div>
+      </div>
+    }
+
     <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead class="bg-surface-container-low border-b border-outline-variant">
@@ -77,6 +111,7 @@
             <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Customer</th>
             <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Amount</th>
             <th class="py-3 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+            <th class="py-3 px-4"></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
@@ -87,6 +122,10 @@
               <td class="py-3 px-4">{{ o.customerName }}</td>
               <td class="py-3 px-4 font-mono text-right">₹{{ o.amount | number: '1.0-0' }}</td>
               <td class="py-3 px-4"><span class="bg-secondary-container text-on-secondary-container text-xs px-2 py-0.5 rounded font-medium">{{ o.status }}</span></td>
+              <td class="py-2 px-4 text-right whitespace-nowrap">
+                <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="edit(o); $event.stopPropagation()">Edit</button>
+                <button class="text-error text-xs font-medium hover:underline" (click)="remove(o); $event.stopPropagation()">Delete</button>
+              </td>
             </tr>
           }
         </tbody>

@@ -1,16 +1,23 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OtherInvestmentsService } from '../other-investments.service';
 import { InstrumentMaster } from '../insurance-investments-data.mock';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 @Component({
   selector: 'app-other-investments-masters',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './masters.component.html',
 })
 export class OtherInvestmentsMastersComponent {
   readonly svc = inject(OtherInvestmentsService);
+
+  readonly exportHeaders = ['Category', 'Name', 'Code', 'Issuer', 'Notes'];
+  readonly exportRows = computed(() =>
+    this.svc.masters().map((m) => [m.category, m.name, m.code, m.issuer, m.notes]),
+  );
   readonly categories: InstrumentMaster['category'][] = ['Bond', 'Debenture', 'Company Deposit', 'Postal Scheme', 'Bank Deposit', 'Other'];
 
   readonly editingId = signal<string | null>(null);
@@ -60,7 +67,8 @@ export class OtherInvestmentsMastersComponent {
     this.formVisible.set(false);
   }
 
-  remove(id: string): void {
-    this.svc.deleteMaster(id);
+  remove(m: InstrumentMaster): void {
+    if (!confirmDelete(`the instrument master ${m.name}`)) return;
+    this.svc.deleteMaster(m.id);
   }
 }

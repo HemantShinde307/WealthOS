@@ -1,4 +1,6 @@
-<app-report-header title="Periodic Performance Report" subtitle="Trailing-period point-to-point returns for every scheme held by this customer." />
+<app-report-header title="Periodic Performance Report" subtitle="Trailing-period point-to-point returns for every scheme held by this customer.">
+  <app-export-button reportActions filename="mf-periodic-performance" [headers]="exportHeaders" [rows]="exportRows()" />
+</app-report-header>
 
 <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
   <div class="overflow-x-auto table-scroll">

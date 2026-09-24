@@ -1,12 +1,14 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MutualFundService } from './mutual-fund.service';
-import { MandateFrequency } from './mutual-fund-data.mock';
+import { MandateFrequency, SystematicMandate } from './mutual-fund-data.mock';
+import { ExportButtonComponent } from '../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../shared/utils/confirm';
 
 @Component({
   selector: 'app-mf-sip',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './sip.component.html',
 })
 export class SipComponent {
@@ -28,6 +30,47 @@ export class SipComponent {
     const status = this.statusFilter();
     return this.mfService.sipMandates().filter((m) => status === 'All' || m.status === status);
   });
+
+  readonly exportHeaders = ['Mandate ID', 'Folio', 'Scheme', 'Amount', 'Frequency', 'Start Date', 'Next Due', 'End Date', 'Status'];
+  readonly exportRows = computed(() =>
+    this.filtered().map((m) => [m.id, this.folioLabel(m.folioId), m.scheme, m.amount, m.frequency, m.startDate, m.nextDueDate, m.endDate ?? '', m.status]),
+  );
+
+  readonly editingId = signal<string | null>(null);
+  readonly editAmount = signal<number | null>(null);
+  readonly editFrequency = signal<MandateFrequency>('Monthly');
+  readonly editNextDue = signal('');
+  readonly editEndDate = signal('');
+  readonly editError = signal<string | null>(null);
+
+  startEdit(m: SystematicMandate): void {
+    this.editingId.set(m.id);
+    this.editAmount.set(m.amount);
+    this.editFrequency.set(m.frequency);
+    this.editNextDue.set(m.nextDueDate);
+    this.editEndDate.set(m.endDate ?? '');
+    this.editError.set(null);
+  }
+
+  cancelEdit(): void {
+    this.editingId.set(null);
+  }
+
+  saveEdit(): void {
+    const id = this.editingId();
+    if (!id) return;
+    const amt = this.editAmount();
+    if (!amt || amt <= 0) { this.editError.set('Enter a valid amount.'); return; }
+    if (!this.editNextDue()) { this.editError.set('Enter the next due date.'); return; }
+    this.mfService.updateMandate(id, { amount: amt, frequency: this.editFrequency(), nextDueDate: this.editNextDue(), endDate: this.editEndDate() || undefined });
+    this.editingId.set(null);
+  }
+
+  remove(m: SystematicMandate): void {
+    if (!confirmDelete(`the SIP mandate ${m.id}`)) return;
+    this.mfService.deleteMandate(m.id);
+    if (this.editingId() === m.id) this.editingId.set(null);
+  }
 
   folioLabel(id: string): string {
     const f = this.mfService.getFolio(id);

@@ -1,16 +1,23 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OtherInvestmentsService } from '../other-investments.service';
 import { IncomeSchemeEntry } from '../insurance-investments-data.mock';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 @Component({
   selector: 'app-other-investments-income-schemes',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './income-schemes.component.html',
 })
 export class IncomeSchemesComponent {
   readonly svc = inject(OtherInvestmentsService);
+
+  readonly exportHeaders = ['Customer', 'Scheme', 'Amount', 'Monthly Income', 'Start Date', 'Maturity Date'];
+  readonly exportRows = computed(() =>
+    this.svc.incomeSchemes().map((i) => [i.customerName, i.schemeName, i.amount, i.monthlyIncome, i.startDate, i.maturityDate]),
+  );
   readonly schemes: IncomeSchemeEntry['schemeName'][] = ['Post Office MIS', 'Senior Citizen Savings Scheme', 'Pradhan Mantri Vaya Vandana Yojana', 'RBI Floating Rate Bonds'];
 
   readonly editingId = signal<string | null>(null);
@@ -70,7 +77,8 @@ export class IncomeSchemesComponent {
     this.formVisible.set(false);
   }
 
-  remove(id: string): void {
-    this.svc.deleteIncomeScheme(id);
+  remove(i: IncomeSchemeEntry): void {
+    if (!confirmDelete(`the ${i.schemeName} entry for ${i.customerName}`)) return;
+    this.svc.deleteIncomeScheme(i.id);
   }
 }

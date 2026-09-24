@@ -3,7 +3,10 @@
     <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Income Schemes</h2>
     <p class="text-body-md text-on-surface-variant mt-1">{{ svc.incomeSchemes().length }} post-office / government monthly income scheme entries.</p>
   </div>
-  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openNew()">+ New Entry</button>
+  <div class="flex gap-2">
+    <app-export-button filename="income-schemes" [headers]="exportHeaders" [rows]="exportRows()" />
+    <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openNew()">+ New Entry</button>
+  </div>
 </div>
 
 @if (formVisible()) {
@@ -66,7 +69,7 @@
           <td class="py-2 px-4 text-xs">{{ i.maturityDate | date: 'mediumDate' }}</td>
           <td class="py-2 px-4 text-right whitespace-nowrap">
             <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="edit(i)">Edit</button>
-            <button class="text-error text-xs font-medium hover:underline" (click)="remove(i.id)">Delete</button>
+            <button class="text-error text-xs font-medium hover:underline" (click)="remove(i)">Delete</button>
           </td>
         </tr>
       }

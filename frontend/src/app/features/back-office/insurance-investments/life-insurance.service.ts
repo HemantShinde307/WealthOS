@@ -13,6 +13,7 @@ import {
 let nextPolicySeq = 200;
 let nextDepositSeq = 400;
 let nextAdjSeq = 400;
+let nextImportSeq = 1;
 
 @Injectable({ providedIn: 'root' })
 export class LifeInsuranceService {
@@ -43,6 +44,10 @@ export class LifeInsuranceService {
     this._policies.update((list) => list.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   }
 
+  deletePolicy(id: string): void {
+    this._policies.update((list) => list.filter((p) => p.id !== id));
+  }
+
   /** Bulk-updates the First Unpaid Premium date for a set of policies; returns how many were touched. */
   bulkUpdateFupDate(ids: string[], newFupDate: string): number {
     const idSet = new Set(ids);
@@ -57,10 +62,30 @@ export class LifeInsuranceService {
     return entry;
   }
 
+  updatePremiumDeposit(id: string, patch: Partial<PremiumDeposit>): void {
+    this._premiumDeposits.update((list) => list.map((d) => (d.id === id ? { ...d, ...patch } : d)));
+  }
+
+  deletePremiumDeposit(id: string): void {
+    this._premiumDeposits.update((list) => list.filter((d) => d.id !== id));
+  }
+
   addUlipAdjustment(adj: Omit<UlipUnitAdjustment, 'id'>): UlipUnitAdjustment {
     const entry: UlipUnitAdjustment = { ...adj, id: `ULIP-${nextAdjSeq++}` };
     this._ulipAdjustments.update((list) => [entry, ...list]);
     return entry;
+  }
+
+  updateUlipAdjustment(id: string, patch: Partial<UlipUnitAdjustment>): void {
+    this._ulipAdjustments.update((list) => list.map((a) => (a.id === id ? { ...a, ...patch } : a)));
+  }
+
+  deleteUlipAdjustment(id: string): void {
+    this._ulipAdjustments.update((list) => list.filter((a) => a.id !== id));
+  }
+
+  deleteImportLog(id: string): void {
+    this._importLog.update((log) => log.filter((e) => e.id !== id));
   }
 
   importPolicies(rows: LifeInsuranceImportRow[], fileName: string): number {
@@ -81,7 +106,7 @@ export class LifeInsuranceService {
     }));
     this._policies.update((list) => [...newPolicies, ...list]);
     this._importLog.update((log) => [
-      { id: `IMP-${log.length + 1}`, fileName, rowCount: newPolicies.length, importedOn: new Date().toISOString() },
+      { id: `IMP-${nextImportSeq++}`, fileName, rowCount: newPolicies.length, importedOn: new Date().toISOString() },
       ...log,
     ]);
     return newPolicies.length;

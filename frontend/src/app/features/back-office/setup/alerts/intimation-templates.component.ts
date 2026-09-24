@@ -2,6 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IntimationTemplate } from '../setup-data.mock';
 import { SetupService } from '../setup.service';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 type TemplateDraft = Partial<IntimationTemplate>;
 
@@ -10,11 +12,16 @@ const EMPTY_DRAFT: TemplateDraft = { name: '', channel: 'SMS', trigger: '', cont
 @Component({
   selector: 'app-intimation-templates',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './intimation-templates.component.html',
 })
 export class IntimationTemplatesComponent {
   readonly setup = inject(SetupService);
+
+  readonly exportHeaders = ['Name', 'Channel', 'Trigger', 'Content', 'Status'];
+  readonly exportRows = computed(() =>
+    this.filtered().map((t) => [t.name, t.channel, t.trigger, t.content, t.status]),
+  );
 
   readonly searchTerm = signal('');
   readonly formMode = signal<'closed' | 'add' | 'edit'>('closed');
@@ -60,6 +67,8 @@ export class IntimationTemplatesComponent {
   }
 
   remove(id: string): void {
+    const item = this.setup.intimationTemplates().find((x) => x.id === id);
+    if (!confirmDelete(`${item?.name ?? 'this template'}`)) return;
     this.setup.deleteIntimationTemplate(id);
     if (this.editingId() === id) this.cancel();
   }

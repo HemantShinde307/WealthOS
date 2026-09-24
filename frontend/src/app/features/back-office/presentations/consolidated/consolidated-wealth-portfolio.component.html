@@ -3,6 +3,7 @@
     <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
     {{ exporting() ? 'Exporting…' : 'Export PDF' }}
   </button>
+  <app-export-button reportActions filename="consolidated-wealth-portfolio" [headers]="exportHeaders" [rows]="exportRows()" />
 </app-report-header>
 
 <div class="grid grid-cols-2 md:grid-cols-5 gap-4">

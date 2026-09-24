@@ -3,9 +3,12 @@
     <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Area Master</h2>
     <p class="text-body-md text-on-surface-variant mt-1">{{ setup.areas().length }} geographic areas / pincodes on record</p>
   </div>
-  <button class="flex items-center gap-2 bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openAdd()">
-    <span class="material-symbols-outlined text-[18px]">add</span> Add Area
-  </button>
+  <div class="flex gap-2">
+    <app-export-button filename="area-master" [headers]="exportHeaders" [rows]="exportRows()" />
+    <button class="flex items-center gap-2 bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openAdd()">
+      <span class="material-symbols-outlined text-[18px]">add</span> Add Area
+    </button>
+  </div>
 </div>
 
 @if (formMode() !== 'closed') {

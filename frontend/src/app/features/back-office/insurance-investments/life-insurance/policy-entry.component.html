@@ -3,6 +3,7 @@
     <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Policy Entry</h2>
     <p class="text-body-md text-on-surface-variant mt-1">Enter a new life insurance policy. {{ svc.policies().length }} policies on file.</p>
   </div>
+  <app-export-button filename="life-insurance-policies" [headers]="exportHeaders" [rows]="exportRows()" />
 </div>
 
 @if (justSaved()) {
@@ -57,8 +58,11 @@
     <label class="text-label-md text-on-surface-variant">Nominee</label>
     <input class="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-sm text-on-background" [value]="nominee()" (input)="nominee.set($any($event.target).value)" placeholder="e.g. Kavita Mehta" />
   </div>
-  <div class="md:col-span-3 flex justify-end">
-    <button class="bg-primary-container text-on-primary px-5 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="submit()">Save Policy</button>
+  <div class="md:col-span-3 flex justify-end gap-2">
+    @if (editingId()) {
+      <button class="px-4 py-2 border border-outline-variant rounded-md text-sm font-medium hover:bg-surface-container-low" (click)="cancelEdit()">Cancel</button>
+    }
+    <button class="bg-primary-container text-on-primary px-5 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="submit()">{{ editingId() ? 'Save Changes' : 'Save Policy' }}</button>
   </div>
 </div>
 
@@ -74,6 +78,7 @@
         <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Sum Assured</th>
         <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Premium</th>
         <th class="py-2.5 px-4 text-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Status</th>
+        <th class="py-2.5 px-4"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-outline-variant text-body-md text-on-surface">
@@ -86,6 +91,10 @@
           <td class="py-2 px-4 text-right font-mono">₹{{ p.sumAssured | number }}</td>
           <td class="py-2 px-4 text-right font-mono">₹{{ p.premium | number }}</td>
           <td class="py-2 px-4 text-xs">{{ p.status }}</td>
+          <td class="py-2 px-4 text-right whitespace-nowrap">
+            <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="edit(p)">Edit</button>
+            <button class="text-error text-xs font-medium hover:underline" (click)="remove(p)">Delete</button>
+          </td>
         </tr>
       }
     </tbody>

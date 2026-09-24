@@ -2,6 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Employee } from '../setup-data.mock';
 import { SetupService } from '../setup.service';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 type EmployeeDraft = Partial<Employee>;
 
@@ -10,11 +12,16 @@ const EMPTY_DRAFT: EmployeeDraft = { empCode: '', name: '', designation: '', bra
 @Component({
   selector: 'app-employees',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './employees.component.html',
 })
 export class EmployeesComponent {
   readonly setup = inject(SetupService);
+
+  readonly exportHeaders = ['Code', 'Name', 'Designation', 'Branch', 'Email', 'Phone', 'Date of Joining', 'Status'];
+  readonly exportRows = computed(() =>
+    this.filtered().map((e) => [e.empCode, e.name, e.designation, this.setup.branchName(e.branchId), e.email, e.phone, e.dateOfJoining, e.status]),
+  );
 
   readonly searchTerm = signal('');
   readonly formMode = signal<'closed' | 'add' | 'edit'>('closed');
@@ -60,6 +67,8 @@ export class EmployeesComponent {
   }
 
   remove(id: string): void {
+    const item = this.setup.employees().find((x) => x.id === id);
+    if (!confirmDelete(`${item?.name ?? 'this employee'}`)) return;
     this.setup.deleteEmployee(id);
     if (this.editingId() === id) this.cancel();
   }

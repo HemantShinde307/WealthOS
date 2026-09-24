@@ -2,6 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RmMapping } from '../setup-data.mock';
 import { SetupService } from '../setup.service';
+import { ExportButtonComponent } from '../../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../../shared/utils/confirm';
 
 type RmMappingDraft = Partial<RmMapping>;
 
@@ -10,11 +12,16 @@ const EMPTY_DRAFT: RmMappingDraft = { rmEmployeeId: '', branchIds: [], clientSeg
 @Component({
   selector: 'app-rm-mapping',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ExportButtonComponent],
   templateUrl: './rm-mapping.component.html',
 })
 export class RmMappingComponent {
   readonly setup = inject(SetupService);
+
+  readonly exportHeaders = ['Relationship Manager', 'Branches', 'Client Segment', 'Client Count', 'Mapped On'];
+  readonly exportRows = computed(() =>
+    this.setup.rmMappings().map((m) => [this.setup.employeeName(m.rmEmployeeId), this.branchLabels(m.branchIds), m.clientSegment, m.clientCount, m.mappedOn]),
+  );
 
   readonly formMode = signal<'closed' | 'add' | 'edit'>('closed');
   readonly editingId = signal<string | null>(null);
@@ -63,6 +70,8 @@ export class RmMappingComponent {
   }
 
   remove(id: string): void {
+    const item = this.setup.rmMappings().find((x) => x.id === id);
+    if (!confirmDelete(`the mapping for ${item ? this.setup.employeeName(item.rmEmployeeId) : 'this RM'}`)) return;
     this.setup.deleteRmMapping(id);
     if (this.editingId() === id) this.cancel();
   }

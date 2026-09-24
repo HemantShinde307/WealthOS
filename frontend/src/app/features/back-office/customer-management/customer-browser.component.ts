@@ -3,15 +3,24 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { InrCompactPipe } from '../../../shared/pipes/inr-compact.pipe';
 import { BackOfficeCustomerService } from '../back-office-customer.service';
+import { ExportButtonComponent } from '../../../shared/components/export-button/export-button.component';
+import { confirmDelete } from '../../../shared/utils/confirm';
+import { BackOfficeCustomer } from '../back-office-data.mock';
+import { CustomerEditFormComponent } from './customer-edit-form.component';
 
 @Component({
   selector: 'app-customer-browser',
   standalone: true,
-  imports: [CommonModule, RouterLink, InrCompactPipe],
+  imports: [CommonModule, RouterLink, InrCompactPipe, ExportButtonComponent, CustomerEditFormComponent],
   templateUrl: './customer-browser.component.html',
 })
 export class CustomerBrowserComponent {
   readonly boService = inject(BackOfficeCustomerService);
+
+  readonly exportHeaders = ['ID', 'Name', 'PAN', 'Email', 'Phone', 'Segment', 'Risk Profile', 'KYC Status', 'Status', 'AUM'];
+  readonly exportRows = computed(() =>
+    this.results().map((c) => [c.id, c.name, c.pan, c.email, c.phone, c.segment, c.riskProfile, c.kycStatus, c.status, c.aum]),
+  );
 
   readonly segmentFilter = signal('All');
   readonly riskFilter = signal('All');
@@ -40,17 +49,21 @@ export class CustomerBrowserComponent {
     this.minAum.set(value === '' || Number.isNaN(n) ? null : n);
   }
 
-  exportCsv(): void {
-    const rows = this.results();
-    const header = ['ID', 'Name', 'PAN', 'Email', 'Phone', 'Segment', 'Risk Profile', 'KYC Status', 'Status', 'AUM'];
-    const lines = rows.map((c) => [c.id, c.name, c.pan, c.email, c.phone, c.segment, c.riskProfile, c.kycStatus, c.status, c.aum].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','));
-    const csv = [header.join(','), ...lines].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `customer-browser-export-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  readonly editingCustomer = signal<BackOfficeCustomer | null>(null);
+
+  edit(c: BackOfficeCustomer): void {
+    this.editingCustomer.set(c);
+  }
+
+  saveEdit(patch: Partial<BackOfficeCustomer>): void {
+    const c = this.editingCustomer();
+    if (c) this.boService.updateCustomer(c.id, patch);
+    this.editingCustomer.set(null);
+  }
+
+  remove(c: BackOfficeCustomer): void {
+    if (!confirmDelete(`customer ${c.name} (${c.id})`)) return;
+    this.boService.deleteCustomer(c.id);
+    if (this.editingCustomer()?.id === c.id) this.editingCustomer.set(null);
   }
 }

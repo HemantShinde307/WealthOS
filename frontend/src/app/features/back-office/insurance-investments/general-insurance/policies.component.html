@@ -3,7 +3,10 @@
     <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">General Insurance Policies</h2>
     <p class="text-body-md text-on-surface-variant mt-1">{{ svc.policies().length }} policies · {{ svc.activeCount() }} active · {{ svc.dueForRenewalCount() }} due for renewal</p>
   </div>
-  <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openNew()">+ New Policy</button>
+  <div class="flex gap-2">
+    <app-export-button filename="general-insurance-policies" [headers]="exportHeaders" [rows]="exportRows()" />
+    <button class="bg-primary-container text-on-primary px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium" (click)="openNew()">+ New Policy</button>
+  </div>
 </div>
 
 @if (formVisible()) {
@@ -90,7 +93,7 @@
           </td>
           <td class="py-2 px-4 text-right whitespace-nowrap">
             <button class="text-secondary text-xs font-medium hover:underline mr-3" (click)="edit(p)">Edit</button>
-            <button class="text-error text-xs font-medium hover:underline" (click)="remove(p.id)">Delete</button>
+            <button class="text-error text-xs font-medium hover:underline" (click)="remove(p)">Delete</button>
           </td>
         </tr>
       }

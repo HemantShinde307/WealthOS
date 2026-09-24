@@ -15,6 +15,10 @@ export class DocumentsService {
     return doc;
   }
 
+  updateDocument(id: string, patch: Partial<DocumentEntry>): void {
+    this._documents.update((list) => list.map((d) => (d.id === id ? { ...d, ...patch } : d)));
+  }
+
   deleteDocument(id: string): void {
     this._documents.update((list) => list.filter((d) => d.id !== id));
   }

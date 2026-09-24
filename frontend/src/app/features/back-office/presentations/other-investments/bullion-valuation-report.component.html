@@ -1,4 +1,6 @@
-<app-report-header title="Bullion Valuation Report" subtitle="Physical and digital gold/silver holdings marked to the latest bullion rate." />
+<app-report-header title="Bullion Valuation Report" subtitle="Physical and digital gold/silver holdings marked to the latest bullion rate.">
+  <app-export-button reportActions filename="bullion-valuation-report" [headers]="exportHeaders" [rows]="exportRows()" />
+</app-report-header>
 
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
   <app-stat-card label="Invested Value" [value]="totalInvested() | inrCompact" />
