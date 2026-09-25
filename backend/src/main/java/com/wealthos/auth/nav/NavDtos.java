@@ -16,6 +16,13 @@ public final class NavDtos {
         }
     }
 
-    public record NavStatusDto(long schemeCount, LocalDate latestNavDate, Instant lastRefreshedAt, Boolean lastRefreshOk, String lastRefreshMessage) {
+    public record NavStatusDto(
+            long schemeCount,
+            LocalDate latestNavDate,
+            LocalDate expectedNavDate,
+            boolean upToDate,
+            Instant lastRefreshedAt,
+            Boolean lastRefreshOk,
+            String lastRefreshMessage) {
     }
 }

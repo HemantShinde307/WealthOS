@@ -2,6 +2,9 @@ package com.wealthos.auth.nav;
 
 import com.wealthos.auth.nav.NavDtos.NavDto;
 import com.wealthos.auth.nav.NavDtos.NavStatusDto;
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -11,6 +14,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -34,12 +38,21 @@ public class NavService {
         }
     }
 
+    private static final ZoneId INDIA = ZoneId.of("Asia/Kolkata");
+
     private final NavEntryRepository repository;
     private final NavRefreshService refresh;
+    private final Clock clock;
 
+    @Autowired
     public NavService(NavEntryRepository repository, NavRefreshService refresh) {
+        this(repository, refresh, Clock.systemUTC());
+    }
+
+    NavService(NavEntryRepository repository, NavRefreshService refresh, Clock clock) {
         this.repository = repository;
         this.refresh = refresh;
+        this.clock = clock;
     }
 
     /** Latest NAV for the given ISINs (either ISIN column) and/or AMFI scheme codes. Unknown ids are simply absent. */
@@ -81,9 +94,13 @@ public class NavService {
 
     public NavStatusDto status() {
         NavRefreshService.LastRefresh last = refresh.last();
+        LocalDate latest = repository.findLatestNavDate();
+        LocalDate today = LocalDate.now(clock.withZone(INDIA));
         return new NavStatusDto(
                 repository.count(),
-                repository.findLatestNavDate(),
+                latest,
+                NavStalenessPolicy.expectedLatestNavDate(today),
+                NavStalenessPolicy.isUpToDate(latest, today),
                 last != null ? last.at() : repository.findLastUpdatedAt(),
                 last != null ? last.ok() : null,
                 last != null ? last.message() : null);
