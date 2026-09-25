@@ -95,7 +95,9 @@ public class ChatService {
             }
             InvestorAccount investor = investors.findByCustomerId(requestedCustomerId.trim()).orElse(null);
             // Same answer for "no such customer" and "not your customer": don't reveal which IDs exist.
-            if (investor == null || !principal.code().equalsIgnoreCase(nullToEmpty(investor.getDistributorCode()))) {
+            if (investor == null
+                    || !principal.code().equalsIgnoreCase(nullToEmpty(investor.getDistributorCode()))
+                    || !Objects.equals(principal.tenantId(), investor.getTenantId())) {
                 throw new ChatException(HttpStatus.FORBIDDEN, "This customer is not connected to you.");
             }
             return new Conversation(principal.code(), investor.getCustomerId(), ChatSenderRole.ADVISOR);
@@ -112,6 +114,10 @@ public class ChatService {
             }
             AdvisorAccount advisor = advisors.findByAccountCode(distributorCode)
                     .orElseThrow(() -> new ChatException(HttpStatus.FORBIDDEN, "Your distributor could not be found."));
+            // A customer, their distributor and the token must all belong to the same firm.
+            if (!Objects.equals(principal.tenantId(), investor.getTenantId()) || !Objects.equals(advisor.getTenantId(), investor.getTenantId())) {
+                throw new ChatException(HttpStatus.FORBIDDEN, "Your distributor could not be found.");
+            }
             return new Conversation(advisor.getAccountCode(), investor.getCustomerId(), ChatSenderRole.INVESTOR);
         }
         throw new ChatException(HttpStatus.FORBIDDEN, "Chat is available to distributors and their customers only.");
@@ -249,10 +255,12 @@ public class ChatService {
         if (!linkLimiter.tryAcquire("link:" + principal.code())) {
             throw new ChatException(HttpStatus.TOO_MANY_REQUESTS, "Too many attempts. Please wait a minute and try again.");
         }
-        AdvisorAccount advisor = advisors.findByAccountCodeIgnoreCase(distributorCode.trim())
-                .orElseThrow(() -> new ChatException(HttpStatus.NOT_FOUND, "No distributor found with that code."));
         InvestorAccount investor = investors.findByCustomerId(principal.code())
                 .orElseThrow(() -> new ChatException(HttpStatus.FORBIDDEN, "Account not found."));
+        // A distributor of another firm answers exactly like an unknown code.
+        AdvisorAccount advisor = advisors.findByAccountCodeIgnoreCase(distributorCode.trim())
+                .filter(a -> Objects.equals(a.getTenantId(), investor.getTenantId()) && Objects.equals(principal.tenantId(), investor.getTenantId()))
+                .orElseThrow(() -> new ChatException(HttpStatus.NOT_FOUND, "No distributor found with that code."));
         investor.setDistributorCode(advisor.getAccountCode());
         investors.save(investor);
         if (registry.isOnline(ChatSenderRole.INVESTOR, investor.getCustomerId())) {

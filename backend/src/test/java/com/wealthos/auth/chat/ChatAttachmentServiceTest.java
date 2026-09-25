@@ -69,7 +69,7 @@ class ChatAttachmentServiceTest {
         attachments = mock(ChatAttachmentRepository.class);
         blobs = mock(ChatAttachmentBlobRepository.class);
         messages = mock(ChatMessageRepository.class);
-        service = new ChatAttachmentService(chat, attachments, blobs, messages, noTx());
+        service = new ChatAttachmentService(chat, attachments, blobs, messages, noTx(), mock(com.wealthos.auth.tenant.TenantLimits.class));
 
         when(chat.resolve(advisor, "CL-1")).thenReturn(advisorConv);
         when(chat.resolve(ann, null)).thenReturn(annConv);

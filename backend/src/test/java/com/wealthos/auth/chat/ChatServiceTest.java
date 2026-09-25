@@ -228,4 +228,41 @@ class ChatServiceTest {
     void investorWithoutADistributorHasNoConversations() {
         assertThat(service.conversations(new AuthPrincipal("investor", "CL-2", "Bob"))).isEmpty();
     }
+
+    // ---- firms are walled off from each other -------------------------------------------
+
+    @Test
+    void advisorCannotReachACustomerOfAnotherFirmEvenWithTheSameDistributorCode() {
+        AuthPrincipal firmB = new AuthPrincipal("advisor", "ADV-1001", "Amit", 2L, "b");
+        InvestorAccount ann = new InvestorAccount("CL-1", "Ann", "ann@example.com", "hash", null);
+        ann.setDistributorCode("ADV-1001");
+        ann.setTenantId(1L);
+        when(investors.findByCustomerId("CL-1")).thenReturn(Optional.of(ann));
+
+        assertRejected(() -> service.resolve(firmB, "CL-1"), HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void advisorOfTheSameFirmStillWorks() {
+        AuthPrincipal firmA = new AuthPrincipal("advisor", "ADV-1001", "Amit", 1L, "a");
+        InvestorAccount ann = new InvestorAccount("CL-1", "Ann", "ann@example.com", "hash", null);
+        ann.setDistributorCode("ADV-1001");
+        ann.setTenantId(1L);
+        when(investors.findByCustomerId("CL-1")).thenReturn(Optional.of(ann));
+
+        assertThat(service.resolve(firmA, "CL-1").customerId()).isEqualTo("CL-1");
+    }
+
+    @Test
+    void customerCannotLinkADistributorOfAnotherFirm() {
+        AuthPrincipal cust = new AuthPrincipal("investor", "CL-2", "Bob", 1L, "a");
+        InvestorAccount bob = new InvestorAccount("CL-2", "Bob", "bob@example.com", "hash", null);
+        bob.setTenantId(1L);
+        AdvisorAccount other = new AdvisorAccount("ADV-9", "Zed", "z@x.com", "hash", null);
+        other.setTenantId(2L);
+        when(investors.findByCustomerId("CL-2")).thenReturn(Optional.of(bob));
+        when(advisors.findByAccountCodeIgnoreCase("ADV-9")).thenReturn(Optional.of(other));
+
+        assertRejected(() -> service.link(cust, "ADV-9"), HttpStatus.NOT_FOUND);
+    }
 }

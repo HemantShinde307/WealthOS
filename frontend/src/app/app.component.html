@@ -1,1 +1,5 @@
-<router-outlet />
+@if (tenant.unavailable()) {
+  <app-portal-unavailable />
+} @else {
+  <router-outlet />
+}

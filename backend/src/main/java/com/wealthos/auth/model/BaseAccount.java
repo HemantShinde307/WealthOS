@@ -35,6 +35,16 @@ public abstract class BaseAccount {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
+    // The distributor firm (tenant) this account belongs to. Nullable because rows created before
+    // multi-tenancy have none until the start-up bootstrap assigns them to the default tenant.
+    @Column(name = "tenant_id")
+    private Long tenantId;
+
+    // Deliberately a nullable Boolean: a NOT NULL column added by schema auto-update would default
+    // to false and lock every existing user out. null means active.
+    @Column(name = "active")
+    private Boolean active;
+
     protected BaseAccount() {
     }
 
@@ -72,5 +82,29 @@ public abstract class BaseAccount {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    public boolean isActive() {
+        return active == null || active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 }

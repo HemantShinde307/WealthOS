@@ -38,6 +38,10 @@ public class InvestorAccount {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
+    // The distributor firm (tenant) this client signed up with; null only until the start-up bootstrap runs.
+    @Column(name = "tenant_id")
+    private Long tenantId;
+
     public InvestorAccount() {
     }
 
@@ -103,5 +107,13 @@ public class InvestorAccount {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
     }
 }

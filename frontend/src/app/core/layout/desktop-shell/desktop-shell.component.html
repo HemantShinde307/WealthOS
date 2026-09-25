@@ -10,9 +10,9 @@
     [class.-translate-x-full]="!sidebarOpen"
   >
     <div class="p-container-padding border-b border-outline-variant flex items-center gap-3">
-      <img src="/branding/logo-icon.png" alt="" class="w-10 h-10 rounded-lg object-cover shrink-0" />
+      <img [src]="logoSrc()" alt="" class="w-10 h-10 rounded-lg object-cover shrink-0" />
       <div>
-        <h1 class="text-headline-md font-bold text-on-background truncate">{{ config().brand }}</h1>
+        <h1 class="text-headline-md font-bold text-on-background truncate">{{ brandName() }}</h1>
         <p class="text-label-md text-on-surface-variant uppercase tracking-wider">{{ config().portalLabel }}</p>
       </div>
     </div>

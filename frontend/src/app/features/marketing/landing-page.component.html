@@ -3,8 +3,8 @@
   <header class="sticky top-0 z-30 bg-[#071A2F]/90 backdrop-blur border-b border-white/10">
     <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
       <div class="flex items-center gap-2.5">
-        <img src="/branding/logo-icon.png" alt="" class="w-9 h-9 rounded-lg object-cover shrink-0" />
-        <span class="text-title-lg font-bold text-white">WealthOS</span>
+        <img [src]="tenant.logoSrc()" alt="" class="w-9 h-9 rounded-lg object-cover shrink-0" />
+        <span class="text-title-lg font-bold text-white">{{ tenant.brandName() }}</span>
       </div>
       <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-[#A8B3C2]">
         <a routerLink="/" class="hover:text-white transition-colors">Home</a>
@@ -49,7 +49,7 @@
         </h1>
         <p class="text-lg md:text-xl text-[#A8B3C2] max-w-xl mx-auto lg:mx-0 mt-6">
           Mutual funds, digital gold, fixed income, and AI-driven insights — plus the advisor, family office, and
-          back-office tools that keep it all running. WealthOS brings every side of wealth management onto one screen.
+          back-office tools that keep it all running. {{ tenant.brandName() }} brings every side of wealth management onto one screen.
         </p>
         <div class="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4 mt-10">
           @if (isAuthenticated()) {
@@ -120,7 +120,7 @@
   <section id="features" class="max-w-7xl mx-auto px-6 py-20 md:py-28">
     <div #reveal class="reveal-on-scroll text-center max-w-2xl mx-auto mb-14">
       <h2 class="text-3xl md:text-4xl font-bold text-white">Everything wealth management needs, in one place</h2>
-      <p class="text-[#A8B3C2] mt-4">From a client's first investment to an advisor's full book of business — WealthOS covers the whole lifecycle.</p>
+      <p class="text-[#A8B3C2] mt-4">From a client's first investment to an advisor's full book of business — {{ tenant.brandName() }} covers the whole lifecycle.</p>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       @for (f of features; track f.title; let i = $index) {
@@ -233,10 +233,10 @@
   <footer class="border-t border-white/10 bg-[#071A2F]">
     <div class="max-w-7xl mx-auto px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-2.5">
-        <img src="/branding/logo-icon.png" alt="" class="w-7 h-7 rounded-md object-cover shrink-0" />
-        <span class="text-sm font-semibold text-white">WealthOS</span>
+        <img [src]="tenant.logoSrc()" alt="" class="w-7 h-7 rounded-md object-cover shrink-0" />
+        <span class="text-sm font-semibold text-white">{{ tenant.brandName() }}</span>
       </div>
-      <p class="text-xs text-[#A8B3C2]">© 2026 WealthOS. All rights reserved.</p>
+      <p class="text-xs text-[#A8B3C2]">© 2026 {{ tenant.brandName() }}. All rights reserved.</p>
       <div class="flex items-center gap-5 text-xs text-[#A8B3C2]">
         <a href="tel:+918108075941" class="hover:text-white transition-colors">Support: +91 81080 75941</a>
         <a routerLink="/login" class="hover:text-white transition-colors">Login</a>

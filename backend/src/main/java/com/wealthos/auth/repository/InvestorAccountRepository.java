@@ -14,4 +14,10 @@ public interface InvestorAccountRepository extends JpaRepository<InvestorAccount
     Optional<InvestorAccount> findByCustomerId(String customerId);
 
     List<InvestorAccount> findByDistributorCode(String distributorCode);
+
+    long countByTenantId(Long tenantId);
+
+    List<InvestorAccount> findByTenantId(Long tenantId);
+
+    List<InvestorAccount> findByTenantIdIsNull();
 }

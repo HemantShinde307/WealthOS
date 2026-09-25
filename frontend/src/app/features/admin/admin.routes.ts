@@ -8,6 +8,11 @@ export const ADMIN_ROUTES: Routes = [
     data: { title: 'Admin Dashboard' },
   },
   {
+    path: 'organization',
+    loadComponent: () => import('./organization/organization.component').then((m) => m.OrganizationComponent),
+    data: { title: 'Organization' },
+  },
+  {
     path: 'compliance',
     loadComponent: () => import('./compliance/compliance.component').then((m) => m.ComplianceComponent),
     data: { title: 'Compliance Dashboard' },

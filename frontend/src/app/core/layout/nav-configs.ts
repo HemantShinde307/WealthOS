@@ -30,6 +30,7 @@ const adminNav: NavItem[] = [
   { label: 'Compliance', icon: 'gavel', route: '/admin/compliance' },
   { label: 'Document Vault', icon: 'folder', route: '/admin/documents' },
   { label: 'Audit Trail', icon: 'history', route: '/admin/audit-trail' },
+  { label: 'Organization', icon: 'business', route: '/admin/organization' },
   { label: 'Regulatory Reports', icon: 'summarize', route: '/admin/regulatory-reporting' },
   { label: 'Back Office', icon: 'admin_panel_settings', route: '/back-office/customer-investments' },
 ];
@@ -90,12 +91,15 @@ const backOfficeNav: NavItem[] = [
   { label: 'Reports & Advisory', icon: 'summarize', route: '/back-office/reports-advisory' },
 ];
 
+const platformNav: NavItem[] = [{ label: 'Tenants', icon: 'domain', route: '/platform/tenants' }];
+
 export const SHELL_CONFIGS: Record<string, ShellConfig> = {
   investor: { brand: 'WealthOS', portalLabel: 'Investor Portal', navItems: investorNav, ctaLabel: 'New Investment', ctaRoute: '/mf-purchase/select-scheme' },
   advisor: { brand: 'WealthOS', portalLabel: 'Distributor Portal', navItems: advisorNav, ctaLabel: 'New Transaction', ctaRoute: '/mf-purchase/select-scheme' },
   admin: { brand: 'WealthOS', portalLabel: 'Admin Console', navItems: adminNav },
   institutional: { brand: 'WealthOS', portalLabel: 'Institutional', navItems: institutionalNav },
   familyOffice: { brand: 'WealthOS', portalLabel: 'Family Office', navItems: familyOfficeNav },
+  platform: { brand: 'WealthOS', portalLabel: 'Platform Console', navItems: platformNav, platform: true },
   nri: { brand: 'WealthOS', portalLabel: 'NRI Services', navItems: nriNav },
   analytics: { brand: 'WealthOS', portalLabel: 'Analytics & Reporting', navItems: analyticsNav },
   localization: { brand: 'WealthOS', portalLabel: 'Platform Settings', navItems: localizationNav },

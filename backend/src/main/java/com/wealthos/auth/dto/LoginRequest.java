@@ -12,6 +12,9 @@ public class LoginRequest {
     @NotBlank
     private String password;
 
+    // Slug of the distributor firm whose portal this request comes from; the server defaults to the demo firm.
+    private String tenant;
+
     public String getEmail() {
         return email;
     }
@@ -26,5 +29,13 @@ public class LoginRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(String tenant) {
+        this.tenant = tenant;
     }
 }

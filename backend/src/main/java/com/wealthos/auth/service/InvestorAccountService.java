@@ -29,7 +29,7 @@ public class InvestorAccountService {
         }
     }
 
-    public InvestorAccount createAccount(SignupRequest request) {
+    public InvestorAccount createAccount(SignupRequest request, Long tenantId) {
         if (repository.existsByEmailIgnoreCase(request.getEmail())) {
             throw new DuplicateEmailException("An account with this email already exists. Try logging in instead.");
         }
@@ -39,6 +39,7 @@ public class InvestorAccountService {
                 request.getEmail().trim(),
                 passwordEncoder.encode(request.getPassword()),
                 request.getPhone() == null ? null : request.getPhone().trim());
+        account.setTenantId(tenantId);
         return repository.save(account);
     }
 

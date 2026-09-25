@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, inject, signal, viewChildren } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { TenantService } from '../../core/services/tenant.service';
 import { AuthService, ROLE_HOME_ROUTE } from '../../core/services/auth.service';
 
 interface Feature {
@@ -23,6 +24,7 @@ interface RoleCard {
 })
 export class LandingPageComponent implements AfterViewInit, OnDestroy {
   private readonly auth = inject(AuthService);
+  readonly tenant = inject(TenantService);
 
   readonly isAuthenticated = this.auth.isAuthenticated;
 

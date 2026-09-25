@@ -5,6 +5,7 @@ import com.wealthos.auth.chat.AttachmentDtos.FileItemDto;
 import com.wealthos.auth.chat.ChatService.Conversation;
 import com.wealthos.auth.chat.FileTypePolicy.Accepted;
 import com.wealthos.auth.security.AuthPrincipal;
+import com.wealthos.auth.tenant.TenantLimits;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
@@ -40,6 +41,7 @@ public class ChatAttachmentService {
     private final ChatAttachmentBlobRepository blobs;
     private final ChatMessageRepository messages;
     private final TransactionTemplate tx;
+    private final TenantLimits limits;
     private final RateLimiter uploadLimiter = new RateLimiter(10, Duration.ofMinutes(1));
 
     public ChatAttachmentService(
@@ -47,12 +49,14 @@ public class ChatAttachmentService {
             ChatAttachmentRepository attachments,
             ChatAttachmentBlobRepository blobs,
             ChatMessageRepository messages,
-            TransactionTemplate tx) {
+            TransactionTemplate tx,
+            TenantLimits limits) {
         this.chat = chat;
         this.attachments = attachments;
         this.blobs = blobs;
         this.messages = messages;
         this.tx = tx;
+        this.limits = limits;
     }
 
     public ChatMessageDto upload(AuthPrincipal principal, String requestedCustomerId, String originalName, byte[] data, String rawCaption) {
@@ -70,6 +74,13 @@ public class ChatAttachmentService {
         String caption = rawCaption == null || rawCaption.isBlank() ? "" : ChatService.normalize(rawCaption);
         if (attachments.totalStoredBytes(conv.advisorCode(), conv.customerId()) + data.length > MAX_CONVERSATION_BYTES) {
             throw new ChatException(HttpStatus.PAYLOAD_TOO_LARGE, "This conversation has reached its file storage limit. Remove some files first.");
+        }
+
+        if (principal.tenantId() != null) {
+            var allowance = limits.storageLimitBytes(principal.tenantId());
+            if (allowance.isPresent() && limits.storageUsedBytes(principal.tenantId()) + data.length > allowance.get()) {
+                throw new ChatException(HttpStatus.PAYLOAD_TOO_LARGE, "Your firm's plan storage is full. Ask your administrator to remove files or upgrade.");
+            }
         }
 
         String id = UUID.randomUUID().toString();

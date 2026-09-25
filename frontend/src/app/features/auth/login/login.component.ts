@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
+import { TenantService } from '../../../core/services/tenant.service';
 import { AuthService, ROLE_HOME_ROUTE, ROLE_LABELS, UserRole } from '../../../core/services/auth.service';
 
 @Component({
@@ -12,6 +13,7 @@ import { AuthService, ROLE_HOME_ROUTE, ROLE_LABELS, UserRole } from '../../../co
 export class LoginComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  readonly tenant = inject(TenantService);
 
   readonly roles: UserRole[] = ['investor', 'advisor', 'admin', 'institutional', 'family_office'];
   readonly roleLabels = ROLE_LABELS;
@@ -35,7 +37,7 @@ export class LoginComponent {
     this.router.navigate([ROLE_HOME_ROUTE[this.selectedRole()]]);
   }
 
-  private static readonly DEMO_EMAILS: Record<UserRole, string> = {
+  private static readonly DEMO_EMAILS: Partial<Record<UserRole, string>> = {
     investor: 'hemantshinde307@gmail.com',
     advisor: 'amit.deshmukh@wealthos.com',
     admin: 'admin@wealthos.com',
@@ -44,7 +46,7 @@ export class LoginComponent {
   };
 
   fillDemo(): void {
-    this.email.set(LoginComponent.DEMO_EMAILS[this.selectedRole()]);
+    this.email.set(LoginComponent.DEMO_EMAILS[this.selectedRole()] ?? '');
     this.password.set('demo1234');
   }
 }

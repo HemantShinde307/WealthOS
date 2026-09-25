@@ -11,9 +11,11 @@ import com.wealthos.auth.repository.FamilyOfficeAccountRepository;
 import com.wealthos.auth.repository.InstitutionalAccountRepository;
 import com.wealthos.auth.repository.InvestorAccountRepository;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 // Seeds one demo account per role table so the login page's "Use demo credentials" button and
@@ -23,13 +25,18 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 public class DemoAccountSeeder {
 
     @Bean
+    @Order(1)
     public CommandLineRunner seedDemoAccounts(
             InvestorAccountRepository investorRepository,
             AdvisorAccountRepository advisorRepository,
             AdminAccountRepository adminRepository,
             InstitutionalAccountRepository institutionalRepository,
-            FamilyOfficeAccountRepository familyOfficeRepository) {
+            FamilyOfficeAccountRepository familyOfficeRepository,
+            @Value("${app.demo-data:true}") boolean demoData) {
         return args -> {
+            if (!demoData) {
+                return;
+            }
             BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
             if (investorRepository.count() == 0) {

@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { TenantService } from '../../core/services/tenant.service';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -8,6 +9,8 @@ import { RouterLink } from '@angular/router';
   templateUrl: './career-page.component.html',
 })
 export class CareerPageComponent {
+  readonly tenant = inject(TenantService);
+
   readonly openRoles = [
     { title: 'Senior Frontend Engineer', team: 'Product Engineering', location: 'Remote / Mumbai' },
     { title: 'Backend Engineer — Spring Boot', team: 'Platform Engineering', location: 'Remote / Bengaluru' },

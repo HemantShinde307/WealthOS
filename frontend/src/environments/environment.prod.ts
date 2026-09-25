@@ -4,4 +4,6 @@
 export const environment = {
   production: true,
   apiBase: 'https://REPLACE-WITH-YOUR-RAILWAY-BACKEND-URL',
+  /** Tenant slug used when the address has no sub-domain and no ?tenant= parameter. */
+  defaultTenant: 'demo',
 };

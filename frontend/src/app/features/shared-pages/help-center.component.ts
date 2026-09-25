@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { TenantService } from '../../core/services/tenant.service';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
@@ -11,10 +12,14 @@ import { RouterLink } from '@angular/router';
       <div class="max-w-md w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-8 text-center space-y-4">
         <span class="material-symbols-outlined text-secondary text-[40px]">contact_support</span>
         <h2 class="text-title-lg text-on-background">Help & Support</h2>
-        <p class="text-on-surface-variant text-sm">Need assistance? Reach our support team at support&#64;wealthos.com or call 1800-123-4567.</p>
+        <p class="text-on-surface-variant text-sm">Need assistance? Reach our support team at {{ email() }} or call {{ phone() }}.</p>
         <a routerLink="/investor/portfolio" class="inline-block mt-2 text-secondary font-medium text-sm hover:underline">Back to Dashboard</a>
       </div>
     </div>
   `,
 })
-export class HelpCenterComponent {}
+export class HelpCenterComponent {
+  private readonly tenant = inject(TenantService);
+  readonly email = () => this.tenant.branding()?.supportEmail || 'support@wealthos.com';
+  readonly phone = () => this.tenant.branding()?.supportPhone || '1800-123-4567';
+}

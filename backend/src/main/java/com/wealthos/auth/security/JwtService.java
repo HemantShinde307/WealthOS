@@ -58,6 +58,10 @@ public class JwtService {
     }
 
     public String issue(String role, String code, String name) {
+        return issue(role, code, name, null, null);
+    }
+
+    public String issue(String role, String code, String name, Long tenantId, String tenantSlug) {
         Instant now = Instant.now();
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
                 .issuer(ISSUER)
@@ -67,6 +71,8 @@ public class JwtService {
                 .claim("role", role)
                 .claim("code", code)
                 .claim("name", name)
+                .claim("tid", tenantId)
+                .claim("tslug", tenantSlug)
                 .build();
         try {
             SignedJWT jwt = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claims);
@@ -102,7 +108,8 @@ public class JwtService {
             if (role == null || code == null || code.isBlank()) {
                 return Optional.empty();
             }
-            return Optional.of(new AuthPrincipal(role, code, name == null ? "" : name));
+            Long tenantId = claims.getLongClaim("tid");
+            return Optional.of(new AuthPrincipal(role, code, name == null ? "" : name, tenantId, claims.getStringClaim("tslug")));
         } catch (ParseException | JOSEException | RuntimeException e) {
             return Optional.empty();
         }

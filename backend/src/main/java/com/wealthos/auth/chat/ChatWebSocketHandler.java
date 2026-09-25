@@ -2,6 +2,7 @@ package com.wealthos.auth.chat;
 
 import com.wealthos.auth.security.AuthPrincipal;
 import com.wealthos.auth.security.JwtService;
+import com.wealthos.auth.tenant.TenantGate;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
@@ -37,6 +38,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final JwtService jwt;
     private final ChatService chat;
+    private final TenantGate tenantGate;
     private final ChatSessionRegistry registry;
     private final ObjectMapper json;
 
@@ -48,9 +50,10 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         return t;
     });
 
-    public ChatWebSocketHandler(JwtService jwt, ChatService chat, ChatSessionRegistry registry, ObjectMapper json) {
+    public ChatWebSocketHandler(JwtService jwt, ChatService chat, TenantGate tenantGate, ChatSessionRegistry registry, ObjectMapper json) {
         this.jwt = jwt;
         this.chat = chat;
+        this.tenantGate = tenantGate;
         this.registry = registry;
         this.json = json;
     }
@@ -110,7 +113,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             return;
         }
         Optional<AuthPrincipal> principal = "auth".equals(type) ? jwt.verify(text(node, "token")) : Optional.empty();
-        if (principal.isEmpty() || !(principal.get().isAdvisor() || principal.get().isInvestor())) {
+        if (principal.isEmpty()
+                || !(principal.get().isAdvisor() || principal.get().isInvestor())
+                || !tenantGate.isUsable(principal.get().tenantId())) {
             closeQuietly(session, UNAUTHORIZED);
             return;
         }

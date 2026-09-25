@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
+import { TenantService } from '../../../core/services/tenant.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ClientService } from '../../../core/services/client.service';
 
@@ -14,6 +15,7 @@ export class SignupComponent {
   private readonly auth = inject(AuthService);
   private readonly clientService = inject(ClientService);
   private readonly router = inject(Router);
+  readonly tenant = inject(TenantService);
 
   readonly fullName = signal('');
   readonly email = signal('');

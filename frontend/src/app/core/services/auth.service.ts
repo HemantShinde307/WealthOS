@@ -1,8 +1,11 @@
 import { Injectable, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { InvestorAccountService } from './investor-account.service';
 import { StaffAccountService, StaffRole } from './staff-account.service';
+import { TenantService } from './tenant.service';
+import { PlatformService } from './platform.service';
 
-export type UserRole = 'investor' | 'advisor' | 'admin' | 'institutional' | 'family_office';
+export type UserRole = 'investor' | 'advisor' | 'admin' | 'institutional' | 'family_office' | 'platform_admin';
 
 export interface CurrentUser {
   name: string;
@@ -17,6 +20,9 @@ export interface CurrentUser {
   distributorCode?: string | null;
   /** Bearer token for the backend; persisted with the session and cleared on logout. */
   token?: string;
+  /** Tenant (distributor firm) the session belongs to; absent for platform admins. */
+  tenantSlug?: string;
+  tenantName?: string;
 }
 
 export const ROLE_HOME_ROUTE: Record<UserRole, string> = {
@@ -25,6 +31,7 @@ export const ROLE_HOME_ROUTE: Record<UserRole, string> = {
   admin: '/admin/dashboard',
   institutional: '/institutional/global-dashboard',
   family_office: '/family-office/dashboard',
+  platform_admin: '/platform/tenants',
 };
 
 export const ROLE_LABELS: Record<UserRole, string> = {
@@ -33,6 +40,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   admin: 'Admin',
   institutional: 'Institutional',
   family_office: 'Family Office',
+  platform_admin: 'Platform Admin',
 };
 
 const SESSION_STORAGE_KEY = 'wealthos.session';
@@ -64,14 +72,25 @@ export interface LoginResult {
   error?: string;
 }
 
+/** A session signed in on another tenant's portal must not be reused on this address — sign it out. */
+function discardForeignTenantSession(user: CurrentUser | null, slug: string): CurrentUser | null {
+  if (user && user.tenantSlug && user.tenantSlug !== slug) {
+    persistSession(null);
+    return null;
+  }
+  return user;
+}
+
 const DEFAULT_USER: CurrentUser = { name: 'Amit Deshmukh', email: 'amit.deshmukh@wealthos.com', role: 'advisor' };
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly investorAccounts = inject(InvestorAccountService);
   private readonly staffAccounts = inject(StaffAccountService);
+  private readonly tenant = inject(TenantService);
+  private readonly platform = inject(PlatformService);
 
-  private readonly persisted = loadPersistedSession();
+  private readonly persisted = discardForeignTenantSession(loadPersistedSession(), this.tenant.slug());
   readonly isAuthenticated = signal(this.persisted !== null);
   readonly currentUser = signal<CurrentUser>(this.persisted ?? DEFAULT_USER);
 
@@ -89,17 +108,17 @@ export class AuthService {
     // rejected here for all five roles, not just investor.
     let user: CurrentUser;
     if (role === 'investor') {
-      const account = await this.investorAccounts.validateCredentials(trimmedEmail, password);
+      const { account, error } = await this.investorAccounts.validateCredentials(trimmedEmail, password, this.tenant.slug());
       if (!account) {
-        return { success: false, error: 'Invalid email or password.' };
+        return { success: false, error: error ?? 'Invalid email or password.' };
       }
-      user = { name: account.name, email: account.email, role, customerId: account.customerId, distributorCode: account.distributorCode ?? null, token: account.token };
+      user = { name: account.name, email: account.email, role, customerId: account.customerId, distributorCode: account.distributorCode ?? null, token: account.token, ...this.tenantOf(account) };
     } else {
-      const account = await this.staffAccounts.validateCredentials(role, trimmedEmail, password);
+      const { account, error } = await this.staffAccounts.validateCredentials(role as StaffRole, trimmedEmail, password, this.tenant.slug());
       if (!account) {
-        return { success: false, error: 'Invalid email or password.' };
+        return { success: false, error: error ?? 'Invalid email or password.' };
       }
-      user = { name: account.name, email: account.email, role, accountCode: account.accountCode, token: account.token };
+      user = { name: account.name, email: account.email, role, accountCode: account.accountCode, token: account.token, ...this.tenantOf(account) };
     }
 
     this.currentUser.set(user);
@@ -113,16 +132,38 @@ export class AuthService {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(details.email.trim())) return { success: false, error: 'Enter a valid email address.' };
     if (details.password.length < 6) return { success: false, error: 'Password must be at least 6 characters.' };
 
-    const result = await this.investorAccounts.createAccount(details);
+    const result = await this.investorAccounts.createAccount({ ...details, tenant: this.tenant.slug() });
     if (!result.success || !result.account) {
       return { success: false, error: result.error ?? 'Could not create your account. Please try again.' };
     }
 
-    const user: CurrentUser = { name: result.account.name, email: result.account.email, role: 'investor', customerId: result.account.customerId, distributorCode: result.account.distributorCode ?? null, token: result.account.token };
+    const user: CurrentUser = { name: result.account.name, email: result.account.email, role: 'investor', customerId: result.account.customerId, distributorCode: result.account.distributorCode ?? null, token: result.account.token, ...this.tenantOf(result.account) };
     this.currentUser.set(user);
     this.isAuthenticated.set(true);
     persistSession(user);
     return { success: true };
+  }
+
+  /** Platform-owner sign-in (no tenant). */
+  async platformLogin(email: string, password: string): Promise<LoginResult> {
+    try {
+      const acc = await firstValueFrom(this.platform.login(email.trim(), password));
+      const user: CurrentUser = { name: acc.name, email: acc.email, role: 'platform_admin', accountCode: acc.accountCode, token: acc.token };
+      this.currentUser.set(user);
+      this.isAuthenticated.set(true);
+      persistSession(user);
+      return { success: true };
+    } catch (e) {
+      const status = (e as { status?: number }).status;
+      if (status === 401) return { success: false, error: 'Invalid email or password.' };
+      if (status === 429) return { success: false, error: 'Too many attempts. Please wait a minute.' };
+      if (status === 404) return { success: false, error: 'The server is running an older version. Restart the backend and try again.' };
+      return { success: false, error: 'Cannot reach the server. Make sure the backend is running on port 8081.' };
+    }
+  }
+
+  private tenantOf(account: { tenantSlug?: string; tenantName?: string }): Pick<CurrentUser, 'tenantSlug' | 'tenantName'> {
+    return { tenantSlug: account.tenantSlug ?? this.tenant.slug(), tenantName: account.tenantName ?? this.tenant.brandName() };
   }
 
   /** Updates the investor's linked distributor in the current (persisted) session. */

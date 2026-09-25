@@ -17,6 +17,20 @@ export interface InvestorAccount {
   distributorCode?: string | null;
   /** Signed JWT — present on login/signup responses only. */
   token?: string;
+  tenantSlug?: string;
+  tenantName?: string;
+}
+
+export interface LoginOutcome<T> {
+  account?: T;
+  /** Only set when the server gave a specific reason (e.g. the portal is unavailable); otherwise generic invalid-credentials. */
+  error?: string;
+}
+
+/** Only a 403 carries a message worth showing; a 401 must stay the generic "invalid credentials". */
+export function loginFailure(err: unknown): string | undefined {
+  if (err instanceof HttpErrorResponse && err.status === 403 && typeof err.error?.error === 'string') return err.error.error;
+  return undefined;
 }
 
 export interface CreateAccountResult {
@@ -30,16 +44,16 @@ export class InvestorAccountService {
   private readonly http = inject(HttpClient);
 
   /** Returns the matching account only on a correct password — undefined for both an unknown email and a wrong password. */
-  async validateCredentials(email: string, password: string): Promise<InvestorAccount | undefined> {
+  async validateCredentials(email: string, password: string, tenant: string): Promise<LoginOutcome<InvestorAccount>> {
     try {
-      return await firstValueFrom(this.http.post<InvestorAccount>(`${API_BASE}/login`, { email, password }));
-    } catch {
+      return { account: await firstValueFrom(this.http.post<InvestorAccount>(`${API_BASE}/login`, { email, password, tenant })) };
+    } catch (err) {
       // 401 (bad credentials) or the backend being unreachable both surface as "invalid" to the caller.
-      return undefined;
+      return { error: loginFailure(err) };
     }
   }
 
-  async createAccount(details: { fullName: string; email: string; phone: string; password: string }): Promise<CreateAccountResult> {
+  async createAccount(details: { fullName: string; email: string; phone: string; password: string; tenant?: string }): Promise<CreateAccountResult> {
     try {
       const account = await firstValueFrom(this.http.post<InvestorAccount>(`${API_BASE}/signup`, details));
       return { success: true, account };

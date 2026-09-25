@@ -11,7 +11,7 @@ export function roleGuard(allowedRoles: UserRole[]): CanActivateFn {
   return () => {
     const auth = inject(AuthService);
     const router = inject(Router);
-    if (!auth.isAuthenticated()) return router.createUrlTree(['/login']);
+    if (!auth.isAuthenticated()) return router.createUrlTree([allowedRoles.includes('platform_admin') ? '/platform/login' : '/login']);
     if (allowedRoles.includes(auth.currentUser().role)) return true;
     return router.createUrlTree(['/access-denied']);
   };

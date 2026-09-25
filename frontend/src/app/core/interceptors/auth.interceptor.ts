@@ -5,12 +5,20 @@ import { catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../services/auth.service';
 
+// Calls that must work without a token: branding lookup, login, signup and platform login.
+function isPublicCall(method: string, url: string): boolean {
+  const path = url.slice(environment.apiBase.length).split('?')[0];
+  if (method === 'GET' && path === '/api/tenant/branding') return true;
+  if (method !== 'POST') return false;
+  return path === '/api/platform/login' || path === '/api/auth/signup' || /^\/api\/auth\/([a-z-]+\/)?login$/.test(path);
+}
+
 /**
  * Adds the bearer token to backend requests only (never to third-party URLs), and signs the user out
  * when the chat API rejects the token (missing / invalid / expired).
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  if (!req.url.startsWith(environment.apiBase)) return next(req);
+  if (!req.url.startsWith(environment.apiBase) || isPublicCall(req.method, req.url)) return next(req);
 
   // Resolved lazily: AuthService itself depends on HttpClient-based services.
   const injector = inject(Injector);

@@ -12,10 +12,19 @@ export const routes: Routes = [
 
   { path: 'login', loadComponent: () => import('./features/auth/login/login.component').then((m) => m.LoginComponent) },
   { path: 'signup', loadComponent: () => import('./features/auth/signup/signup.component').then((m) => m.SignupComponent) },
+  { path: 'platform/login', loadComponent: () => import('./features/platform/platform-login.component').then((m) => m.PlatformLoginComponent) },
   { path: 'access-denied', loadComponent: () => import('./features/shared-pages/access-denied.component').then((m) => m.AccessDeniedComponent) },
 
   // Each portal below is restricted to the role(s) it's actually built for — a logged-in user of
   // a different role is redirected to /access-denied rather than seeing another role's screens.
+  // WealthOS owner console — tenant management. Not tied to any tenant.
+  {
+    path: 'platform',
+    component: DesktopShellComponent,
+    canActivate: [roleGuard(['platform_admin'])],
+    data: { shellConfig: SHELL_CONFIGS['platform'] },
+    loadChildren: () => import('./features/platform/platform.routes').then((m) => m.PLATFORM_ROUTES),
+  },
   {
     path: 'investor',
     component: DesktopShellComponent,

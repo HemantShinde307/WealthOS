@@ -1,8 +1,8 @@
 <div class="h-screen flex flex-col bg-background text-on-surface max-w-md mx-auto border-x border-outline-variant overflow-hidden">
   <header class="flex items-center justify-between px-4 h-14 border-b border-outline-variant bg-surface-container-lowest shrink-0">
     <div class="flex items-center gap-2">
-      <img src="/branding/logo-icon.png" alt="" class="w-7 h-7 rounded-md object-cover" />
-      <span class="font-semibold text-on-background text-sm">{{ config().brand }}</span>
+      <img [src]="tenant.logoSrc()" alt="" class="w-7 h-7 rounded-md object-cover" />
+      <span class="font-semibold text-on-background text-sm">{{ tenant.brandName() }}</span>
     </div>
     <button class="p-2 text-on-surface-variant relative" routerLink="/alerts-notifications">
       <span class="material-symbols-outlined text-[20px]">notifications</span>

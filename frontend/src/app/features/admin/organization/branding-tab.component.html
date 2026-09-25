@@ -1,0 +1,84 @@
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm space-y-4">
+    <div>
+      <label class="text-sm font-medium text-on-background block mb-1">Firm name</label>
+      <input [class]="inputClass" maxlength="80" [value]="name()" (input)="name.set($any($event.target).value)" />
+    </div>
+    <div>
+      <label class="text-sm font-medium text-on-background block mb-1">Tagline</label>
+      <input [class]="inputClass" maxlength="140" [value]="tagline()" (input)="tagline.set($any($event.target).value)" />
+    </div>
+
+    <div>
+      <label class="text-sm font-medium text-on-background block mb-1">Logo (PNG, JPEG or WebP, up to 300 KB)</label>
+      <div class="flex items-center gap-4">
+        <img [src]="logoPreview()" alt="Logo preview" class="w-14 h-14 rounded-lg object-cover border border-outline-variant" />
+        <input type="file" accept="image/png,image/jpeg,image/webp" class="text-sm" (change)="onLogoPicked($event)" />
+        @if (logo()) {
+          <button type="button" class="text-error text-sm hover:underline" (click)="removeLogo()">Remove</button>
+        }
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="text-sm font-medium text-on-background block mb-1">Primary colour</label>
+        <div class="flex items-center gap-2">
+          <input type="color" class="h-10 w-12 rounded border border-outline-variant" [value]="primary()" (input)="primary.set($any($event.target).value)" />
+          <span class="font-mono text-xs text-on-surface-variant">{{ primary() }}</span>
+        </div>
+      </div>
+      <div>
+        <label class="text-sm font-medium text-on-background block mb-1">Secondary colour</label>
+        <div class="flex items-center gap-2">
+          <input type="color" class="h-10 w-12 rounded border border-outline-variant" [value]="secondary()" (input)="secondary.set($any($event.target).value)" />
+          <span class="font-mono text-xs text-on-surface-variant">{{ secondary() }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div>
+        <label class="text-sm font-medium text-on-background block mb-1">Support email</label>
+        <input type="email" [class]="inputClass" [value]="supportEmail()" (input)="supportEmail.set($any($event.target).value)" />
+      </div>
+      <div>
+        <label class="text-sm font-medium text-on-background block mb-1">Support phone</label>
+        <input type="tel" [class]="inputClass" [value]="supportPhone()" (input)="supportPhone.set($any($event.target).value)" />
+      </div>
+      <div>
+        <label class="text-sm font-medium text-on-background block mb-1">ARN</label>
+        <input [class]="inputClass" [value]="arn()" (input)="arn.set($any($event.target).value)" />
+      </div>
+    </div>
+
+    @if (error()) {
+      <div class="bg-error-container/50 rounded-lg p-3 text-sm text-on-error-container">{{ error() }}</div>
+    }
+    @if (saved()) {
+      <div class="bg-tertiary-fixed/50 rounded-lg p-3 text-sm text-on-tertiary-fixed">Branding saved.</div>
+    }
+
+    <button class="px-4 py-2 bg-primary-container text-on-primary rounded font-medium text-sm hover:opacity-90 disabled:opacity-50" [disabled]="saving()" (click)="save()">
+      {{ saving() ? 'Saving…' : 'Save branding' }}
+    </button>
+  </div>
+
+  <div class="space-y-3">
+    <p class="text-sm font-medium text-on-background">Live preview</p>
+    <div class="border border-outline-variant rounded-lg overflow-hidden shadow-sm bg-surface-container-lowest">
+      <div class="flex items-center gap-3 px-4 h-14" [style.background]="primary()" [style.color]="primaryOn()">
+        <img [src]="logoPreview()" alt="" class="w-8 h-8 rounded-md object-cover" />
+        <span class="font-semibold">{{ name() || 'Your firm' }}</span>
+      </div>
+      <div class="p-6 space-y-4">
+        <p class="text-sm text-on-surface-variant">{{ tagline() || 'Your tagline appears here.' }}</p>
+        <div class="flex gap-3">
+          <button type="button" class="px-4 py-2 rounded text-sm font-medium" [style.background]="primary()" [style.color]="primaryOn()">Primary action</button>
+          <button type="button" class="px-4 py-2 rounded text-sm font-medium" [style.background]="accent()" [style.color]="accentOn()">Secondary action</button>
+        </div>
+        <a class="text-sm font-medium underline" [style.color]="accent()">A link in your accent colour</a>
+      </div>
+    </div>
+  </div>
+</div>

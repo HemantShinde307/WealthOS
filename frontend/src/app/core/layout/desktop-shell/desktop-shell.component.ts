@@ -5,6 +5,7 @@ import { ShellConfig } from '../layout.models';
 import { NotificationService } from '../../services/notification.service';
 import { ChatService } from '../../services/chat.service';
 import { AuthService, ROLE_HOME_ROUTE } from '../../services/auth.service';
+import { DEFAULT_LOGO, TenantService } from '../../services/tenant.service';
 
 @Component({
   selector: 'app-desktop-shell',
@@ -18,6 +19,11 @@ export class DesktopShellComponent {
   private readonly notificationService = inject(NotificationService);
   readonly auth = inject(AuthService);
   readonly chat = inject(ChatService);
+  private readonly tenant = inject(TenantService);
+
+  // Tenant portals show the distributor's own name/logo; the platform console keeps the WealthOS brand.
+  readonly brandName = computed(() => (this.config().platform ? this.config().brand : this.tenant.brandName()));
+  readonly logoSrc = computed(() => (this.config().platform ? DEFAULT_LOGO : this.tenant.logoSrc()));
 
   readonly config = computed<ShellConfig>(() => this.route.snapshot.data['shellConfig']);
   readonly unreadCount = this.notificationService.unreadCount;
@@ -44,6 +50,6 @@ export class DesktopShellComponent {
   logout(): void {
     this.profileMenuOpen.set(false);
     this.auth.logout();
-    this.router.navigate(['/login']);
+    this.router.navigate([this.auth.currentUser().role === 'platform_admin' ? '/platform/login' : '/login']);
   }
 }

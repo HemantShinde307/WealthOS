@@ -15,6 +15,17 @@ public class WebSecurityConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(bearerAuthInterceptor).addPathPatterns("/api/chat/**", "/api/nav/**", "/api/portfolio/**");
+        registry.addInterceptor(bearerAuthInterceptor).addPathPatterns(
+                "/api/chat/**",
+                "/api/nav/**",
+                "/api/portfolio/**",
+                "/api/tenant/**",
+                "/api/platform/**",
+                // the account lists used to be public; they now need a token and only show the caller's own firm
+                "/api/auth/accounts",
+                "/api/auth/advisor/accounts",
+                "/api/auth/admin/accounts",
+                "/api/auth/institutional/accounts",
+                "/api/auth/family-office/accounts");
     }
 }

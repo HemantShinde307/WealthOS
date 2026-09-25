@@ -19,6 +19,9 @@ public class SignupRequest {
     @Size(min = 6, message = "Password must be at least 6 characters.")
     private String password;
 
+    // Slug of the distributor firm whose portal this request comes from; the server defaults to the demo firm.
+    private String tenant;
+
     public String getFullName() {
         return fullName;
     }
@@ -49,5 +52,13 @@ public class SignupRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(String tenant) {
+        this.tenant = tenant;
     }
 }

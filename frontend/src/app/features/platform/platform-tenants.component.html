@@ -1,0 +1,97 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <h2 class="text-headline-lg-mobile md:text-headline-lg text-on-background">Platform Console</h2>
+    <p class="text-body-md text-on-surface-variant mt-1">Manage distributor tenants and subscription plans.</p>
+  </div>
+  @if (tab() === 'tenants') {
+    <button class="px-4 py-2 bg-primary-container text-on-primary rounded font-medium text-sm hover:opacity-90 transition-opacity" (click)="showCreate.set(!showCreate())">
+      {{ showCreate() ? 'Close' : 'Create tenant' }}
+    </button>
+  }
+</div>
+
+<div class="flex gap-1 border-b border-outline-variant">
+  @for (t of ['tenants', 'plans']; track t) {
+    <button
+      class="px-4 py-2 text-sm font-medium capitalize -mb-px border-b-2 transition-colors"
+      [class]="tab() === t ? 'border-secondary text-secondary' : 'border-transparent text-on-surface-variant hover:text-on-background'"
+      (click)="tab.set($any(t))"
+    >
+      {{ t }}
+    </button>
+  }
+</div>
+
+@if (error()) {
+  <div class="bg-error-container/50 rounded-lg p-3 text-sm text-on-error-container">{{ error() }}</div>
+}
+
+@if (tab() === 'plans') {
+  <app-plans-editor [plans]="plans()" (changed)="plans.set($event)" />
+} @else {
+  @if (showCreate()) {
+    <app-create-tenant-form [plans]="plans()" (created)="onCreated($event)" />
+  }
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-x-auto">
+    <table class="w-full text-sm text-left">
+      <thead class="bg-surface-container-low text-on-surface-variant text-xs uppercase tracking-wider">
+        <tr>
+          <th class="px-4 py-3">Tenant</th>
+          <th class="px-4 py-3">Portal address</th>
+          <th class="px-4 py-3">Plan</th>
+          <th class="px-4 py-3">Status</th>
+          <th class="px-4 py-3 text-right">Users</th>
+          <th class="px-4 py-3 text-right">Clients</th>
+          <th class="px-4 py-3">Trial ends</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant">
+        @for (t of tenants(); track t.id) {
+          <tr>
+            <td class="px-4 py-3">
+              <p class="font-medium text-on-background">{{ t.name }}</p>
+              <p class="text-xs text-on-surface-variant font-mono">{{ t.slug }}</p>
+            </td>
+            <td class="px-4 py-3">
+              <p class="font-mono text-xs text-on-surface-variant">{{ portalAddress(t) }}</p>
+              <a [href]="portalLink(t)" target="_blank" rel="noopener" class="text-secondary text-xs hover:underline">Open portal</a>
+            </td>
+            <td class="px-4 py-3">
+              <select
+                class="border border-outline-variant rounded-md px-2 py-1 text-sm bg-surface-container-lowest"
+                [disabled]="busyId() === t.id"
+                (change)="changePlan(t, $any($event.target).value)"
+              >
+                @for (p of plans(); track p.code) {
+                  <option [value]="p.code" [selected]="p.code === t.planCode">{{ p.name }}</option>
+                }
+              </select>
+            </td>
+            <td class="px-4 py-3">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium" [class]="statusClass[t.status]">{{ t.status }}</span>
+            </td>
+            <td class="px-4 py-3 text-right font-mono">{{ t.users }}</td>
+            <td class="px-4 py-3 text-right font-mono">{{ t.clients }}</td>
+            <td class="px-4 py-3 text-on-surface-variant">{{ t.trialEndsAt ? (t.trialEndsAt | date: 'mediumDate') : '—' }}</td>
+            <td class="px-4 py-3 text-right">
+              <button
+                class="text-sm font-medium hover:underline disabled:opacity-50"
+                [class]="t.status === 'SUSPENDED' ? 'text-secondary' : 'text-error'"
+                [disabled]="busyId() === t.id"
+                (click)="toggleStatus(t)"
+              >
+                {{ t.status === 'SUSPENDED' ? 'Activate' : 'Suspend' }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="px-4 py-8 text-center text-on-surface-variant">{{ loading() ? 'Loading…' : 'No tenants yet.' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

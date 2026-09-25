@@ -14,6 +14,8 @@ export interface ShellConfig {
   ctaLabel?: string;
   ctaRoute?: string;
   theme?: 'light' | 'dark';
+  /** Platform console: keep the WealthOS brand instead of the tenant's. */
+  platform?: boolean;
   /** Optional "exit this module" link shown above the nav items, e.g. for a console entered from another portal.
    *  The destination is always the current user's own role home route (see DesktopShellComponent.backRoute) since
    *  a shell like Back Office can be reached by more than one role. */

@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { LoginOutcome, loginFailure } from './investor-account.service';
 
 // Real backend — see c:\dev\wealthos-auth-service (Spring Boot + MySQL, database "wealthos_auth").
 // Each of these four staff-facing roles has its OWN dedicated table (advisor_accounts,
@@ -25,6 +26,8 @@ export interface StaffAccount {
   phone: string;
   /** Signed JWT — present on login responses only. */
   token?: string;
+  tenantSlug?: string;
+  tenantName?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -32,11 +35,11 @@ export class StaffAccountService {
   private readonly http = inject(HttpClient);
 
   /** Returns the matching account only on a correct password — undefined for both an unknown email and a wrong password. */
-  async validateCredentials(role: StaffRole, email: string, password: string): Promise<StaffAccount | undefined> {
+  async validateCredentials(role: StaffRole, email: string, password: string, tenant: string): Promise<LoginOutcome<StaffAccount>> {
     try {
-      return await firstValueFrom(this.http.post<StaffAccount>(`${API_BASE}/${ROLE_PATH[role]}/login`, { email, password }));
-    } catch {
-      return undefined;
+      return { account: await firstValueFrom(this.http.post<StaffAccount>(`${API_BASE}/${ROLE_PATH[role]}/login`, { email, password, tenant })) };
+    } catch (err) {
+      return { error: loginFailure(err) };
     }
   }
 }
