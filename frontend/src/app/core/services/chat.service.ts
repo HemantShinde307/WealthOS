@@ -1,7 +1,7 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpEventType } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { Subscription, firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 
@@ -15,7 +15,31 @@ export interface ChatMessageDto {
   text: string;
   sentAt: string;
   readAt: string | null;
+  attachment: AttachmentDto | null;
 }
+
+export interface AttachmentDto {
+  id: string;
+  name: string;
+  contentType: string;
+  size: number;
+  previewable: boolean;
+  removed: boolean;
+}
+
+export interface FileItemDto {
+  id: string;
+  messageId: number;
+  name: string;
+  contentType: string;
+  size: number;
+  previewable: boolean;
+  uploadedBy: ChatRole;
+  uploadedAt: string;
+}
+
+export const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
+export const ALLOWED_ATTACHMENT_EXTENSIONS = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'txt', 'csv', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
 
 export interface ConversationDto {
   customerId: string;
@@ -39,12 +63,17 @@ export interface ChatMessageView extends ChatMessageDto {
   clientId?: string;
   pending?: boolean;
   failed?: boolean;
+  /** 0-100 while an attachment is uploading. */
+  uploadProgress?: number;
+  /** Server error text for a failed upload. */
+  failReason?: string;
 }
 
 type ServerEvent =
   | { type: 'ready'; role: ChatRole; code: string }
   | { type: 'pong' }
   | { type: 'message'; message: ChatMessageDto; clientId?: string }
+  | { type: 'attachment-removed'; customerId: string; attachmentId: string }
   | { type: 'read'; customerId: string; by: ChatRole; upToId: number }
   | { type: 'presence'; role: ChatRole; code: string; online: boolean }
   | { type: 'error'; error: string };
@@ -80,6 +109,9 @@ export class ChatService {
   readonly loadingMessages = signal(false);
   /** Last non-fatal error (send failure, rate limit, load failure). */
   readonly error = signal<string | null>(null);
+  /** Files (not removed) of the active conversation, newest first. */
+  readonly files = signal<FileItemDto[]>([]);
+  readonly filesLoading = signal(false);
 
   readonly unreadTotal = computed(() => this.conversations().reduce((sum, c) => sum + (c.unread || 0), 0));
   readonly activeConversation = computed(() => this.conversations().find((c) => c.customerId === this.activeCustomerId()) ?? null);
@@ -90,6 +122,7 @@ export class ChatService {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private pingTimer: ReturnType<typeof setInterval> | null = null;
   private readonly sendTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private readonly uploads = new Map<string, { file: File; caption: string; sub: Subscription | null }>();
 
   constructor() {
     // Close the socket and drop all state as soon as the user logs out (from anywhere).
@@ -144,6 +177,9 @@ export class ChatService {
     }
     this.sendTimers.forEach((t) => clearTimeout(t));
     this.sendTimers.clear();
+    this.uploads.forEach((u) => u.sub?.unsubscribe());
+    this.uploads.clear();
+    this.files.set([]);
     this.connected.set(false);
     this.conversations.set([]);
     this.messages.set([]);
@@ -246,6 +282,9 @@ export class ChatService {
       case 'message':
         this.onMessage(evt.message, evt.clientId);
         break;
+      case 'attachment-removed':
+        this.markAttachmentRemoved(evt.attachmentId);
+        break;
       case 'read':
         this.onReadEvent(evt.customerId, evt.by, evt.upToId);
         break;
@@ -277,6 +316,7 @@ export class ChatService {
         return [...list, { ...m }];
       });
       if (clientId) this.clearSendTimer(clientId);
+      if (m.attachment) void this.loadFiles();
     }
 
     const known = this.conversations().some((c) => c.customerId === m.customerId);
@@ -288,7 +328,7 @@ export class ChatService {
     this.conversations.update((list) => {
       const next = list.map((c) =>
         c.customerId === m.customerId
-          ? { ...c, lastMessage: m.text, lastMessageAt: m.sentAt, lastSender: m.senderRole, unread: mine || visible ? c.unread : c.unread + 1 }
+          ? { ...c, lastMessage: m.text || (m.attachment ? `Attachment: ${m.attachment.name}` : m.text), lastMessageAt: m.sentAt, lastSender: m.senderRole, unread: mine || visible ? c.unread : c.unread + 1 }
           : c,
       );
       return this.sortConversations(next);
@@ -343,7 +383,9 @@ export class ChatService {
   async openConversation(customerId: string): Promise<void> {
     this.activeCustomerId.set(customerId);
     this.messages.set([]);
+    this.files.set([]);
     this.hasMore.set(false);
+    void this.loadFiles();
     await this.reloadActiveThread();
     this.markRead();
   }
@@ -436,6 +478,7 @@ export class ChatService {
         readAt: null,
         clientId,
         pending: true,
+        attachment: null,
       },
     ]);
     this.transmit(clientId, body);
@@ -445,6 +488,15 @@ export class ChatService {
   retry(clientId: string): void {
     const m = this.messages().find((x) => x.clientId === clientId);
     if (!m) return;
+    const up = this.uploads.get(clientId);
+    if (up) {
+      this.error.set(null);
+      this.messages.update((list) =>
+        list.map((x) => (x.clientId === clientId ? { ...x, pending: true, failed: false, failReason: undefined, uploadProgress: 0 } : x)),
+      );
+      this.startUpload(clientId, up.file, up.caption, m.customerId);
+      return;
+    }
     if (!this.connected()) {
       this.error.set('Not connected. Reconnecting...');
       return;
@@ -457,6 +509,8 @@ export class ChatService {
   /** Drops a failed optimistic message. */
   discard(clientId: string): void {
     this.clearSendTimer(clientId);
+    this.uploads.get(clientId)?.sub?.unsubscribe();
+    this.uploads.delete(clientId);
     this.messages.update((list) => list.filter((x) => x.clientId !== clientId));
   }
 
@@ -488,7 +542,7 @@ export class ChatService {
 
   private failPending(): void {
     this.messages()
-      .filter((m) => m.pending && m.clientId)
+      .filter((m) => m.pending && m.clientId && !this.uploads.has(m.clientId))
       .forEach((m) => this.markFailed(m.clientId as string));
   }
 
@@ -496,6 +550,145 @@ export class ChatService {
     const t = this.sendTimers.get(clientId);
     if (t) clearTimeout(t);
     this.sendTimers.delete(clientId);
+  }
+
+  // ---------------------------------------------------------------- attachments
+
+  /** Uploads one file as a chat message (multipart REST). Returns a client-side validation error, or null when started. */
+  uploadAttachment(file: File, caption = ''): string | null {
+    const customerId = this.activeCustomerId();
+    if (!customerId) return 'Open a conversation first.';
+    const invalid = validateAttachment(file);
+    if (invalid) return invalid;
+    const clientId = newClientId();
+    const conv = this.activeConversation();
+    const text = caption.trim();
+    this.error.set(null);
+    this.uploads.set(clientId, { file, caption: text, sub: null });
+    this.messages.update((list) => [
+      ...list,
+      {
+        id: -Date.now() - Math.floor(Math.random() * 1000),
+        customerId,
+        advisorCode: conv?.advisorCode ?? '',
+        senderRole: this.myRole as ChatRole,
+        text,
+        sentAt: new Date().toISOString(),
+        readAt: null,
+        clientId,
+        pending: true,
+        uploadProgress: 0,
+        attachment: { id: '', name: file.name, contentType: file.type, size: file.size, previewable: false, removed: false },
+      },
+    ]);
+    this.startUpload(clientId, file, text, customerId);
+    return null;
+  }
+
+  private startUpload(clientId: string, file: File, caption: string, customerId: string): void {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    if (this.myRole === 'ADVISOR') form.append('customerId', customerId);
+    if (caption) form.append('caption', caption);
+    const entry = this.uploads.get(clientId);
+    if (!entry) return;
+    entry.sub?.unsubscribe();
+    entry.sub = this.http.post<ChatMessageDto>(`${API}/attachments`, form, { observe: 'events', reportProgress: true }).subscribe({
+      next: (ev) => {
+        if (ev.type === HttpEventType.UploadProgress) {
+          const pct = ev.total ? Math.min(99, Math.round((ev.loaded / ev.total) * 100)) : 0;
+          this.messages.update((list) => list.map((x) => (x.clientId === clientId ? { ...x, uploadProgress: pct } : x)));
+        } else if (ev.type === HttpEventType.Response && ev.body) {
+          this.uploads.delete(clientId);
+          const m = ev.body;
+          if (this.activeCustomerId() === m.customerId) {
+            this.messages.update((list) => {
+              // The socket push may already have delivered the server message.
+              if (list.some((x) => x.id === m.id)) return list.filter((x) => x.clientId !== clientId);
+              return list.map((x) => (x.clientId === clientId ? { ...m } : x));
+            });
+            void this.loadFiles();
+          } else {
+            this.messages.update((list) => list.filter((x) => x.clientId !== clientId));
+          }
+        }
+      },
+      error: (e) => {
+        void this.errorText(e, 'Upload failed.').then((reason) => {
+          this.messages.update((list) =>
+            list.map((x) => (x.clientId === clientId ? { ...x, pending: false, failed: true, failReason: reason, uploadProgress: undefined } : x)),
+          );
+        });
+      },
+    });
+  }
+
+  async loadFiles(): Promise<FileItemDto[]> {
+    const customerId = this.activeCustomerId();
+    if (!customerId || !this.canChat()) return [];
+    this.filesLoading.set(true);
+    try {
+      const params: Record<string, string> = this.myRole === 'ADVISOR' ? { customerId } : {};
+      const list = await firstValueFrom(this.http.get<FileItemDto[]>(`${API}/attachments`, { params }));
+      if (this.activeCustomerId() === customerId) this.files.set(list);
+      return list;
+    } catch (e) {
+      this.error.set(this.errText(e, 'Could not load files.'));
+      return [];
+    } finally {
+      this.filesLoading.set(false);
+    }
+  }
+
+  /** Fetches the file with the Bearer header; the blob carries the server's Content-Type. Throws Error(message). */
+  async fetchFileBlob(id: string, download: boolean): Promise<{ blob: Blob; contentType: string }> {
+    try {
+      const res = await firstValueFrom(
+        this.http.get(`${API}/attachments/${encodeURIComponent(id)}/content`, {
+          params: { download: download ? 'true' : 'false' },
+          responseType: 'blob',
+          observe: 'response',
+        }),
+      );
+      const contentType = (res.headers.get('Content-Type') ?? '').trim();
+      const body = res.body ?? new Blob();
+      return { blob: new Blob([body], { type: contentType }), contentType };
+    } catch (e) {
+      throw new Error(await this.errorText(e, 'Could not load the file.'));
+    }
+  }
+
+  /** Returns an error message, or null on success. */
+  async deleteFile(id: string): Promise<string | null> {
+    try {
+      await firstValueFrom(this.http.delete<void>(`${API}/attachments/${encodeURIComponent(id)}`));
+      this.markAttachmentRemoved(id);
+      return null;
+    } catch (e) {
+      return this.errText(e, 'Could not delete the file.');
+    }
+  }
+
+  private markAttachmentRemoved(attachmentId: string): void {
+    this.messages.update((list) =>
+      list.map((m) => (m.attachment?.id === attachmentId ? { ...m, attachment: { ...m.attachment, removed: true } } : m)),
+    );
+    this.files.update((list) => list.filter((f) => f.id !== attachmentId));
+  }
+
+  /** Like errText but also understands JSON error bodies delivered as a Blob (responseType 'blob'). */
+  private async errorText(e: unknown, fallback: string): Promise<string> {
+    if (e instanceof HttpErrorResponse && e.error instanceof Blob) {
+      try {
+        const msg = (JSON.parse(await e.error.text()) as { error?: string }).error;
+        if (msg) return msg;
+      } catch {
+        /* not JSON */
+      }
+      if (e.status === 0) return 'Cannot reach the server.';
+      return fallback;
+    }
+    return this.errText(e, fallback);
   }
 
   // ---------------------------------------------------------------- helpers
@@ -521,4 +714,16 @@ export class ChatService {
     }
     return fallback;
   }
+}
+
+/** Client-side pre-check; the server stays the authority. Returns an error message or null. */
+export function validateAttachment(file: File): string | null {
+  const dot = file.name.lastIndexOf('.');
+  const ext = dot >= 0 ? file.name.slice(dot + 1).toLowerCase() : '';
+  if (!ALLOWED_ATTACHMENT_EXTENSIONS.includes(ext)) {
+    return `File type not allowed. Allowed: ${ALLOWED_ATTACHMENT_EXTENSIONS.join(', ')}.`;
+  }
+  if (file.size === 0) return 'That file is empty.';
+  if (file.size > MAX_ATTACHMENT_BYTES) return 'File is too large (maximum 10 MB).';
+  return null;
 }

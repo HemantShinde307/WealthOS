@@ -40,7 +40,7 @@ class ChatServiceTest {
         investors = mock(InvestorAccountRepository.class);
         advisors = mock(AdvisorAccountRepository.class);
         registry = mock(ChatSessionRegistry.class);
-        service = new ChatService(messages, investors, advisors, registry, JsonMapper.builder().build());
+        service = new ChatService(messages, mock(ChatAttachmentRepository.class), investors, advisors, registry, JsonMapper.builder().build());
 
         InvestorAccount linked = new InvestorAccount("CL-1", "Ann", "ann@example.com", "hash", null);
         linked.setDistributorCode("ADV-1001");

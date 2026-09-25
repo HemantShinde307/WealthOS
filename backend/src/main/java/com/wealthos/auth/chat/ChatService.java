@@ -1,6 +1,7 @@
 package com.wealthos.auth.chat;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.wealthos.auth.chat.AttachmentDtos.AttachmentDto;
 import com.wealthos.auth.chat.ChatRequests.LinkResponse;
 import com.wealthos.auth.model.AdvisorAccount;
 import com.wealthos.auth.model.InvestorAccount;
@@ -13,7 +14,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -34,6 +39,7 @@ public class ChatService {
     private static final int MAX_PAGE = 100;
 
     private final ChatMessageRepository messages;
+    private final ChatAttachmentRepository attachments;
     private final InvestorAccountRepository investors;
     private final AdvisorAccountRepository advisors;
     private final ChatSessionRegistry registry;
@@ -44,11 +50,13 @@ public class ChatService {
 
     public ChatService(
             ChatMessageRepository messages,
+            ChatAttachmentRepository attachments,
             InvestorAccountRepository investors,
             AdvisorAccountRepository advisors,
             ChatSessionRegistry registry,
             ObjectMapper json) {
         this.messages = messages;
+        this.attachments = attachments;
         this.investors = investors;
         this.advisors = advisors;
         this.registry = registry;
@@ -67,6 +75,9 @@ public class ChatService {
     }
 
     record PresenceEvent(String type, ChatSenderRole role, String code, boolean online) {
+    }
+
+    record AttachmentRemovedEvent(String type, String customerId, String attachmentId) {
     }
 
     public record ErrorEvent(String type, String error) {
@@ -118,6 +129,12 @@ public class ChatService {
         ChatMessage saved = messages.save(new ChatMessage(conv.advisorCode(), conv.customerId(), conv.self(), text));
         ChatMessageDto dto = ChatMessageDto.from(saved);
 
+        publish(conv, dto, clientId, origin);
+        return dto;
+    }
+
+    /** Pushes a stored message to every live socket of both participants. */
+    public void publish(Conversation conv, ChatMessageDto dto, String clientId, WebSocketSession origin) {
         String plain = write(new MessageEvent("message", dto, null));
         String forOrigin = clientId == null ? plain : write(new MessageEvent("message", dto, clientId));
         registry.pushMessage(
@@ -126,7 +143,33 @@ public class ChatService {
                 plain,
                 origin,
                 forOrigin);
-        return dto;
+    }
+
+    public void publishAttachmentRemoved(Conversation conv, String attachmentId) {
+        String event = write(new AttachmentRemovedEvent("attachment-removed", conv.customerId(), attachmentId));
+        registry.push(ChatSessionRegistry.key(ChatSenderRole.ADVISOR, conv.advisorCode()), event);
+        registry.push(ChatSessionRegistry.key(ChatSenderRole.INVESTOR, conv.customerId()), event);
+    }
+
+    private List<ChatMessageDto> toDtos(List<ChatMessage> list) {
+        Set<String> ids = list.stream().map(ChatMessage::getAttachmentId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Map<String, ChatAttachment> byId = ids.isEmpty()
+                ? Map.of()
+                : attachments.findAllById(ids).stream().collect(Collectors.toMap(ChatAttachment::getId, a -> a));
+        return list.stream()
+                .map(m -> ChatMessageDto.from(
+                        m,
+                        m.getAttachmentId() == null ? null : Optional.ofNullable(byId.get(m.getAttachmentId())).map(AttachmentDto::from).orElse(null)))
+                .toList();
+    }
+
+    private String previewOf(Optional<ChatMessage> last) {
+        return last.map(m -> {
+            if (!m.getBody().isBlank() || m.getAttachmentId() == null) {
+                return m.getBody();
+            }
+            return attachments.findById(m.getAttachmentId()).map(a -> "Attachment: " + a.getOriginalName()).orElse("Attachment");
+        }).orElse(null);
     }
 
     public List<ChatMessageDto> history(AuthPrincipal principal, String requestedCustomerId, Long beforeId, Integer limit) {
@@ -136,7 +179,7 @@ public class ChatService {
         List<ChatMessage> found = beforeId == null
                 ? messages.findByAdvisorCodeAndCustomerIdOrderByIdDesc(conv.advisorCode(), conv.customerId(), page)
                 : messages.findByAdvisorCodeAndCustomerIdAndIdLessThanOrderByIdDesc(conv.advisorCode(), conv.customerId(), beforeId, page);
-        List<ChatMessageDto> result = new ArrayList<>(found.stream().map(ChatMessageDto::from).toList());
+        List<ChatMessageDto> result = new ArrayList<>(toDtos(found));
         Collections.reverse(result);
         return result;
     }
@@ -191,7 +234,7 @@ public class ChatService {
                 customer.getName(),
                 advisorCode,
                 advisorName,
-                last.map(ChatMessage::getBody).orElse(null),
+                previewOf(last),
                 last.map(ChatMessage::getSentAt).orElse(null),
                 last.map(ChatMessage::getSenderRole).orElse(null),
                 unread,

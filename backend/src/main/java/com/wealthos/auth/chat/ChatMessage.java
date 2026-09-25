@@ -41,6 +41,9 @@ public class ChatMessage {
     @Column(name = "read_at")
     private Instant readAt;
 
+    @Column(name = "attachment_id", length = 36)
+    private String attachmentId;
+
     protected ChatMessage() {
     }
 
@@ -51,6 +54,11 @@ public class ChatMessage {
         this.body = body;
     }
 
+    public ChatMessage(String advisorCode, String customerId, ChatSenderRole senderRole, String body, String attachmentId) {
+        this(advisorCode, customerId, senderRole, body);
+        this.attachmentId = attachmentId;
+    }
+
     public Long getId() { return id; }
     public String getAdvisorCode() { return advisorCode; }
     public String getCustomerId() { return customerId; }
@@ -58,4 +66,5 @@ public class ChatMessage {
     public String getBody() { return body; }
     public Instant getSentAt() { return sentAt; }
     public Instant getReadAt() { return readAt; }
+    public String getAttachmentId() { return attachmentId; }
 }
